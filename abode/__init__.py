@@ -6,18 +6,11 @@ import logging
 
 from .notification import NotificationRegistry
 
-BASE_URL = 'https://my.goabode.com/'
-
-LOGIN_URL = BASE_URL + 'api/auth2/login'
-LOGOUT_URL = BASE_URL + 'api/v1/logout'
-
-PANEL_URL = BASE_URL + 'api/v1/panel'
-PANEL_MODE_URL = BASE_URL + 'api/v1/panel/mode/$AREA$/$MODE$'
-
-DEVICES_URL = BASE_URL + 'api/v1/devices'
-DEVICE_URL = BASE_URL + 'api/v1/devices/$DEVID$'
-
-AREAS_URL = BASE_URL + 'api/v1/areas'
+from helpers.constants import (BASE_URL, LOGIN_URL,
+                               LOGOUT_URL,
+                               PANEL_URL, PANEL_MODE_URL,
+                               DEVICES_URL, DEVICE_URL,
+                               AREAS_URL)
 
 _ABODE_CONTROLLER = None
 

@@ -5,11 +5,11 @@ import abode
 
 from socketIO_client import SocketIO, LoggingNamespace
 
+from helpers.constants import (SOCKETIO_URL, SOCKETIO_HEADERS,
+                                DEVICE_UPDATE_EVENT,
+                                GATEWAY_MODE_EVENT)
+
 logging.basicConfig(level=logging.WARN)
-
-SOCKETIO_URL = 'https://io.goabode.com'
-
-SOCKETIO_HEADERS = {'Origin': 'https://my.goabode.com'}
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -99,8 +99,8 @@ class NotificationRegistry(object):
             headers=SOCKETIO_HEADERS,
             cookies=self._abode.session.cookies.get_dict())
 
-        self._socketio.on('com.goabode.device.update', self._on_device_update)
-        self._socketio.on('com.goabode.gateway.mode', self._on_mode_change)
+        self._socketio.on(DEVICE_UPDATE_EVENT, self._on_device_update)
+        self._socketio.on(GATEWAY_MODE_EVENT, self._on_mode_change)
 
         LOG.debug("Starting Abode SocketIO Notification Service")
 

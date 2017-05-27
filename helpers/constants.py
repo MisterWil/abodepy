@@ -1,6 +1,6 @@
 '''
 constants.py
-Generates constants for use in blinkpy
+Generates constants for use in abodepy
 '''
 import os
 
@@ -44,11 +44,30 @@ PYPI_URL = 'https://pypi.python.org/pypi/{}'.format(PROJECT_PACKAGE_NAME)
 '''
 URLS
 '''
-BLINK_URL = 'immedia-semi.com'
-LOGIN_URL = 'https://prod.' + BLINK_URL + '/login'
-LOGIN_BACKUP_URL = 'https://rest.piri/' + BLINK_URL + '/login'
-BASE_URL = 'https://prod.' + BLINK_URL
-DEFAULT_URL = 'prod.' + BLINK_URL
+BASE_URL = 'https://my.goabode.com/'
+
+LOGIN_URL = BASE_URL + 'api/auth2/login'
+LOGOUT_URL = BASE_URL + 'api/v1/logout'
+
+PANEL_URL = BASE_URL + 'api/v1/panel'
+PANEL_MODE_URL = BASE_URL + 'api/v1/panel/mode/$AREA$/$MODE$'
+
+DEVICES_URL = BASE_URL + 'api/v1/devices'
+DEVICE_URL = BASE_URL + 'api/v1/devices/$DEVID$'
+
+AREAS_URL = BASE_URL + 'api/v1/areas'
+
+
+'''
+NOTIFICATION CONSTANTS
+'''
+SOCKETIO_URL = 'https://io.goabode.com'
+
+SOCKETIO_HEADERS = {'Origin': 'https://my.goabode.com'}
+
+DEVICE_UPDATE_EVENT = 'com.goabode.device.update'
+GATEWAY_MODE_EVENT = 'com.goabode.gateway.mode'
+
 
 '''
 Dictionaries
