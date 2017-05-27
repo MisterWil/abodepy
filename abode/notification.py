@@ -62,6 +62,12 @@ class NotificationRegistry(object):
         LOG.debug("Device Status Update Received: %s", mode)
 
         alarm_device = self._abode.get_device('area_1', True)
+        
+        """At the time of development, refreshing after mode change notification
+        didn't seem to get the latest update immediately. As such, we will force
+        the mode status now to match the notification."""
+        
+        alarm_device.json_state['mode']['area_1'] = mode;
 
         for callback in self._callbacks.get(alarm_device, ()):
             callback(alarm_device)

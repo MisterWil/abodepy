@@ -37,7 +37,6 @@ def init_controller(username, password):
         created = True
     return [_ABODE_CONTROLLER, created]
 
-
 def get_controller():
     """Return the global controller from init_controller."""
     return _ABODE_CONTROLLER
@@ -61,7 +60,7 @@ class AbodeController():
         # Create a requests session to persist the cookies
         self.session = requests.session()
 
-        # If we got debug passed, we'll print out diagnostics.
+        # If debug was included, we'll print out diagnostics.
         if self.debug:
             LOG.setLevel(logging.DEBUG)
 
@@ -225,9 +224,9 @@ class AbodeDevice(object):
 
         if not self.name:
             if self.type:
-                self.name = 'Abode ' + self.type + ' ' + self.device_id
+                self.name = self.type + ' ' + self.device_id
             else:
-                self.name = 'Abode Device ' + self.device_id
+                self.name = 'Device ' + self.device_id
 
     def set_status(self, status):
         if self.json_state['control_url']:
@@ -290,6 +289,20 @@ class AbodeDevice(object):
         This data is updated by the subscription service.
         """
         return self.json_state.get(name.lower(), {})
+    
+    def get_name(self):
+        return self.name
+        
+    def get_type(self):
+        return self.type
+        
+    def get_device_id(self):
+        return self.device_id
+    
+    def get_status(self):
+        """Shortcut to get the generic status of a device.
+        """
+        return self.get_value('status')
 
     def refresh(self, url=DEVICE_URL):
         """Refresh the devices json object data.
@@ -316,8 +329,7 @@ class AbodeDevice(object):
     def update(self, json_state):
         """Update the json data from a dictionary.
 
-        Only updates if it already exists in the device.
-        """
+        Only updates if it already exists in the device."""
 
         self.json_state.update({k: json_state[k] for k in json_state if self.json_state.get(k)})
 
@@ -394,12 +406,12 @@ class AbodeAlarm(AbodeSwitch):
         url = PANEL_MODE_URL.replace('$AREA$', area)
         url = url.replace('$MODE$', mode)
 
-        response = self.send_request("put", url)
+        response = self.abode_controller.send_request("put", url)
         response_object = json.loads(response.text)
 
         LOG.debug("Set Alarm Home Response: %s" % response.text)
 
-        LOG.info("Abode Alarm Mode Set To: %s" % response_object['mode'])
+        LOG.debug("Abode Alarm Mode Set To: %s" % response_object['mode'])
 
         return response_object['mode']
 
@@ -440,11 +452,33 @@ class AbodeAlarm(AbodeSwitch):
         val = val.lower()
 
         return val != 'standby'
+        
+    def get_mode(self, area='1', refresh=False):
+        """Get alarm mode.
+        
+        Refresh data from Abode if refresh is True, otherwise use local cache.
+        Refresh is only needed if you're not using notifications.
+        """
+        if refresh:
+            self.refresh()
+            
+        mode = self.get_value('mode').get('area_'+area, None)
+        
+        if not mode:
+            self.abode_controller.abort("Unable to get abode alarm mode for area %s." % area)
+            
+        mode = mode.lower()
+        
+        return mode;
+        
+    def get_status(self):
+        return self.get_mode()
 
     def refresh(self):
         response_object = AbodeDevice.refresh(self, PANEL_URL)
-
-        self.abode_controller.panel.update(response_object)
+        self.abode_controller.panel.update(response_object[0])
+        
+        return response_object;
 
 class AbodeSensor(AbodeDevice):
     """Class to represent a supported sensor."""

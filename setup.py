@@ -1,15 +1,23 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+from helpers.constants import (__version__, PROJECT_PACKAGE_NAME,
+                               PROJECT_LICENSE, PROJECT_URL,
+                               PROJECT_EMAIL, PROJECT_DESCRIPTION,
+                               PROJECT_CLASSIFIERS, PROJECT_AUTHOR,
+                               PROJECT_LONG_DESCRIPTION)
 
 setup(
-    name="python-abode",
-    version="1.0.0",
-    author="Wil Schrader",
-    author_email="wilrader@gmail.com",
-    description=("A thin Python wrapper for the Abode Alarm Non-Public API"),
-    license="MIT License",
-    keywords="api wrapper abode alarm goabode",
-    url="https://github.com/misterwil/python-abode",
-    py_modules=['abode'],
-    zip_safe=True,
-    install_requires=['requests>=1.6', 'responses'],
+    name = PROJECT_PACKAGE_NAME,
+    version = __version__,
+    description = PROJECT_DESCRIPTION,
+    long_description = PROJECT_LONG_DESCRIPTION,
+    author = PROJECT_AUTHOR,
+    author_email = PROJECT_EMAIL,
+    license = PROJECT_LICENSE,
+    url = PROJECT_URL,
+    platforms = 'any',
+    py_modules = ['abodepy'],
+    packages=find_packages(),
+    install_requires = ['requests>=2,<3', 'socketIO_client==0.7.2'],
+    test_suite = 'tests',
+    classifiers = PROJECT_CLASSIFIERS
 )
