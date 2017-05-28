@@ -1,0 +1,6 @@
+pytest>=2.9.2
+pytest-cov>=2.3.1
+pytest-timeout>=1.0.0
+requests>=2.12.4
+socketIO_client>=0.7.2
+testtools

@@ -57,7 +57,6 @@ DEVICE_URL = BASE_URL + 'api/v1/devices/$DEVID$'
 
 AREAS_URL = BASE_URL + 'api/v1/areas'
 
-
 '''
 NOTIFICATION CONSTANTS
 '''
@@ -68,8 +67,15 @@ SOCKETIO_HEADERS = {'Origin': 'https://my.goabode.com'}
 DEVICE_UPDATE_EVENT = 'com.goabode.device.update'
 GATEWAY_MODE_EVENT = 'com.goabode.gateway.mode'
 
+'''
+DICTIONARIES
+'''
+MODE_STANDBY = 'standby'
+MODE_HOME = 'home'
+MODE_AWAY = 'away'
 
-'''
-Dictionaries
-'''
-ONLINE = {'online': True, 'offline': False}
+ALL_MODES = [MODE_STANDBY, MODE_HOME, MODE_AWAY]
+
+ALL_MODES_STR = ", ".join(ALL_MODES)
+
+ARMED = {'home': True, 'away': True, 'standby': False}

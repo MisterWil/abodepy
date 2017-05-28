@@ -1,40 +1,71 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+"""
+abodeby by Wil Schrader - An Abode alarm Python library.
+https://github.com/MisterWil/abodepy
+Influenced by blinkpy, because I'm a python noob:
+https://github.com/fronzbot/blinkpy/
+Published under the MIT license - See LICENSE file for more details.
+"Blink Wire-Free HS Home Monitoring & Alert Systems" is a trademark
+owned by Immedia Inc., see www.blinkforhome.com for more information.
+I am in no way affiliated with Blink, nor Immedia Inc.
+"""
+
 import requests
 import json
 import sys
 import uuid
 import logging
-
-from .notification import NotificationRegistry
-
+from events import AbodeEvents
+import helpers.errors as ERROR
 from helpers.constants import (BASE_URL, LOGIN_URL,
                                LOGOUT_URL,
                                PANEL_URL, PANEL_MODE_URL,
                                DEVICES_URL, DEVICE_URL,
-                               AREAS_URL)
+                               AREAS_URL, MODE_STANDBY,
+                               MODE_HOME, MODE_AWAY, ALL_MODES,
+                               ALL_MODES_STR, ARMED)
 
-_ABODE_CONTROLLER = None
+_ABODE_INSTANCE = None
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
-def init_controller(username, password):
-    """Initialize a controller.
-    Provides a single global controller for applications that can't do this
+def init(username, password):
+    """Initialize an instance of Abode.
+    Provides a single global Abode instance for applications that can't do this
     themselves
     """
     # pylint: disable=global-statement
-    global _ABODE_CONTROLLER
+    global _ABODE_INSTANCE
     created = False
-    if _ABODE_CONTROLLER is None:
-        _ABODE_CONTROLLER = AbodeController(username, password)
+    if _ABODE_INSTANCE is None:
+        _ABODE_INSTANCE = Abode(username, password)
         created = True
-    return [_ABODE_CONTROLLER, created]
+    return [_ABODE_INSTANCE, created]
 
-def get_controller():
-    """Return the global controller from init_controller."""
-    return _ABODE_CONTROLLER
+def get_abode():
+    """Return the global abode instance from init."""
+    return _ABODE_INSTANCE
+    
+# pylint: disable=super-init-not-called
+class AbodeException(Exception):
+    """Class to throw general abode exception."""
 
-class AbodeController():
+    def __init__(self, errcode):
+        """Initialize AbodeException."""
+        self.errid = errcode[0]
+        self.message = errcode[1]
+
+
+class AbodeAuthenticationException(AbodeException):
+    """Class to throw authentication exception."""
+
+    pass
+
+
+class Abode():
 
     def __init__(self, username, password, get_devices=True, debug=False):
 
@@ -61,9 +92,13 @@ class AbodeController():
             self.get_devices()
 
     def login(self):
-        if not self.username or not self.password:
-            self.abort("You must provide a username and password.")
-
+        if self.username is None or self.password is None:
+            raise AbodeAuthenticationException(ERROR.AUTHENTICATE)
+        if not isinstance(self.username, str):
+            raise BlinkAuthenticationException(ERROR.USERNAME)
+        if not isinstance(self.password, str):
+            raise BlinkAuthenticationException(ERROR.PASSWORD)
+        
         self.token = None
 
         login_data = {
@@ -75,7 +110,7 @@ class AbodeController():
         response_object = json.loads(response.text)
 
         if response.status_code != 200:
-            self.abort(response_object['message']);
+            raise AbodeException((response.status_code, response_object['message']))
 
         LOG.debug("Login Response: %s" % response.text)
 
@@ -83,7 +118,7 @@ class AbodeController():
         self.panel = response_object['panel']
         self.user = response_object['user']
 
-        self.notification_registery = NotificationRegistry(self, self.debug)
+        self.abode_events = AbodeEvents(self, self.debug)
 
         return True
 
@@ -94,6 +129,9 @@ class AbodeController():
             }
 
             response = self.session.post(LOGOUT_URL, headers=header_data)
+            
+            if response.status_code != 200:
+                raise AbodeException((response.status_code, response_object['message']))
 
             LOG.debug("Logout Response: %s" % response.text)
 
@@ -104,23 +142,23 @@ class AbodeController():
         return True
 
     def start(self):
-        self.notification_registery.start()
+        self.abode_events.start()
 
     def stop(self):
-        self.notification_registery.stop()
+        self.abode_events.stop()
 
     def register(self, device, callback):
         if not isinstance(device, AbodeDevice):
             dev_id = device
-            device = self.get_device(device)
+            device = self.get_device(dev_id)
 
         if not device:
             LOG.warn("Failed to register callback. Value '%s' is not a device or device id." % dev_id)
             return
 
-        self.notification_registery.register(device, callback)
+        self.abode_events.register(device, callback)
 
-    def send_request(self, method, url, headers = {}, data = {}, retry=False):
+    def send_request(self, method, url, headers = {}, data = {}, is_retry=False):
         if not self.token:
             self.login()
 
@@ -130,11 +168,13 @@ class AbodeController():
 
         if response and response.status_code == 200:
             return response
-        elif retry == False:
+        elif is_retry == False:
+            '''Delete our current token and try again -- will force a login attempt.'''
             self.token = None
+            
             return self.send_request(method, url, headers, data, True)
 
-        self.abort("Repeated %s request failed for url: %s" % (method, url))
+        raise AbodeException((response.code, "Repeated %s request failed for url: %s" % (method, url)))
 
     def abort(self, msg):
         LOG.error("Aborting and Logging Out.")
@@ -378,7 +418,7 @@ class AbodeSwitch(AbodeDevice):
         val = self.get_value('status')
 
         if not val:
-            self.abode_controller.abort("Unable to get abode switch status for device %s." % self.device_id)
+            raise AbodeException(ERROR.INVALID_SWITCH_VALUE)
 
         val = val.lower()
 
@@ -389,8 +429,8 @@ class AbodeAlarm(AbodeSwitch):
 
     def set_mode(self, mode, area='1'):
         """Set Abode alarm mode."""
-        if not mode or mode.lower() not in ('home', 'away', 'standby'):
-            self.abode_controller.abort("Mode must be one of 'home', 'away', or 'standby'.")
+        if not mode or mode.lower() not in ALL_MODES:
+            self.abode_controller.abort("Mode must be one of %s." % ALL_MODES_STR)
 
         mode = mode.lower()
 
@@ -410,15 +450,15 @@ class AbodeAlarm(AbodeSwitch):
 
     def set_home(self, area='1'):
         """Arm Abode to home mode."""
-        return self.set_mode('home', area)
+        return self.set_mode(MODE_HOME, area)
 
     def set_away(self, area='1'):
         """Arm Abode to home mode."""
-        return self.set_mode('away', area)
+        return self.set_mode(MODE_AWAY, area)
 
     def set_standby(self, area='1'):
         """Arm Abode to stay mode."""
-        return self.set_mode('standby', area)
+        return self.set_mode(MODE_STANDBY, area)
 
     def switch_on(self, area='1'):
         """Arm Abode to home mode."""
@@ -440,11 +480,14 @@ class AbodeAlarm(AbodeSwitch):
         val = self.get_value('mode').get('area_'+area, None)
 
         if not val:
-            self.abode_controller.abort("Unable to get abode alarm mode for area %s." % area)
+            raise AbodeException(ERRORS.INVALID_ALARM_VALUE)
+            
+        if val not in ALL_MODES:
+            raise AbodeException(ERROR.INVALID_ALARM_MODE)
 
         val = val.lower()
 
-        return val != 'standby'
+        return ARMED[val];
         
     def get_mode(self, area='1', refresh=False):
         """Get alarm mode.
@@ -458,7 +501,7 @@ class AbodeAlarm(AbodeSwitch):
         mode = self.get_value('mode').get('area_'+area, None)
         
         if not mode:
-            self.abode_controller.abort("Unable to get abode alarm mode for area %s." % area)
+            raise AbodeException(ERROR.INVALID_ALARM_MODE)
             
         mode = mode.lower()
         
@@ -488,10 +531,12 @@ class AbodeBinarySensor(AbodeDevice):
         if refresh:
             self.refresh()
 
-        val = self.get_value('mode').get('area_'+area, None)
+        val = self.get_value('status')
 
         if not val:
-            self.abode_controller.abort("Unable to get abode alarm mode for area %s." % area)
+            raise AbodeException(ERROR.INVALID_SWITCH_VALUE)
+
+        val = val.lower()
 
         return val in ('online', 'closed')
 
@@ -518,7 +563,7 @@ class AbodeLock(AbodeDevice):
         val = self.get_value('status')
 
         if not val:
-            self.abode_controller.abort("Unable to get Abode lock status for device %s." % self.device_id)
+            raise AbodeException(ERROR.INVALID_LOCK_VALUE)
 
         val = val.lower()
 

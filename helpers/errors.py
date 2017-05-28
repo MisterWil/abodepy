@@ -1,0 +1,7 @@
+USERNAME = (0, "Username must be a string")
+PASSWORD = (1, "Password must be a string")
+AUTHENTICATE = (2, "Unable to authenticate, username or password not set")
+INVALID_SWITCH_VALUE = (3, "Invalid switch value")
+INVALID_ALARM_VALUE = (4, "Invalid alarm value")
+INVALID_ALARM_MODE = (5, "Invalid alarm mode")
+INVALUD_LOCK_VALUE = (6, "Invalid lock value")

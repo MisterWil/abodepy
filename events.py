@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import collections
 import threading
 import logging
-import abode
 
 from socketIO_client import SocketIO, LoggingNamespace
 
@@ -14,7 +16,7 @@ logging.basicConfig(level=logging.WARN)
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
-class NotificationRegistry(object):
+class AbodeEvents(object):
     """Class for subscribing to abode events."""
 
     def __init__(self, abode, debug=False):

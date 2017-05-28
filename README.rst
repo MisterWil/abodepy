@@ -1,36 +1,50 @@
-python-abode
-=================
+python-abode  |Build Status| |Coverage Status|
+=============================================
 A thin Python library for the Abode alarm API.
 Only compatible with Python 3+
 
+Disclaimer:
+~~~~~~~~~~~~~~~
+Published under the MIT license - See LICENSE file for more details.
+
+"Abode" is a trademark owned by Abode Systems inc., see www.goabode.com for more information.
+I am in no way affiliated with Abode.
+
+Thank you Abode for having a relatively simple API to reverse engineer. Hopefully in the future you'll
+open it up for official use.
+
+API calls faster than 60 seconds is not recommended as it can overwhelm Blink's servers. Leverage the cloud push
+event notification functionality as much as possible. Please use this module responsibly.
+
 Installation
 ============
-Standalone from source:
-``pip install .``
+Standalone from source::
+
+  pip install .
 
 Command Line Usage
 ============
-Simple command line implementation arguments:
+Simple command line implementation arguments::
 
-    $ python abode.py
-        usage: abode.py --username USERNAME --password PASSWORD
+    $ python abodecl.py
+        usage: abodecl.py --username USERNAME --password PASSWORD
                         [--mode] [--arm ARM] [--devices] [--device DEVICE] [--listen] [--debug]
                         
-You can get the current alarm mode:
+You can get the current alarm mode::
 
-    $ python abode.py --username USERNAME --password PASSWORD --mode
+    $ python abodecl.py --username USERNAME --password PASSWORD --mode
     
     Mode: standby
     
-To set the alarm mode, one of 'standby', 'home', or 'away':
+To set the alarm mode, one of 'standby', 'home', or 'away'::
 
-    $ python abode.py --username USERNAME --password PASSWORD --arm home
+    $ python abodecl.py --username USERNAME --password PASSWORD --arm home
     
     Mode set to: home
 
-A full list of devices and their current states:
+A full list of devices and their current states::
 
-    $ python abode.py --username USERNAME --password PASSWORD --devices
+    $ python abodecl.py --username USERNAME --password PASSWORD --devices
     
     Device Name: Glass Break Sensor, Device ID: RF:xxxxxxxx, Device Type: GLASS, Device Status: Online
     Device Name: Keypad, Device ID: RF:xxxxxxxx, Device Type: Keypad, Device Status: Online
@@ -45,22 +59,22 @@ A full list of devices and their current states:
     Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
     Device Name: Alarm area_1, Device ID: area_1, Device Type: Alarm, Device Status: standby
 
-The current state of a specific device using the device id:
+The current state of a specific device using the device id::
 
-    $ python abode.py --username USERNAME --password PASSWORD --device ZW:xxxxxxxx
+    $ python abodecl.py --username USERNAME --password PASSWORD --device ZW:xxxxxxxx
     
     Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
 
-Additionally, multiple specific devices using the device id
+Additionally, multiple specific devices using the device id::
     
-    $ python abode.py --username USERNAME --password PASSWORD --device ZW:xxxxxxxx --device RF:xxxxxxxx
+    $ python abodecl.py --username USERNAME --password PASSWORD --device ZW:xxxxxxxx --device RF:xxxxxxxx
     
     Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
     Device Name: Back Door, Device ID: RF:xxxxxxxx, Device Type: Door Contact, Device Status: Closed
    
-You can also block and listen for all device change events:
+You can also block and listen for all device change events::
 
-    $ python abode.py --username USERNAME --password PASSWORD --listen
+    $ python abodecl.py --username USERNAME --password PASSWORD --listen
     
         No devices specified, adding all devices to listener...
         Listening for device updates...
