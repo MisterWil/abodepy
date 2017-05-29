@@ -17,7 +17,7 @@ API calls faster than 60 seconds is not recommended as it can overwhelm Abode's 
 event notification functionality as much as possible. Please use this module responsibly.
 
 Installation
-================
+============
 Standalone from source::
 
     pip3 install .
@@ -27,7 +27,7 @@ From PyPi:
     pip3 install abodepy
   
 Command Line Usage
-=========
+==================
 Simple command line implementation arguments::
 
     $ python abodecl.py
@@ -95,16 +95,16 @@ If you specify one or more devices with the --device argument along with the --l
 Keyboard interupt CTRL+C to exit listening mode.
 
 Testing
-=========
+=======
 
 To test from source directly, run pytest with the PWD added to the python path::
 
     $ python -m pytest tests
 
 Library Usage
-=========
+=============
 TODO
 
 Class Descriptions
-=========
+==================
 TODO
