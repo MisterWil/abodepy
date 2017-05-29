@@ -6,7 +6,7 @@ import os
 
 MAJOR_VERSION = 0
 MINOR_VERSION = 1
-PATCH_VERSION = '0.dev'
+PATCH_VERSION = '0'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
@@ -79,3 +79,12 @@ ALL_MODES = [MODE_STANDBY, MODE_HOME, MODE_AWAY]
 ALL_MODES_STR = ", ".join(ALL_MODES)
 
 ARMED = {'home': True, 'away': True, 'standby': False}
+
+STATUS_ONLINE = 'Online'
+STATUS_OFFLINE = 'Offline'
+
+STATUS_OPEN = 'Open'
+STATUS_CLOSED = 'Closed'
+
+STATUS_LOCKOPEN = 'LockOpen'
+STATUS_LOCKCLOSED = 'LockClosed'
