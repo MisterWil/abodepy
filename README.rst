@@ -1,4 +1,4 @@
-python-abode
+python-abode |Build Status|
 =============================================
 A thin Python library for the Abode alarm API.
 Only compatible with Python 3+
@@ -108,3 +108,6 @@ TODO
 Class Descriptions
 ==================
 TODO
+
+.. |Build Status| image:: https://travis-ci.org/MisterWil/abodepy.svg?branch=master
+    :target: https://travis-ci.org/MisterWil/abodepy
