@@ -78,7 +78,9 @@ class Abode():
         self._token = None
         self._panel = None
         self._user = None
-        self.debug = debug
+        self._debug = debug
+        
+        self._default_alarm_mode = MODE_HOME
 
         self._devices = []
         self._device_id_lookup = {}
@@ -87,7 +89,7 @@ class Abode():
         self._session = requests.session()
 
         # If debug was included, we'll print out diagnostics.
-        if self.debug:
+        if self._debug:
             LOG.setLevel(logging.DEBUG)
 
         if self._username is not None and self._password is not None and auto_login:
@@ -129,7 +131,7 @@ class Abode():
         self._panel = response_object['panel']
         self._user = response_object['user']
 
-        self.abode_events = AbodeEvents(self, self.debug)
+        self.abode_events = AbodeEvents(self, self._debug)
 
         return True
 
@@ -151,6 +153,9 @@ class Abode():
             self._token = None
             self._panel = None
             self._user = None
+            
+            self._devices = []
+            self._device_id_lookup = {}
 
         return True
 
@@ -260,6 +265,13 @@ class Abode():
             refresh = False
 
         return self.get_device(area, refresh)
+        
+    def set_default_mode(self, default_mode):
+        self._default_alarm_mode = default_mode
+    
+    @property
+    def get_default_mode(self):
+        return self._default_alarm_mode
 
 class AbodeDevice(object):
     """Class to represent each Abode device."""
@@ -267,27 +279,27 @@ class AbodeDevice(object):
     def __init__(self, json_obj, abode_controller):
         """Set up Abode device."""
 
-        self.json_state = json_obj
-        self.device_id = self.json_state['id']
-        self.abode_controller = abode_controller
-        self.name = self.json_state.get('name')
-        self.type = self.json_state.get('type')
+        self._json_state = json_obj
+        self._device_id = self._json_state['id']
+        self._abode_controller = abode_controller
+        self._name = self._json_state.get('name')
+        self._type = self._json_state.get('type')
 
-        if not self.name:
-            if self.type:
-                self.name = self.type + ' ' + self.device_id
+        if not self._name:
+            if self._type:
+                self._name = self._type + ' ' + self.device_id
             else:
-                self.name = 'Device ' + self.device_id
+                self._name = 'Device ' + self.device_id
 
     def set_status(self, status):
-        if self.json_state['control_url']:
-            url = BASE_URL + self.json_state['control_url']
+        if self._json_state['control_url']:
+            url = BASE_URL + self._json_state['control_url']
 
             status_data = {
                 'status': str(status)
             }
 
-            response = self.abode_controller.send_request("put", url, data=status_data)
+            response = self._abode_controller.send_request("put", url, data=status_data)
             response_object = json.loads(response.text)
 
             LOG.debug("Set Status Reaponse: %s", response.text)
@@ -305,18 +317,24 @@ class AbodeDevice(object):
                             response_object['status'])
 
                 return False
+                
+            # Note: Status result is of int type, not of new status of device.
+            # Seriously, why would you do that?
+            # So, can't set status here must be done at device level.
 
             return True
+            
+        return False
 
     def set_level(self, level):
-        if self.json_state['control_url']:
-            url = BASE_URL + self.json_state['control_url']
+        if self._json_state['control_url']:
+            url = BASE_URL + self._json_state['control_url']
 
             level_data = {
                 'level': str(level)
             }
 
-            response = self.abode_controller.send_request("put", url, data=level_data)
+            response = self._abode_controller.send_request("put", url, data=level_data)
             response_object = json.loads(response.text)
 
             LOG.debug("Set Level Reaponse: %s", response.text)
@@ -334,6 +352,8 @@ class AbodeDevice(object):
                             response_object['level'])
 
                 return False
+                
+            # TODO: Figure out where level is indicated in device json object
 
             return True
 
@@ -343,21 +363,7 @@ class AbodeDevice(object):
         from if it has the data you require.
         This data is updated by the subscription service.
         """
-        return self.json_state.get(name.lower(), {})
-
-    def get_name(self):
-        return self.name
-
-    def get_type(self):
-        return self.type
-
-    def get_device_id(self):
-        return self.device_id
-
-    def get_status(self):
-        """Shortcut to get the generic status of a device.
-        """
-        return self.get_value('status')
+        return self._json_state.get(name.lower(), {})
 
     def refresh(self, url=DEVICE_URL):
         """Refresh the devices json object data.
@@ -365,7 +371,7 @@ class AbodeDevice(object):
         Only needed if you're not using the notification service."""
         url = url.replace('$DEVID$', self.device_id)
 
-        response = self.abode_controller.send_request("get", url)
+        response = self._abode_controller.send_request("get", url)
         response_object = json.loads(response.text)
 
         LOG.debug("Device Refresh Response: %s", response.text)
@@ -386,65 +392,114 @@ class AbodeDevice(object):
 
         Only updates if it already exists in the device."""
 
-        self.json_state.update({k: json_state[k] for k in json_state if self.json_state.get(k)})
+        self._json_state.update({k: json_state[k] for k in json_state if self._json_state.get(k)})
 
+    @property
+    def status(self):
+        """Shortcut to get the generic status of a device.
+        """
+        return self.get_value('status')
+        
     @property
     def battery_low(self):
         """Is battery level low, True or False"""
-        return self.get_value('faults').get('low_battery', '0') == '1'
+        return int(self.get_value('faults').get('low_battery', '0')) == 1
 
     @property
-    def is_responding(self):
+    def no_response(self):
         """Is the device responding, True or False"""
-        return self.get_value('faults').get('no_response', '0') == '0'
+        return int(self.get_value('faults').get('no_response', '0')) == 1
 
     @property
     def out_of_order(self):
         """Is the device out of order, True or False"""
-        return self.get_value('faults').get('out_of_order', '0') == '1'
+        return int(self.get_value('faults').get('out_of_order', '0')) == 1
 
     @property
     def tampered(self):
         """Has the device been tampered with, True or False"""
-        return self.get_value('faults').get('tempered', '0') == '1'
+        return int(self.get_value('faults').get('tempered', '0')) == 1
 
     @property
-    def abode_name(self):
+    def name(self):
         """The name of this device, either set by Abode or infered via type and id."""
-        return self.name
+        return self._name
+        
+    @property
+    def type(self):
+        """The type of this device."""
+        return self._type
 
     @property
-    def abode_device_id(self):
+    def device_id(self):
         """The ID Abode uses to refer to the device."""
-        return self.device_id
+        return self._device_id
 
 class AbodeSwitch(AbodeDevice):
     """Class to add switch functionality."""
 
     def switch_on(self):
         """Turn the switch on."""
-        self.set_status('1')
+        success = self.set_status('1')
+        
+        if success:
+            self._json_state['status'] = STATUS_ON
+            
+        return success
 
     def switch_off(self):
         """Turn the switch off."""
-        self.set_status('0')
+        success = self.set_status('0')
+        
+        if success:
+            self._json_state['status'] = STATUS_OFF
+            
+        return success
 
-    def is_switched_on(self, refresh=False):
-        """Get switch state.
-        Refresh data from Abode if refresh is True, otherwise use local cache.
-        Refresh is only needed if you're not using notifications.
-        """
-        if refresh:
-            self.refresh()
+    @property
+    def is_on(self):
+        """Get switch state."""
+        return self.status not in STATUS_OFF
 
-        val = self.get_value('status')
+class AbodeSensor(AbodeDevice):
+    """Class to represent a supported sensor."""
 
-        if not val:
-            raise AbodeException(ERROR.INVALID_SWITCH_VALUE)
+class AbodeBinarySensor(AbodeDevice):
+    """Class to represent an on / off, online/offline sensor."""
 
-        val = val.lower()
+    @property
+    def is_on(self):
+        """Get sensor on off state."""
+        return self.status in (STATUS_ONLINE, STATUS_CLOSED)
 
-        return val not in 'off'
+class AbodeLock(AbodeDevice):
+    """Class to represent a door lock."""
+
+    def lock(self):
+        """Lock the device."""
+        success = self.set_status('1')
+        
+        if success:
+            self._json_state['status'] = STATUS_LOCKCLOSED
+            
+        return success
+
+    def unlock(self):
+        """Unlock the device."""
+        success = self.set_status('0')
+        
+        if success:
+            self._json_state['status'] = STATUS_LOCKOPEN
+            
+        return success
+
+    @property
+    def is_locked(self):
+        """Get locked state."""
+        # Err on side of caution; assume if lock isn't explicitly
+        # 'LockClosed' then it's open
+        return self.status not in STATUS_LOCKCLOSED
+
 
 class AbodeAlarm(AbodeSwitch):
     """Class to represent the Abode alarm as a device that can be switched on and off."""
@@ -458,17 +513,35 @@ class AbodeAlarm(AbodeSwitch):
 
         LOG.debug("Setting Abode Alarm Mode To: %s", mode)
 
-        url = PANEL_MODE_URL.replace('$AREA$', self.device_id)
-        url = url.replace('$MODE$', mode)
-
-        response = self.abode_controller.send_request("put", url)
-        response_object = json.loads(response.text)
-
+        response = self._abode_controller.send_request("put", PANEL_MODE_URL(self.device_id, mode))
+        
+        if not response or response.status_code != 200:
+            LOG.warning("Failed to set alarm mode.")
+            return False
+        
         LOG.debug("Set Alarm Home Response: %s", response.text)
 
-        LOG.debug("Abode Alarm Mode Set To: %s", response_object['mode'])
+        response_object = json.loads(response.text)
+        
+        if response_object['area'] != self.device_id:
+            LOG.warning("Alarm mode level response area does not match request. \
+                        Request Area: %s, Response Area: %s", self.device_id,
+                        response_object['area'])
 
-        return response_object['mode']
+            return False
+
+        if response_object['mode'] != mode:
+            LOG.warning("Alarm mode response mode does not match request. \
+                        Request Mode: %s, Response Mode: %s", mode,
+                        response_object['mode'])
+
+            return False
+
+        LOG.debug("Abode Alarm Mode Set To: %s", response_object['mode'])
+        
+        self._json_state['mode']['area_'+self.device_id] = response_object['mode']
+
+        return True
 
     def set_home(self):
         """Arm Abode to home mode."""
@@ -484,43 +557,27 @@ class AbodeAlarm(AbodeSwitch):
 
     def switch_on(self):
         """Arm Abode to home mode."""
-        return self.set_mode(self.abode_controller.get_default_alarm_state())
+        return self.set_mode(self._abode_controller.get_default_alarm_state())
 
     def switch_off(self):
         """Arm Abode to home mode."""
         return self.set_standby()
 
-    def is_switched_on(self, refresh=False):
-        """Get armed state.
+    def refresh(self, url=PANEL_URL):
+        response_object = AbodeDevice.refresh(self, url)
+        self._abode_controller._panel.update(response_object[0])
 
-        Refresh data from Abode if refresh is True, otherwise use local cache.
-        Refresh is only needed if you're not using notifications.
-        """
-        if refresh:
-            self.refresh()
-
-        val = self.get_value('mode').get(self.device_id, None)
-
-        if not val:
-            raise AbodeException(ERROR.INVALID_ALARM_VALUE)
-
-        if val not in ALL_MODES:
-            raise AbodeException(ERROR.INVALID_ALARM_MODE)
-
-        val = val.lower()
-
-        return ARMED[val]
-
-    def get_mode(self, refresh=False):
-        """Get alarm mode.
-
-        Refresh data from Abode if refresh is True, otherwise use local cache.
-        Refresh is only needed if you're not using notifications.
-        """
-        if refresh:
-            self.refresh()
-
-        mode = self.get_value('mode').get(self.device_id, None)
+        return response_object
+        
+    @property
+    def is_on(self):
+        """Is alarm armed."""
+        return self.mode in (MODE_HOME, MODE_AWAY)
+    
+    @property
+    def mode(self):
+        """Get alarm mode."""
+        mode = self.get_value('mode').get('area_'+self.device_id, None)
 
         if not mode:
             raise AbodeException(ERROR.INVALID_ALARM_MODE)
@@ -528,78 +585,21 @@ class AbodeAlarm(AbodeSwitch):
         mode = mode.lower()
 
         return mode
-
-    def get_status(self):
-        return self.get_mode()
-
-    def refresh(self, url=PANEL_URL):
-        response_object = AbodeDevice.refresh(self, url)
-        self.abode_controller._panel.update(response_object[0])
-
-        return response_object
+        
+    @property
+    def status(self):
+        """To match existing property."""
+        return self.mode
 
     @property
-    def backup_battery(self):
+    def battery(self):
         """Is base station on battery backup, True of False"""
-        return self.json_state.get('battery', '0') == '1'
+        return int(self._json_state.get('battery', '0')) == 1
 
     @property
     def is_cellular(self):
         """Is base station on cellular backup, True of False"""
-        return self.json_state.get('is_cellular', '0') == '1'
-
-class AbodeSensor(AbodeDevice):
-    """Class to represent a supported sensor."""
-
-class AbodeBinarySensor(AbodeDevice):
-    """Class to represent an on / off sensor."""
-
-    def is_switched_on(self, refresh=False):
-        """Get sensor on off state.
-
-        Refresh data from Abode if refresh is True, otherwise use local cache.
-        Refresh is only needed if you're not using notifications.
-        """
-        if refresh:
-            self.refresh()
-
-        val = self.get_value('status')
-
-        if not val:
-            raise AbodeException(ERROR.INVALID_SWITCH_VALUE)
-
-        val = val.lower()
-
-        return val in 'online', 'closed'
-
-class AbodeLock(AbodeDevice):
-    """Class to represent a door lock."""
-
-    def lock(self):
-        """Lock the device."""
-        self.set_status('1')
-
-    def unlock(self):
-        """Unlock the device."""
-        self.set_status('0')
-
-    def is_locked(self, refresh=False):
-        """Get locked state.
-
-        Refresh data from Abode if refresh is True, otherwise use local cache.
-        Refresh is only needed if you're not using notifications.
-        """
-        if refresh:
-            self.refresh()
-
-        val = self.get_value('status')
-
-        if not val:
-            raise AbodeException(ERROR.INVALID_LOCK_VALUE)
-
-        val = val.lower()
-
-        return val not in 'lockclosed'
+        return int(self._json_state.get('is_cellular', '0')) == 1
 
 class AbodeEvents(object):
     """Class for subscribing to abode events."""
@@ -649,13 +649,13 @@ class AbodeEvents(object):
 
         LOG.debug("Device Status Update Received: %s", mode)
 
-        alarm_device = self._abode.get_device('area_1', True)
+        alarm_device = self._abode.get_alarm(refresh=True)
 
         # At the time of development, refreshing after mode change notification
         # didn't seem to get the latest update immediately. As such, we will force
         # the mode status now to match the notification.
 
-        alarm_device.json_state['mode']['area_1'] = mode
+        alarm_device._json_state['mode']['area_1'] = mode
 
         for callback in self._callbacks.get(alarm_device, ()):
             callback(alarm_device)

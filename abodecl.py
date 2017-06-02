@@ -46,17 +46,18 @@ ABODE = abodepy.Abode(username=ARGS['username'], password=ARGS['password'],
 
 # Output current mode.
 if ARGS['mode']:
-    print("Mode: %s" % ABODE.get_alarm().get_mode())
+    print("Mode: %s" % ABODE.get_alarm().mode)
 
 # Change system mode.
 if ARGS['arm']:
-    print("Mode set to: %s" % ABODE.get_alarm().set_mode(ARGS['arm']))
+    if ABODE.get_alarm().set_mode(ARGS['arm']):
+        print("Mode changed to: %s" % ARGS['arm'])
+    else:
+        print("Mode failed to change to: %s" % ARGS['arm'])
 
 def _device_print(dev, append=''):
     print("Device Name: %s, Device ID: %s, Device Type: %s, Device Status: %s%s" % (
-                dev.get_name(), dev.get_device_id(),
-                dev.get_type(), dev.get_status(),
-                append))
+                dev.name, dev.device_id, dev.type, dev.status, append))
 
 # Print out all devices.
 if ARGS['devices']:

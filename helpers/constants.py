@@ -50,7 +50,9 @@ LOGIN_URL = BASE_URL + 'api/auth2/login'
 LOGOUT_URL = BASE_URL + 'api/v1/logout'
 
 PANEL_URL = BASE_URL + 'api/v1/panel'
-PANEL_MODE_URL = BASE_URL + 'api/v1/panel/mode/$AREA$/$MODE$'
+
+def PANEL_MODE_URL(area, mode):
+    return BASE_URL + 'api/v1/panel/mode/'+area+'/'+mode
 
 DEVICES_URL = BASE_URL + 'api/v1/devices'
 DEVICE_URL = BASE_URL + 'api/v1/devices/$DEVID$'
@@ -88,3 +90,6 @@ STATUS_CLOSED = 'Closed'
 
 STATUS_LOCKOPEN = 'LockOpen'
 STATUS_LOCKCLOSED = 'LockClosed'
+
+STATUS_ON = 'On'
+STATUS_OFF = 'Off'

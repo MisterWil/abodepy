@@ -9,7 +9,8 @@ import helpers.constants as const
 AUTH_TOKEN = 'web-1eb04ba2236d85f49d4b9b4bb91665f2'
 AUTH_TOKEN_2 = 'web-391fb500ad4d0734b11ea2cc494876f2'
 
-PANEL_RESPONSE = '{\
+def PANEL_RESPONSE(mode=const.MODE_STANDBY, battery=False, is_cellular=False):
+    return '{\
        "version":"ABGW 0.0.2.17F ABGW-L1-XA36J 3.1.2.6.1 Z-Wave 3.95",\
        "report_account":"5555",\
        "online":"1",\
@@ -20,7 +21,7 @@ PANEL_RESPONSE = '{\
        "z_wave_version":"Z-Wave 3.95",\
        "timezone":"America\/New_York",\
        "ac_fail":"0",\
-       "battery":"0",\
+       "battery":"'+str(int(battery))+'",\
        "ip":"192.168.1.1",\
        "jam":"0",\
        "rssi":"2",\
@@ -38,12 +39,12 @@ PANEL_RESPONSE = '{\
        "setup_contacts":"1",\
        "setup_billing":"1",\
        "setup_users":"1",\
-       "is_cellular":"0",\
+       "is_cellular":"'+str(int(is_cellular))+'",\
        "plan_set_id":"1",\
        "dealer_id":"0",\
        "tz_diff":"-04:00",\
        "mode":{  \
-          "area_1":"standby",\
+          "area_1":"'+mode+'",\
           "area_2":"standby"\
        }\
     }'
@@ -88,7 +89,7 @@ LOGIN_RESPONSE = '\
        "expired_at":"2017-06-05 00:14:12",\
        "initiate_screen":"timeline",\
        "user":'+USER_RESPONSE+',\
-       "panel":'+PANEL_RESPONSE+',\
+       "panel":'+PANEL_RESPONSE()+',\
        "permissions":{  \
           "premium_streaming":"0",\
           "guest_app":"0",\
@@ -123,7 +124,7 @@ LOGIN_RESPONSE_2 = '\
        "expired_at":"2017-06-05 00:14:12",\
        "initiate_screen":"timeline",\
        "user":'+USER_RESPONSE+',\
-       "panel":'+PANEL_RESPONSE+',\
+       "panel":'+PANEL_RESPONSE()+',\
        "permissions":{  \
           "premium_streaming":"0",\
           "guest_app":"0",\
@@ -160,3 +161,5 @@ LOGOUT_RESPONSE = '{"code":200,"message":"Logout successful."}'
 
 EMPTY_DEVICE_RESPONSE = '[]'
 
+def PANEL_MODE_RESPONSE(area=1, mode=const.MODE_STANDBY):
+    return '{"area": "'+area+'", "mode": "'+mode+'"}'

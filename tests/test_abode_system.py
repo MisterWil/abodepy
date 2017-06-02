@@ -71,14 +71,14 @@ class TestAbodeSetup(unittest.TestCase):
         m.post(const.LOGIN_URL, text=mresp.LOGIN_RESPONSE)
         m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
         m.get(const.DEVICES_URL, text=mresp.EMPTY_DEVICE_RESPONSE)
-        m.get(const.PANEL_URL, text=mresp.PANEL_RESPONSE)
+        m.get(const.PANEL_URL, text=mresp.PANEL_RESPONSE())
         
         self.abode.get_devices()
         
         self.assertEqual(self.abode._username, USERNAME)
         self.assertEqual(self.abode._password, PASSWORD)
         self.assertEqual(self.abode._token, mresp.AUTH_TOKEN)
-        self.assertEqual(self.abode._panel, json.loads(mresp.PANEL_RESPONSE))
+        self.assertEqual(self.abode._panel, json.loads(mresp.PANEL_RESPONSE()))
         self.assertEqual(self.abode._user, json.loads(mresp.USER_RESPONSE))
         self.assertIsNotNone(self.abode._device_id_lookup['1'])
 
@@ -91,18 +91,18 @@ class TestAbodeSetup(unittest.TestCase):
     @requests_mock.mock()
     def test_abode_alarm_setup(self, m):
         """Check that Abode alarm device is set up properly."""
-        test_alarm = json.loads(mresp.PANEL_RESPONSE)
+        test_alarm = json.loads(mresp.PANEL_RESPONSE())
         test_alarm['id'] = '1'
         test_alarm['type'] = 'Alarm'
         
         m.post(const.LOGIN_URL, text=mresp.LOGIN_RESPONSE)
         m.get(const.DEVICES_URL, text=mresp.EMPTY_DEVICE_RESPONSE)
-        m.get(const.PANEL_URL, text=mresp.PANEL_RESPONSE)
+        m.get(const.PANEL_URL, text=mresp.PANEL_RESPONSE())
         
         alarmDevice = self.abode.get_alarm()
         
         self.assertIsNotNone(alarmDevice)
-        self.assertEqual(alarmDevice.json_state, test_alarm)
+        self.assertEqual(alarmDevice._json_state, test_alarm)
         
     @requests_mock.mock()
     def test_reauthorize(self, m):
@@ -110,7 +110,7 @@ class TestAbodeSetup(unittest.TestCase):
         m.post(const.LOGIN_URL, text=mresp.LOGIN_RESPONSE_2)
         m.get(const.DEVICES_URL, [{'text': mresp.API_KEY_INVALID_RESPONSE, 'status_code':403},
                                  {'text': mresp.EMPTY_DEVICE_RESPONSE, 'status_code':200}])
-        m.get(const.PANEL_URL, text=mresp.PANEL_RESPONSE)
+        m.get(const.PANEL_URL, text=mresp.PANEL_RESPONSE())
         
         alarmDevice = self.abode.get_devices()
         
