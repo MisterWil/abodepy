@@ -1,5 +1,7 @@
 [MASTER]
 reports=no
+good-names=m
+notes=FIXME,XXX
 
 # Reasons disabled:
 # locally-disabled - it spams too much

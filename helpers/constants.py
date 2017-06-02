@@ -1,12 +1,13 @@
-'''
+"""
 constants.py
+
 Generates constants for use in abodepy
-'''
+"""
 import os
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 2
-PATCH_VERSION = '0'
+MINOR_VERSION = 3
+PATCH_VERSION = 'dev0'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
@@ -51,8 +52,10 @@ LOGOUT_URL = BASE_URL + 'api/v1/logout'
 
 PANEL_URL = BASE_URL + 'api/v1/panel'
 
+
 def PANEL_MODE_URL(area, mode):
-    return BASE_URL + 'api/v1/panel/mode/'+area+'/'+mode
+    return BASE_URL + 'api/v1/panel/mode/' + area + '/' + mode
+
 
 DEVICES_URL = BASE_URL + 'api/v1/devices'
 DEVICE_URL = BASE_URL + 'api/v1/devices/$DEVID$'

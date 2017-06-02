@@ -10,12 +10,13 @@ owned by Immedia Inc., see www.blinkforhome.com for more information.
 I am in no way affiliated with Blink, nor Immedia Inc.
 """
 
-import sys
 import argparse
+import sys
 import time
-import abodepy
 
+import abodepy
 from helpers.constants import (ALL_MODES, ALL_MODES_STR)
+
 
 PARSER = argparse.ArgumentParser()
 
@@ -26,7 +27,8 @@ PARSER.add_argument('--mode', help='Output Alarm Mode',
 PARSER.add_argument('--arm', help='Arm Alarm To Mode', required=False)
 PARSER.add_argument('--devices', help='List All Devices',
                     required=False, default=False, action="store_true")
-PARSER.add_argument('--device', help='Get Device', required=False, action='append')
+PARSER.add_argument('--device', help='Get Device',
+                    required=False, action='append')
 PARSER.add_argument('--listen', help='Listen For Device Updates',
                     required=False, default=False, action="store_true")
 PARSER.add_argument('--debug', help='Output Debugging',
@@ -55,14 +57,21 @@ if ARGS['arm']:
     else:
         print("Mode failed to change to: %s" % ARGS['arm'])
 
+
 def _device_print(dev, append=''):
-    print("Device Name: %s, Device ID: %s, Device Type: %s, Device Status: %s%s" % (
-                dev.name, dev.device_id, dev.type, dev.status, append))
+    print("Device Name: %s, ID: %s, Type: %s, Status: %s%s" % (
+        dev.name, dev.device_id, dev.type, dev.status, append))
+
 
 # Print out all devices.
 if ARGS['devices']:
     for device in ABODE.get_devices():
         _device_print(device)
+
+
+def _device_callback(dev):
+    _device_print(dev, ", At: " + time.strftime("%Y-%m-%d %H:%M:%S"))
+
 
 # Print out specific devices by device id.
 if ARGS['device']:
@@ -76,9 +85,6 @@ if ARGS['device']:
             ABODE.register(device, _device_callback)
         else:
             print("Could not find device with id: %s" % device_id)
-
-def _device_callback(dev):
-    _device_print(dev, ", At: " + time.strftime("%Y-%m-%d %H:%M:%S"))
 
 # Start device change listener.
 if ARGS['listen']:
