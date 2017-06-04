@@ -131,6 +131,12 @@ LOGIN_FAIL_RESPONSE = '''
         "detail":null
     }'''
 
+LOGOUT_FAIL_RESPONSE = '''
+    {
+        "code":400,"message":"Some logout error occured.",
+        "detail":null
+    }'''
+
 API_KEY_INVALID_RESPONSE = '{"code":403,"message":"Invalid API Key"}'
 
 LOGOUT_RESPONSE = '{"code":200,"message":"Logout successful."}'

@@ -92,6 +92,86 @@ class TestAbodeDevicesSetup(unittest.TestCase):
         self.assertEqual(device.status, const.STATUS_OFFLINE)
 
     @requests_mock.mock()
+    def test_multiple_devices(self, m):
+        """Tests that multiple devices are returned properly."""
+        # Set up URL's
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.PANEL_URL,
+              text=mresp.panel_response(mode=const.MODE_STANDBY))
+
+        # Set up a list of devices
+        dev_list = '[' + \
+            mdev.power_switch_device() + "," + \
+            mdev.door_contact_device() + "," + \
+            mdev.glass_break_device() + ']'
+
+        m.get(const.DEVICES_URL, text=dev_list)
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our devices
+        devices = self.abode.get_devices()
+
+        # Assert four devices - three from above + 1 alarm
+        self.assertIsNotNone(devices)
+        self.assertEqual(len(devices), 4)
+
+        # Get each individual device by device ID
+        psd = self.abode.get_device(mdev.POWER_SWITCH_DEVICE_ID)
+        self.assertIsNotNone(psd)
+
+        # Get each individual device by device ID
+        psd = self.abode.get_device(mdev.DOOR_CONTACT_DEVICE_ID)
+        self.assertIsNotNone(psd)
+
+        # Get each individual device by device ID
+        psd = self.abode.get_device(mdev.GLASS_BREAK_DEVICE_ID)
+        self.assertIsNotNone(psd)
+
+    @requests_mock.mock()
+    def test_device_category_filter(self, m):
+        """Tests that device category filter returns requested results."""
+        # Set up URL's
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.PANEL_URL,
+              text=mresp.panel_response(mode=const.MODE_STANDBY))
+
+        # Set up a list of devices
+        dev_list = '[' + \
+            mdev.power_switch_device(devid='ps1',
+                                     status=const.STATUS_OFF,
+                                     low_battery=False,
+                                     no_response=False) + "," + \
+            mdev.power_switch_device(devid='ps2',
+                                     status=const.STATUS_OFF,
+                                     low_battery=False,
+                                     no_response=False) + "," + \
+            mdev.glass_break_device(devid='gb1',
+                                    status=const.STATUS_OFF,
+                                    low_battery=False,
+                                    no_response=False) + ']'
+
+        m.get(const.DEVICES_URL, text=dev_list)
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our glass devices
+        devices = self.abode.get_devices(('GLASS'))
+
+        self.assertIsNotNone(devices)
+        self.assertEqual(len(devices), 1)
+
+        # Get our power switch devices
+        devices = self.abode.get_devices(('Power Switch Sensor'))
+
+        self.assertIsNotNone(devices)
+        self.assertEqual(len(devices), 2)
+
+    @requests_mock.mock()
     def test_alarm_device_properties(self, m):
         """Check that the abode device properties are working."""
         # Set up URL's
@@ -197,6 +277,28 @@ class TestAbodeDevicesSetup(unittest.TestCase):
         self.abode.set_default_mode(const.MODE_AWAY)
         self.assertTrue(alarm.switch_on())
         self.assertEqual(alarm.mode, const.MODE_AWAY)
+
+        # Test that no mode throws exception
+        with self.assertRaises(abodepy.AbodeException):
+            alarm.set_mode(mode=None)
+
+        # Test that an invalid mode throws exception
+        with self.assertRaises(abodepy.AbodeException):
+            alarm.set_mode('chestnuts')
+
+        # Test that an invalid mode change response throws exception
+        m.put(const.PANEL_MODE_URL('1', const.MODE_HOME),
+              text=mresp.panel_mode_response(area='1', mode=const.MODE_AWAY))
+
+        with self.assertRaises(abodepy.AbodeException):
+            alarm.set_mode(const.MODE_HOME)
+
+        # Test that an invalid area in mode change response throws exception
+        m.put(const.PANEL_MODE_URL('1', const.MODE_HOME),
+              text=mresp.panel_mode_response(area='2', mode=const.MODE_HOME))
+
+        with self.assertRaises(abodepy.AbodeException):
+            alarm.set_mode(const.MODE_HOME)
 
     @requests_mock.mock()
     def test_switch_device_properties(self, m):
@@ -403,3 +505,49 @@ class TestAbodeDevicesSetup(unittest.TestCase):
 
         with self.assertRaises(abodepy.AbodeException):
             device.unlock()
+
+    @requests_mock.mock()
+    def test_contact_device_properties(self, m):
+        """Tests that door contact device properties work as expected."""
+        # Set up URL's
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.PANEL_URL,
+              text=mresp.panel_response(mode=const.MODE_STANDBY))
+        m.get(const.DEVICES_URL,
+              text=mdev.door_contact_device(devid=mdev.DOOR_CONTACT_DEVICE_ID,
+                                            status=const.STATUS_CLOSED,
+                                            low_battery=False,
+                                            no_response=False))
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our lock
+        device = self.abode.get_device(mdev.DOOR_CONTACT_DEVICE_ID)
+
+        # Test our device
+        self.assertIsNotNone(device)
+        self.assertEqual(device.status, const.STATUS_CLOSED)
+        self.assertFalse(device.battery_low)
+        self.assertFalse(device.no_response)
+        self.assertTrue(device.is_on)
+
+        # Set up our direct device get url
+        device_url = str.replace(const.DEVICE_URL,
+                                 '$DEVID$', mdev.DOOR_CONTACT_DEVICE_ID)
+
+        # Change device properties
+        m.get(device_url,
+              text=mdev.door_contact_device(devid=mdev.DOOR_CONTACT_DEVICE_ID,
+                                            status=const.STATUS_OPEN,
+                                            low_battery=True,
+                                            no_response=True))
+
+        # Refesh device and test changes
+        device.refresh()
+
+        self.assertEqual(device.status, const.STATUS_OPEN)
+        self.assertTrue(device.battery_low)
+        self.assertTrue(device.no_response)
+        self.assertFalse(device.is_on)

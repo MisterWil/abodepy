@@ -26,30 +26,8 @@ import helpers.constants as CONST
 import helpers.errors as ERROR
 
 
-_ABODE_INSTANCE = None
-
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
-
-
-def init(username, password):
-    """Initialize an instance of Abode.
-
-    Provides a single global Abode instance for applications that can't do this
-    themselves.
-    """
-    # pylint: disable=global-statement
-    global _ABODE_INSTANCE
-    created = False
-    if _ABODE_INSTANCE is None:
-        _ABODE_INSTANCE = Abode(username, password)
-        created = True
-    return [_ABODE_INSTANCE, created]
-
-
-def get_abode():
-    """Return the global abode instance from init."""
-    return _ABODE_INSTANCE
 
 
 # pylint: disable=super-init-not-called
@@ -182,9 +160,7 @@ class Abode():
             device = self.get_device(dev_id)
 
         if not device:
-            LOG.warning(("Failed to register callback."
-                         "Value '%s' is not a device or device id."), dev_id)
-            return False
+            raise AbodeException(ERROR.INVALID_DEVICE_ID)
 
         return self.abode_events.register(device, callback)
 
@@ -380,6 +356,8 @@ class AbodeDevice(object):
             # TODO: Figure out where level is indicated in device json object
 
             return True
+
+        return False
 
     def get_value(self, name):
         """Get a value from the json object.
@@ -678,7 +656,7 @@ class AbodeEvents(object):
         if not mode or mode.lower() not in CONST.ALL_MODES:
             raise AbodeException(ERROR.INVALID_ALARM_MODE)
 
-        LOG.debug("Device Status Update Received: %s", mode)
+        LOG.debug("Alarm Mode Change Received: %s", mode)
 
         alarm_device = self._abode.get_alarm(refresh=True)
 

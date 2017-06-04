@@ -11,6 +11,7 @@ import requests_mock
 import abodepy
 import helpers.constants as const
 import tests.mock_responses as mresp
+import tests.mock_devices as mdev
 
 
 USERNAME = 'foobar'
@@ -61,6 +62,32 @@ class TestAbodeSetup(unittest.TestCase):
         self.assertEqual(self.abode_no_cred._password, PASSWORD)
 
     @requests_mock.mock()
+    def test_auto_login(self, m):
+        """Test that automatic login, device retrieval, and debug mode work."""
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.get(const.DEVICES_URL, text=mresp.EMPTY_DEVICE_RESPONSE)
+        m.get(const.PANEL_URL, text=mresp.panel_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+
+        abode = abodepy.Abode(username='fizz',
+                              password='buzz',
+                              auto_login=True,
+                              debug=True,
+                              get_devices=True)
+
+        # pylint: disable=W0212
+        self.assertEqual(abode._username, 'fizz')
+        self.assertEqual(abode._password, 'buzz')
+        self.assertEqual(abode._token, mresp.AUTH_TOKEN)
+        self.assertEqual(abode._panel, json.loads(mresp.panel_response()))
+        self.assertEqual(abode._user, json.loads(mresp.USER_RESPONSE))
+        self.assertIsNotNone(abode._device_id_lookup['1'])
+
+        abode.logout()
+
+        abode = None
+
+    @requests_mock.mock()
     def test_login_failure(self, m):
         """Test login failed."""
         m.post(const.LOGIN_URL,
@@ -69,6 +96,21 @@ class TestAbodeSetup(unittest.TestCase):
         # Check that we raise an Exception with a failed login request.
         with self.assertRaises(abodepy.AbodeAuthenticationException):
             self.abode_no_cred.login(username=USERNAME, password=PASSWORD)
+
+    @requests_mock.mock()
+    def test_logout_failure(self, m):
+        """Test logout failed."""
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.get(const.DEVICES_URL, text=mresp.EMPTY_DEVICE_RESPONSE)
+        m.get(const.PANEL_URL, text=mresp.panel_response())
+        m.post(const.LOGOUT_URL,
+               text=mresp.LOGOUT_FAIL_RESPONSE, status_code=400)
+
+        self.abode_no_cred.login(username=USERNAME, password=PASSWORD)
+
+        # Check that we raise an Exception with a failed login request.
+        with self.assertRaises(abodepy.AbodeAuthenticationException):
+            self.abode_no_cred.logout()
 
     @requests_mock.mock()
     def test_full_setup(self, m):
@@ -152,3 +194,29 @@ class TestAbodeSetup(unittest.TestCase):
 
         with self.assertRaises(abodepy.AbodeException):
             self.abode.set_default_mode('foobar')
+
+    @requests_mock.mock()
+    def test_device_event_registration(self, m):
+        """Check that device registration is working."""
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.DEVICES_URL, text=mdev.door_contact_device())
+        m.get(const.PANEL_URL, text=mresp.panel_response())
+
+        # Reset
+        self.abode.logout()
+
+        # Get devices
+        device = self.abode.get_device(mdev.DOOR_CONTACT_DEVICE_ID)
+
+        self.assertIsNotNone(device)
+
+        # Register device
+        self.assertTrue(self.abode.register(device, None))
+
+        # Test that you can register a device by devid
+        self.assertTrue(self.abode.register(mdev.DOOR_CONTACT_DEVICE_ID, None))
+
+        # Test that an invalid device raises exception
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.register('slapstick', None)
