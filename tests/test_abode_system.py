@@ -94,6 +94,8 @@ class TestAbodeSetup(unittest.TestCase):
         self.assertIsNone(self.abode._token)
         self.assertIsNone(self.abode._panel)
         self.assertIsNone(self.abode._user)
+        self.assertListEqual(self.abode._devices, [])
+        self.assertDictEqual(self.abode._device_id_lookup, {})
 
     @requests_mock.mock()
     def test_abode_alarm_setup(self, m):
@@ -139,3 +141,14 @@ class TestAbodeSetup(unittest.TestCase):
 
         with self.assertRaises(abodepy.AbodeException):
             self.abode.get_devices()
+
+    def test_default_mode(self):
+        """Test that the default mode fails if not of type home or away."""
+        self.abode.set_default_mode(const.MODE_HOME)
+        self.assertEqual(self.abode.default_mode, const.MODE_HOME)
+
+        self.abode.set_default_mode(const.MODE_AWAY)
+        self.assertEqual(self.abode.default_mode, const.MODE_AWAY)
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_default_mode('foobar')

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 abodecl by Wil Schrader - An Abode alarm Python library command line interface.
+
 https://github.com/MisterWil/abodepy
 
 Published under the MIT license - See LICENSE file for more details.

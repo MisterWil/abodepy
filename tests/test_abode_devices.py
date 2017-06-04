@@ -136,32 +136,6 @@ class TestAbodeDevicesSetup(unittest.TestCase):
         self.assertTrue(alarm.is_on)
 
     @requests_mock.mock()
-    def test_alarm_device_refresh(self, m):
-        """Test that the alarm device can refresh itself."""
-        # Set up URL's
-        m.post(const.LOGIN_URL, text=mresp.login_response())
-        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
-        m.get(const.PANEL_URL,
-              text=mresp.panel_response(mode=const.MODE_STANDBY))
-        m.get(const.DEVICES_URL, text=mresp.EMPTY_DEVICE_RESPONSE)
-
-        # Logout to reset everything
-        self.abode.logout()
-
-        # Assert that after login we have our alarm device
-        alarm = self.abode.get_alarm()
-
-        self.assertIsNotNone(alarm)
-        self.assertEqual(alarm.mode, const.MODE_STANDBY)
-
-        # Set new status response
-        m.get(const.PANEL_URL, text=mresp.panel_response(mode=const.MODE_AWAY))
-
-        alarm.refresh()
-
-        self.assertEqual(alarm.mode, const.MODE_AWAY)
-
-    @requests_mock.mock()
     def test_alarm_device_mode_changes(self, m):
         """Test that the abode alarm can change/report modes."""
         # Set up URL's
@@ -208,3 +182,224 @@ class TestAbodeDevicesSetup(unittest.TestCase):
 
         self.assertTrue(alarm.set_standby())
         self.assertEqual(alarm.mode, const.MODE_STANDBY)
+
+        # Set and test default mode changes
+        self.assertTrue(alarm.switch_off())
+        self.assertEqual(alarm.mode, const.MODE_STANDBY)
+
+        self.abode.set_default_mode(const.MODE_HOME)
+        self.assertTrue(alarm.switch_on())
+        self.assertEqual(alarm.mode, const.MODE_HOME)
+
+        self.assertTrue(alarm.switch_off())
+        self.assertEqual(alarm.mode, const.MODE_STANDBY)
+
+        self.abode.set_default_mode(const.MODE_AWAY)
+        self.assertTrue(alarm.switch_on())
+        self.assertEqual(alarm.mode, const.MODE_AWAY)
+
+    @requests_mock.mock()
+    def test_switch_device_properties(self, m):
+        """Tests that switch devices properties work as expected."""
+        # Set up URL's
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.PANEL_URL,
+              text=mresp.panel_response(mode=const.MODE_STANDBY))
+        m.get(const.DEVICES_URL,
+              text=mdev.power_switch_device(devid=mdev.POWER_SWITCH_DEVICE_ID,
+                                            status=const.STATUS_OFF,
+                                            low_battery=False,
+                                            no_response=False))
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our power switch
+        device = self.abode.get_device(mdev.POWER_SWITCH_DEVICE_ID)
+
+        # Test our device
+        self.assertIsNotNone(device)
+        self.assertEqual(device.status, const.STATUS_OFF)
+        self.assertFalse(device.battery_low)
+        self.assertFalse(device.no_response)
+        self.assertFalse(device.is_on)
+
+        # Set up our direct device get url
+        device_url = str.replace(const.DEVICE_URL,
+                                 '$DEVID$', mdev.POWER_SWITCH_DEVICE_ID)
+
+        # Change device properties
+        m.get(device_url,
+              text=mdev.power_switch_device(devid=mdev.POWER_SWITCH_DEVICE_ID,
+                                            status=const.STATUS_ON,
+                                            low_battery=True,
+                                            no_response=True))
+
+        # Refesh device and test changes
+        device.refresh()
+
+        self.assertEqual(device.status, const.STATUS_ON)
+        self.assertTrue(device.battery_low)
+        self.assertTrue(device.no_response)
+        self.assertTrue(device.is_on)
+
+    @requests_mock.mock()
+    def test_switch_device_mode_changes(self, m):
+        """Tests that switch device changes work as expected."""
+        # Set up URL's
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.PANEL_URL,
+              text=mresp.panel_response(mode=const.MODE_STANDBY))
+        m.get(const.DEVICES_URL,
+              text=mdev.power_switch_device(devid=mdev.POWER_SWITCH_DEVICE_ID,
+                                            status=const.STATUS_OFF,
+                                            low_battery=False,
+                                            no_response=False))
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our power switch
+        device = self.abode.get_device(mdev.POWER_SWITCH_DEVICE_ID)
+
+        # Test that we have our device
+        self.assertIsNotNone(device)
+        self.assertEqual(device.status, const.STATUS_OFF)
+        self.assertFalse(device.is_on)
+
+        # Set up control url response
+        control_url = const.BASE_URL + mdev.POWER_SWITCH_CONTROL_URL
+        m.put(control_url,
+              text=mresp.
+              control_url_status_response(devid=mdev.POWER_SWITCH_DEVICE_ID,
+                                          status=const.STATUS_ON_INT))
+
+        # Change the mode to "on"
+        self.assertTrue(device.switch_on())
+        self.assertEqual(device.status, const.STATUS_ON)
+        self.assertTrue(device.is_on)
+
+        # Change response
+        m.put(control_url,
+              text=mresp.
+              control_url_status_response(devid=mdev.POWER_SWITCH_DEVICE_ID,
+                                          status=const.STATUS_OFF_INT))
+
+        # Change the mode to "off"
+        self.assertTrue(device.switch_off())
+        self.assertEqual(device.status, const.STATUS_OFF)
+        self.assertFalse(device.is_on)
+
+        # Test that an invalid status response throws exception
+        m.put(control_url,
+              text=mresp.
+              control_url_status_response(devid=mdev.POWER_SWITCH_DEVICE_ID,
+                                          status=const.STATUS_OFF_INT))
+
+        with self.assertRaises(abodepy.AbodeException):
+            device.switch_on()
+
+    @requests_mock.mock()
+    def test_lock_device_properties(self, m):
+        """Tests that lock devices properties work as expected."""
+        # Set up URL's
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.PANEL_URL,
+              text=mresp.panel_response(mode=const.MODE_STANDBY))
+        m.get(const.DEVICES_URL,
+              text=mdev.lock_device(devid=mdev.LOCK_DEVICE_ID,
+                                    status=const.STATUS_LOCKCLOSED,
+                                    low_battery=False,
+                                    no_response=False))
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our lock
+        device = self.abode.get_device(mdev.LOCK_DEVICE_ID)
+
+        # Test our device
+        self.assertIsNotNone(device)
+        self.assertEqual(device.status, const.STATUS_LOCKCLOSED)
+        self.assertFalse(device.battery_low)
+        self.assertFalse(device.no_response)
+        self.assertTrue(device.is_locked)
+
+        # Set up our direct device get url
+        device_url = str.replace(const.DEVICE_URL,
+                                 '$DEVID$', mdev.LOCK_DEVICE_ID)
+
+        # Change device properties
+        m.get(device_url,
+              text=mdev.power_switch_device(devid=mdev.LOCK_DEVICE_ID,
+                                            status=const.STATUS_LOCKOPEN,
+                                            low_battery=True,
+                                            no_response=True))
+
+        # Refesh device and test changes
+        device.refresh()
+
+        self.assertEqual(device.status, const.STATUS_LOCKOPEN)
+        self.assertTrue(device.battery_low)
+        self.assertTrue(device.no_response)
+        self.assertFalse(device.is_locked)
+
+    @requests_mock.mock()
+    def test_lock_device_mode_changes(self, m):
+        """Tests that lock device changes work as expected."""
+        # Set up URL's
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.PANEL_URL,
+              text=mresp.panel_response(mode=const.MODE_STANDBY))
+        m.get(const.DEVICES_URL,
+              text=mdev.lock_device(devid=mdev.LOCK_DEVICE_ID,
+                                    status=const.STATUS_LOCKCLOSED,
+                                    low_battery=False,
+                                    no_response=False))
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our power switch
+        device = self.abode.get_device(mdev.LOCK_DEVICE_ID)
+
+        # Test that we have our device
+        self.assertIsNotNone(device)
+        self.assertEqual(device.status, const.STATUS_LOCKCLOSED)
+        self.assertTrue(device.is_locked)
+
+        # Set up control url response
+        control_url = const.BASE_URL + mdev.LOCK_DEVICE_CONTROL_URL
+        m.put(control_url,
+              text=mresp.
+              control_url_status_response(devid=mdev.LOCK_DEVICE_ID,
+                                          status=const.STATUS_LOCKOPEN_INT))
+
+        # Change the mode to "on"
+        self.assertTrue(device.unlock())
+        self.assertEqual(device.status, const.STATUS_LOCKOPEN)
+        self.assertFalse(device.is_locked)
+
+        # Change response
+        m.put(control_url,
+              text=mresp.
+              control_url_status_response(devid=mdev.LOCK_DEVICE_ID,
+                                          status=const.STATUS_LOCKCLOSED_INT))
+
+        # Change the mode to "off"
+        self.assertTrue(device.lock())
+        self.assertEqual(device.status, const.STATUS_LOCKCLOSED)
+        self.assertTrue(device.is_locked)
+
+        # Test that an invalid status response throws exception
+        m.put(control_url,
+              text=mresp.
+              control_url_status_response(devid=mdev.LOCK_DEVICE_ID,
+                                          status=const.STATUS_LOCKCLOSED_INT))
+
+        with self.assertRaises(abodepy.AbodeException):
+            device.unlock()

@@ -141,3 +141,13 @@ EMPTY_DEVICE_RESPONSE = '[]'
 def panel_mode_response(area=1, mode=const.MODE_STANDBY):
     """Return panel mode response json."""
     return '{"area": "' + area + '", "mode": "' + mode + '"}'
+
+
+def control_url_status_response(devid, status):
+    """Return status change response json."""
+    return '{"id": "' + devid + '", "status": "' + str(status) + '"}'
+
+
+def control_url_level_response(devid, level):
+    """Return status change response json."""
+    return '{"id": "' + devid + '", "level": "' + str(level) + '"}'

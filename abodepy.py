@@ -18,8 +18,8 @@ import collections
 import json
 import logging
 import threading
-
 import requests
+
 from socketIO_client import SocketIO, LoggingNamespace
 
 import helpers.constants as CONST
@@ -83,7 +83,7 @@ class Abode():
         self._user = None
         self._debug = debug
 
-        self._default_alarm_mode = CONST.MODE_HOME
+        self._default_alarm_mode = CONST.MODE_AWAY
 
         self._devices = []
         self._device_id_lookup = {}
@@ -223,13 +223,17 @@ class Abode():
         return {
             'device_type.door_lock': AbodeLock(device_json, self),
             'device_type.door_contact': AbodeBinarySensor(device_json, self),
-            'device_type.glass': AbodeBinarySensor(device_json, self)
+            'device_type.glass': AbodeBinarySensor(device_json, self),
+            'device_type.power_switch_sensor': AbodeSwitch(device_json, self),
         }.get(device_type, AbodeDevice(device_json, self))
 
     def get_devices(self, category_filter=None):
         """Get all devices from Abode."""
         response = self.send_request("get", CONST.DEVICES_URL)
         response_object = json.loads(response.text)
+
+        if response_object and not isinstance(response_object, (tuple, list)):
+            response_object = [response_object]
 
         LOG.debug("Get Devices Response: %s", response.text)
 
@@ -295,10 +299,13 @@ class Abode():
 
     def set_default_mode(self, default_mode):
         """Set the default mode when alarms are turned 'on'."""
-        self._default_alarm_mode = default_mode
+        if default_mode.lower() not in (CONST.MODE_AWAY, CONST.MODE_HOME):
+            raise AbodeException(ERROR.INVALID_DEFAULT_ALARM_MODE)
+
+        self._default_alarm_mode = default_mode.lower()
 
     @property
-    def get_default_mode(self):
+    def default_mode(self):
         """Get the default mode."""
         return self._default_alarm_mode
 
@@ -521,7 +528,7 @@ class AbodeLock(AbodeDevice):
         """Get locked state."""
         # Err on side of caution; assume if lock isn't explicitly
         # 'LockClosed' then it's open
-        return self.status not in CONST.STATUS_LOCKCLOSED
+        return self.status in CONST.STATUS_LOCKCLOSED
 
 
 class AbodeAlarm(AbodeSwitch):
@@ -574,8 +581,8 @@ class AbodeAlarm(AbodeSwitch):
         return self.set_mode(CONST.MODE_STANDBY)
 
     def switch_on(self):
-        """Arm Abode to home mode."""
-        return self.set_mode(self._abode_controller.get_default_alarm_state())
+        """Arm Abode to default mode."""
+        return self.set_mode(self._abode_controller.default_mode)
 
     def switch_off(self):
         """Arm Abode to home mode."""

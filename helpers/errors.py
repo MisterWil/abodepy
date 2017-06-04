@@ -22,5 +22,8 @@ INVALID_ALARM_MODE = (9, "Mode is not of a known alarm mode value")
 
 MISSING_ALARM_MODE = (10, "No alarm mode found in object")
 
+INVALID_DEFAULT_ALARM_MODE = (
+    11, "Default alarm mode must be one of 'home' or 'away'")
+
 EVENT_DEVICE_INVALID = (
-    11, "Object given to event registration service is not a device object")
+    112, "Object given to event registration service is not a device object")
