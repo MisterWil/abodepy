@@ -18,16 +18,25 @@ import collections
 import json
 import logging
 import threading
-import requests
+import time
 
-from socketIO_client import SocketIO, LoggingNamespace
+import requests
+from requests.exceptions import RequestException
+from socketIO_client import SocketIO
+from socketIO_client.exceptions import SocketIOError
 
 import helpers.constants as CONST
 import helpers.errors as ERROR
 
 
+LOG_FORMATTER = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+LOG_HANDLER = logging.StreamHandler()
+LOG_HANDLER.setFormatter(LOG_FORMATTER)
+
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
+LOG.addHandler(LOG_HANDLER)
 
 
 # pylint: disable=super-init-not-called
@@ -51,7 +60,7 @@ class Abode():
 
     def __init__(self, username=None, password=None,
                  auto_login=False, get_devices=False,
-                 debug=False):
+                 log_level=logging.WARN):
         """Init Abode object."""
         self._username = username
         self._password = password
@@ -59,7 +68,8 @@ class Abode():
         self._token = None
         self._panel = None
         self._user = None
-        self._debug = debug
+
+        self._abode_events = AbodeEvents(self)
 
         self._default_alarm_mode = CONST.MODE_AWAY
 
@@ -69,9 +79,9 @@ class Abode():
         # Create a requests session to persist the cookies
         self._session = requests.session()
 
-        # If debug was included, we'll print out diagnostics.
-        if self._debug:
-            LOG.setLevel(logging.DEBUG)
+        # Set log level
+        LOG_HANDLER.setLevel(log_level)
+        LOG.setLevel(log_level)
 
         if (self._username is not None and
                 self._password is not None and
@@ -114,7 +124,7 @@ class Abode():
         self._panel = response_object['panel']
         self._user = response_object['user']
 
-        self.abode_events = AbodeEvents(self, self._debug)
+        LOG.info("Login successful")
 
         return True
 
@@ -143,15 +153,17 @@ class Abode():
             self._devices = []
             self._device_id_lookup = {}
 
+            LOG.info("Logout successful")
+
         return True
 
-    def start(self):
+    def start_listener(self):
         """Start the Abode event listener."""
-        self.abode_events.start()
+        self._abode_events.start()
 
-    def stop(self):
+    def stop_listener(self):
         """Stop the Abode Event listener."""
-        self.abode_events.stop()
+        self._abode_events.stop()
 
     def register(self, device, callback):
         """Register a device to the Event listener."""
@@ -162,7 +174,7 @@ class Abode():
         if not device:
             raise AbodeException(ERROR.INVALID_DEVICE_ID)
 
-        return self.abode_events.register(device, callback)
+        return self._abode_events.register(device, callback)
 
     def send_request(self, method, url, headers=None,
                      data=None, is_retry=False):
@@ -175,11 +187,15 @@ class Abode():
 
         headers['ABODE-API-KEY'] = self._token
 
-        response = getattr(self._session, method)(
-            url, headers=headers, data=data)
+        try:
+            response = getattr(self._session, method)(
+                url, headers=headers, data=data)
 
-        if response and response.status_code == 200:
-            return response
+            if response and response.status_code == 200:
+                return response
+        except RequestException:
+            LOG.info("Abode connection reset...")
+
         if not is_retry:
             # Delete our current token and try again -- will force a login
             # attempt.
@@ -285,6 +301,12 @@ class Abode():
         """Get the default mode."""
         return self._default_alarm_mode
 
+    def _get_session(self):
+        # Perform a generic update so we know we're logged in
+        self.send_request("get", CONST.PANEL_URL)
+
+        return self._session
+
 
 class AbodeDevice(object):
     """Class to represent each Abode device."""
@@ -328,6 +350,8 @@ class AbodeDevice(object):
             # Seriously, why would you do that?
             # So, can't set status here must be done at device level.
 
+            LOG.info("Set device %s status to: %s", self.device_id, status)
+
             return True
 
         return False
@@ -354,6 +378,8 @@ class AbodeDevice(object):
                 raise AbodeException((ERROR.SET_STATUS_STATE))
 
             # TODO: Figure out where level is indicated in device json object
+
+            LOG.info("Set device %s level to: %s", self.device_id, level)
 
             return True
 
@@ -521,8 +547,6 @@ class AbodeAlarm(AbodeSwitch):
 
         mode = mode.lower()
 
-        LOG.debug("Setting Abode Alarm Mode To: %s", mode)
-
         response = self._abode_controller.send_request(
             "put", CONST.PANEL_MODE_URL(self.device_id, mode))
 
@@ -539,10 +563,11 @@ class AbodeAlarm(AbodeSwitch):
         if response_object['mode'] != mode:
             raise AbodeException(ERROR.SET_MODE_MODE)
 
-        LOG.debug("Abode Alarm Mode Set To: %s", response_object['mode'])
-
         self._json_state['mode'][('area_' +
                                   self.device_id)] = response_object['mode']
+
+        LOG.info("Set alarm %s mode to: %s",
+                 self._device_id, response_object['mode'])
 
         return True
 
@@ -610,16 +635,19 @@ class AbodeAlarm(AbodeSwitch):
 class AbodeEvents(object):
     """Class for subscribing to abode events."""
 
-    def __init__(self, abode, debug=False):
+    def __init__(self, abode):
         """Init event subscription class."""
         self._abode = abode
         self._devices = collections.defaultdict(list)
         self._callbacks = collections.defaultdict(list)
         self._thread = None
         self._socketio = None
+        self._running = False
 
-        if debug:
-            LOG.setLevel(logging.DEBUG)
+        # Default "sane" values
+        self._ping_interval = 25.0
+        self._ping_timeout = 60.0
+        self._last_pong = None
 
     def register(self, device, callback):
         """Register a callback.
@@ -630,8 +658,8 @@ class AbodeEvents(object):
         if not device or not isinstance(device, AbodeDevice):
             raise AbodeException(ERROR.EVENT_DEVICE_INVALID)
 
-        LOG.debug("Subscribing to events for device: %s (%s)",
-                  device.name, device.device_id)
+        LOG.info("Subscribing to events for device: %s (%s)",
+                 device.name, device.device_id)
 
         self._devices[device.device_id].append(device)
         self._callbacks[device].append((callback))
@@ -642,7 +670,7 @@ class AbodeEvents(object):
         if devid is None:
             return
 
-        LOG.debug("Device Update Received: %s", devid)
+        LOG.info("Device update event from device ID: %s", devid)
 
         device = self._abode.get_device(devid, True)
 
@@ -656,7 +684,7 @@ class AbodeEvents(object):
         if not mode or mode.lower() not in CONST.ALL_MODES:
             raise AbodeException(ERROR.INVALID_ALARM_MODE)
 
-        LOG.debug("Alarm Mode Change Received: %s", mode)
+        LOG.info("Alarm mode change event to: %s", mode)
 
         alarm_device = self._abode.get_alarm(refresh=True)
 
@@ -676,34 +704,95 @@ class AbodeEvents(object):
     def start(self):
         """Start a thread to handle Abode blocked SocketIO notifications."""
         if not self._thread:
+            LOG.info("Starting SocketIO thread...")
+
             self._thread = threading.Thread(target=self._run_socketio_thread,
                                             name='Abode SocketIO Thread')
             self._thread.deamon = True
             self._thread.start()
-            LOG.debug("Terminated started")
 
     def stop(self):
         """Tell the subscription thread to terminate."""
         if self._thread:
             # pylint: disable=W0212
-            self._socketio._close()
-            self.join()
-            self._thread = None
-            self._socketio = None
-            LOG.debug("Terminated thread")
+            self._running = False
+
+            if self._socketio:
+                self._socketio.disconnect()
+
+            LOG.info("Stopping SocketIO thread...")
+
+    def _on_socket_connect(self, socket):
+        # We will try to see what our ping check should be. It does use
+        # _variables, so we'll have a fallback value
+        # pylint: disable=W0212
+        interval = socket._engineIO_session.ping_interval
+        if interval > 0:
+            self._ping_interval = interval
+
+        timeout = socket._engineIO_session.ping_timeout
+        if timeout > 0:
+            self._ping_timeout = timeout
+
+        self._last_pong = time.time()
+
+        LOG.info("Connected to Abode SocketIO server")
+
+    def _on_socket_pong(self, _data):
+        self._last_pong = time.time()
+
+    def _get_socket_io(self, url=CONST.SOCKETIO_URL, port=443):
+        # pylint: disable=W0212
+        socketio = SocketIO(
+            url, port, headers=CONST.SOCKETIO_HEADERS,
+            cookies=self._abode._get_session().cookies.get_dict())
+
+        socketio.on('connect', lambda: self._on_socket_connect(socketio))
+        socketio.on('pong', self._on_socket_pong)
+
+        socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
+        socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
+
+        return socketio
+
+    def _clear_internal_socketio(self):
+        if self._socketio:
+            self._socketio.off('connect')
+            self._socketio.off('pong')
+            self._socketio.off(CONST.DEVICE_UPDATE_EVENT)
+            self._socketio.off(CONST.GATEWAY_MODE_EVENT)
+            self._socketio.disconnect()
 
     def _run_socketio_thread(self):
-        # pylint: disable=W0212
-        self._socketio = SocketIO(
-            CONST.SOCKETIO_URL, 443, LoggingNamespace,
-            headers=CONST.SOCKETIO_HEADERS,
-            cookies=self._abode._session.cookies.get_dict())
+        self._running = True
 
-        self._socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
-        self._socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
+        while self._running:
+            try:
+                LOG.info("Attempting to connect to Abode SocketIO server...")
 
-        LOG.debug("Starting Abode SocketIO Notification Service")
+                with self._get_socket_io() as socketio:
+                    self._clear_internal_socketio()
+                    self._socketio = socketio
 
-        self._socketio.wait()
+                    while self._running:
+                        # We need to wait for at least our ping interval,
+                        # otherwise the wait will trigger a ping itself.
+                        socketio.wait(seconds=self._ping_timeout)
 
-        LOG.debug("Shutdown Abode SocketIO Notification Service")
+                        # Check that we have gotten pongs or data sometime in
+                        # the last XX seconds. If not, we are going to assume
+                        # we need to reconnect
+                        now = time.time()
+                        diff = int(now - (self._last_pong or now))
+
+                        if diff > self._ping_interval:
+                            LOG.info(
+                                "SocketIO server timeout, reconnecting...")
+                            break
+            except SocketIOError:
+                LOG.info("SocketIO server connection error, reconnecting...")
+                time.sleep(5)
+            finally:
+                self._clear_internal_socketio()
+
+        LOG.info("Disconnected from Abode SocketIO server")

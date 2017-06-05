@@ -10,8 +10,8 @@ import requests_mock
 
 import abodepy
 import helpers.constants as const
-import tests.mock_responses as mresp
 import tests.mock_devices as mdev
+import tests.mock_responses as mresp
 
 
 USERNAME = 'foobar'
@@ -72,7 +72,6 @@ class TestAbodeSetup(unittest.TestCase):
         abode = abodepy.Abode(username='fizz',
                               password='buzz',
                               auto_login=True,
-                              debug=True,
                               get_devices=True)
 
         # pylint: disable=W0212

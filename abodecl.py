@@ -11,9 +11,11 @@ owned by Immedia Inc., see www.blinkforhome.com for more information.
 I am in no way affiliated with Blink, nor Immedia Inc.
 """
 
-import argparse
+import logging
 import sys
 import time
+
+import argparse
 
 import abodepy
 from helpers.constants import (ALL_MODES, ALL_MODES_STR)
@@ -32,7 +34,9 @@ PARSER.add_argument('--device', help='Get Device',
                     required=False, action='append')
 PARSER.add_argument('--listen', help='Listen For Device Updates',
                     required=False, default=False, action="store_true")
-PARSER.add_argument('--debug', help='Output Debugging',
+PARSER.add_argument('--debug', help='Output Debug Statements',
+                    required=False, default=False, action="store_true")
+PARSER.add_argument('--verbose', help='Output Info Statements',
                     required=False, default=False, action="store_true")
 
 ARGS = vars(PARSER.parse_args())
@@ -43,9 +47,16 @@ if ARGS['arm'] is not None:
     if ARGS['arm'] not in ALL_MODES:
         sys.exit("Arm mode must be one of %s" % ALL_MODES_STR)
 
+if ARGS['verbose']:
+    log_level = logging.INFO
+elif ARGS['debug']:
+    log_level = logging.DEBUG
+else:
+    log_level = logging.WARN
+
 # Create abodepy instance.
 ABODE = abodepy.Abode(username=ARGS['username'], password=ARGS['password'],
-                      get_devices=True, debug=ARGS['debug'])
+                      get_devices=True, log_level=log_level)
 
 # Output current mode.
 if ARGS['mode']:
@@ -97,12 +108,12 @@ if ARGS['listen']:
             ABODE.register(device, _device_callback)
 
     print("Listening for device updates...")
-    ABODE.start()
+    ABODE.start_listener()
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        ABODE.stop()
+        ABODE.stop_listener()
         print("Device update listening stopped.")
 
 ABODE.logout()
