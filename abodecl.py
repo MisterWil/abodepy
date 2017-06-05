@@ -6,9 +6,16 @@ abodecl by Wil Schrader - An Abode alarm Python library command line interface.
 https://github.com/MisterWil/abodepy
 
 Published under the MIT license - See LICENSE file for more details.
-"Blink Wire-Free HS Home Monitoring & Alert Systems" is a trademark
-owned by Immedia Inc., see www.blinkforhome.com for more information.
-I am in no way affiliated with Blink, nor Immedia Inc.
+
+"Abode" is a trademark owned by Abode Systems Inc., see www.goabode.com for
+more information. I am in no way affiliated with Abode.
+
+Thank you Abode for having a relatively simple API to reverse engineer.
+Hopefully in the future you'll open it up for official use.
+
+API calls faster than 60 seconds is not recommended as it can overwhelm
+Abode's servers. Leverage the cloud push event notification functionality as
+much as possible. Please use this module responsibly.
 """
 
 import logging
