@@ -37,7 +37,8 @@ class TestAbodeDevicesSetup(unittest.TestCase):
         # Set up device
         device_text = '[' + mdev.glass_break_device(
             status=const.STATUS_ONLINE,
-            low_battery=True, no_response=True) + ']'
+            low_battery=True, no_response=True,
+            tampered=True, out_of_order=True) + ']'
         device_json = json.loads(device_text)
 
         m.get(const.DEVICES_URL, text=device_text)
@@ -58,6 +59,8 @@ class TestAbodeDevicesSetup(unittest.TestCase):
         self.assertEqual(device.status, const.STATUS_ONLINE)
         self.assertTrue(device.battery_low)
         self.assertTrue(device.no_response)
+        self.assertTrue(device.tampered)
+        self.assertTrue(device.out_of_order)
 
     @requests_mock.mock()
     def test_generic_device_refresh(self, m):
@@ -170,6 +173,27 @@ class TestAbodeDevicesSetup(unittest.TestCase):
 
         self.assertIsNotNone(devices)
         self.assertEqual(len(devices), 2)
+
+    @requests_mock.mock()
+    def test_no_control_url(self, m):
+        """Check that devices return false without control url's."""
+        # Set up URL's
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.PANEL_URL, text=mresp.panel_response())
+
+        m.get(const.DEVICES_URL,
+              text=mdev.glass_break_device(status=const.STATUS_ONLINE))
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get device
+        device = self.abode.get_device(mdev.GLASS_BREAK_DEVICE_ID)
+
+        self.assertIsNotNone(device)
+        self.assertFalse(device.set_status('1'))
+        self.assertFalse(device.set_level('99'))
 
     @requests_mock.mock()
     def test_alarm_device_properties(self, m):

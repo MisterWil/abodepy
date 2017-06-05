@@ -201,6 +201,7 @@ class Abode():
             if response and response.status_code == 200:
                 return response
         except RequestException:
+            print("LOLOL")
             LOG.info("Abode connection reset...")
 
         if not is_retry:
@@ -455,6 +456,7 @@ class AbodeDevice(object):
     @property
     def tampered(self):
         """Has the device been tampered with."""
+        # 'tempered' - Typo in API?
         return int(self.get_value('faults').get('tempered', '0')) == 1
 
     @property

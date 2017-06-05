@@ -6,6 +6,7 @@ Tests the system initialization and attributes of the main Abode system.
 import json
 import unittest
 
+import requests
 import requests_mock
 
 import abodepy
@@ -159,10 +160,34 @@ class TestAbodeSetup(unittest.TestCase):
     def test_reauthorize(self, m):
         """Check that Abode can reauthorize after token timeout."""
         new_token = "FOOBAR"
-        m.post(const.LOGIN_URL,
-               text=mresp.login_response(auth_token=new_token))
+        m.post(const.LOGIN_URL, [
+            {'text': mresp.login_response(
+                auth_token=new_token), 'status_code': 200}
+        ])
+
         m.get(const.DEVICES_URL, [
             {'text': mresp.API_KEY_INVALID_RESPONSE, 'status_code': 403},
+            {'text': mresp.EMPTY_DEVICE_RESPONSE, 'status_code': 200}
+        ])
+        m.get(const.PANEL_URL, text=mresp.panel_response())
+
+        # Forces a device update
+        self.abode.get_devices()
+
+        # pylint: disable=W0212
+        self.assertEqual(self.abode._token, new_token)
+
+    @requests_mock.mock()
+    def test_send_request_exception(self, m):
+        """Check that send_request recovers from an exception."""
+        new_token = "DEADBEEF"
+        m.post(const.LOGIN_URL, [
+            {'text': mresp.login_response(
+                auth_token=new_token), 'status_code': 200}
+        ])
+
+        m.get(const.DEVICES_URL, [
+            {'exc': requests.exceptions.ConnectTimeout},
             {'text': mresp.EMPTY_DEVICE_RESPONSE, 'status_code': 200}
         ])
         m.get(const.PANEL_URL, text=mresp.panel_response())

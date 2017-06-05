@@ -11,7 +11,8 @@ GLASS_BREAK_DEVICE_ID = 'RF:00000001'
 
 
 def glass_break_device(devid=GLASS_BREAK_DEVICE_ID, status=const.STATUS_ONLINE,
-                       low_battery=False, no_response=False):
+                       low_battery=False, no_response=False,
+                       out_of_order=False, tampered=False):
     """Glass break configurable device mock response."""
     return '''
         {
@@ -44,9 +45,9 @@ def glass_break_device(devid=GLASS_BREAK_DEVICE_ID, status=const.STATUS_ONLINE,
           "status_color":"#5cb85c",
           "faults":{
              "low_battery":''' + str(int(low_battery)) + ''',
-             "tempered":0,
+             "tempered":''' + str(int(tampered)) + ''',
              "supervision":0,
-             "out_of_order":0,
+             "out_of_order":''' + str(int(out_of_order)) + ''',
              "no_response":''' + str(int(no_response)) + '''
           },
           "status":"''' + status + '''",
