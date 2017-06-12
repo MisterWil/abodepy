@@ -6,7 +6,7 @@ Generates constants for use in abodepy
 import os
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 4
+MINOR_VERSION = 5
 PATCH_VERSION = '0'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
@@ -65,9 +65,11 @@ AREAS_URL = BASE_URL + 'api/v1/areas'
 '''
 NOTIFICATION CONSTANTS
 '''
-SOCKETIO_URL = 'https://io.goabode.com'
+SOCKETIO_URL = 'https://my.goabode.com'
 
-SOCKETIO_HEADERS = {'Origin': 'https://my.goabode.com'}
+SOCKETIO_HEADERS = {
+    'Origin': 'https://my.goabode.com'
+    }
 
 DEVICE_UPDATE_EVENT = 'com.goabode.device.update'
 GATEWAY_MODE_EVENT = 'com.goabode.gateway.mode'

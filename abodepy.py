@@ -723,13 +723,13 @@ class AbodeEvents(object):
     def stop(self):
         """Tell the subscription thread to terminate."""
         if self._thread:
+            LOG.info("Stopping SocketIO thread...")
+
             # pylint: disable=W0212
             self._running = False
 
             if self._socketio:
                 self._socketio.disconnect()
-
-            LOG.info("Stopping SocketIO thread...")
 
     def _on_socket_connect(self, socket):
         # We will try to see what our ping check should be. It does use
@@ -752,6 +752,7 @@ class AbodeEvents(object):
 
     def _get_socket_io(self, url=CONST.SOCKETIO_URL, port=443):
         # pylint: disable=W0212
+        logging.basicConfig(level=logging.DEBUG)
         socketio = SocketIO(
             url, port, headers=CONST.SOCKETIO_HEADERS,
             cookies=self._abode._get_session().cookies.get_dict())
@@ -801,6 +802,9 @@ class AbodeEvents(object):
             except SocketIOError:
                 LOG.info("SocketIO server connection error, reconnecting...")
                 time.sleep(5)
+            except Exception:
+                LOG.warning("Caught exception in SocketIO thread...")
+                raise
             finally:
                 self._clear_internal_socketio()
 
