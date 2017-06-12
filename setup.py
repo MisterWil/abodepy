@@ -17,7 +17,7 @@ setup(
     platforms='any',
     py_modules=['abodepy'],
     packages=find_packages(),
-    install_requires=['requests>=2,<3', 'socketIO_client>=0.7.2'],
+    install_requires=['requests>=2,<3', 'socketIO-client3==0.7.3'],
     test_suite='tests',
     classifiers=PROJECT_CLASSIFIERS
 )
