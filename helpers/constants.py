@@ -68,7 +68,7 @@ NOTIFICATION CONSTANTS
 SOCKETIO_URL = 'https://my.goabode.com'
 
 SOCKETIO_HEADERS = {
-    'Origin': 'https://my.goabode.com'
+    'Origin': 'https://my.goabode.com/',
     }
 
 DEVICE_UPDATE_EVENT = 'com.goabode.device.update'
