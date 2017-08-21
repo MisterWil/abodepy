@@ -3,7 +3,7 @@ Changelog
 
 A list of changes between each release.
 
-0.6.1 (2017-08-21)
+0.7.0 (2017-08-21)
 ^^^^^^^^^^^^^^^^^^
 - Wrote tests for setting changes
 - Upgraded to correct version of socketio_client3, fixing Issue #4
