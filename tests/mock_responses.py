@@ -143,6 +143,8 @@ LOGOUT_RESPONSE = '{"code":200,"message":"Logout successful."}'
 
 EMPTY_DEVICE_RESPONSE = '[]'
 
+SETTINGS_OK_RESPONSE = '{"code":200,"message":"OK"}'
+
 
 def panel_mode_response(area=1, mode=const.MODE_STANDBY):
     """Return panel mode response json."""

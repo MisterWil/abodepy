@@ -15,9 +15,9 @@ setup(
     license=PROJECT_LICENSE,
     url=PROJECT_URL,
     platforms='any',
-    py_modules=['abodepy'],
+    py_modules=['abodepy', 'abodecl'],
     packages=find_packages(),
-    install_requires=['requests>=2,<3', 'socketIO-client3==0.7.3'],
+    install_requires=['requests>=2,<3', 'socketIO-client3>=0.8.0'],
     test_suite='tests',
     classifiers=PROJECT_CLASSIFIERS
 )

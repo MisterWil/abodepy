@@ -13,6 +13,7 @@ import abodepy
 import helpers.constants as const
 import tests.mock_devices as mdev
 import tests.mock_responses as mresp
+from build.lib.abodepy import AbodeException
 
 
 USERNAME = 'foobar'
@@ -122,6 +123,9 @@ class TestAbodeSetup(unittest.TestCase):
 
         self.abode.get_devices()
 
+        # pylint: disable=protected-access
+        original_session = self.abode._session
+
         # pylint: disable=W0212
         self.assertEqual(self.abode._username, USERNAME)
         self.assertEqual(self.abode._password, PASSWORD)
@@ -129,6 +133,8 @@ class TestAbodeSetup(unittest.TestCase):
         self.assertEqual(self.abode._panel, json.loads(mresp.panel_response()))
         self.assertEqual(self.abode._user, json.loads(mresp.USER_RESPONSE))
         self.assertIsNotNone(self.abode._device_id_lookup['1'])
+        self.assertIsNotNone(self.abode._get_session())
+        self.assertEqual(self.abode._get_session(), original_session)
 
         self.abode.logout()
 
@@ -138,6 +144,8 @@ class TestAbodeSetup(unittest.TestCase):
         self.assertIsNone(self.abode._user)
         self.assertListEqual(self.abode._devices, [])
         self.assertDictEqual(self.abode._device_id_lookup, {})
+        self.assertIsNotNone(self.abode._session)
+        self.assertNotEqual(self.abode._get_session(), original_session)
 
     @requests_mock.mock()
     def test_abode_alarm_setup(self, m):
@@ -244,3 +252,109 @@ class TestAbodeSetup(unittest.TestCase):
         # Test that an invalid device raises exception
         with self.assertRaises(abodepy.AbodeException):
             self.abode.register('slapstick', None)
+
+    @requests_mock.mock()
+    def test_settings_validation(self, m):
+        """Check that device panel general settings are working."""
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.SETTINGS_URL, text=mdev.door_contact_device())
+        m.get(const.PANEL_URL, text=mresp.panel_response())
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting("fliptrix", "foobar")
+
+    @requests_mock.mock()
+    def tests_general_settings(self, m):
+        """Check that device panel general settings are working."""
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.SETTINGS_URL, text=mdev.door_contact_device())
+        m.get(const.PANEL_URL, text=mresp.panel_response())
+        m.put(const.SETTINGS_URL, text=mresp.SETTINGS_OK_RESPONSE)
+
+        try:
+            self.abode.set_setting(const.SETTING_CAMERA_RESOLUTION,
+                                   const.SETTING_CAMERA_RES_640_480)
+
+            self.abode.set_setting(const.SETTING_CAMERA_GRAYSCALE,
+                                   const.SETTING_ENABLE)
+
+            self.abode.set_setting(const.SETTING_SILENCE_SOUNDS,
+                                   const.SETTING_ENABLE)
+        except AbodeException:
+            self.fail("set_setting() raised AbodeException unexpectedly")
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_CAMERA_RESOLUTION,
+                                   "foobar")
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_CAMERA_GRAYSCALE,
+                                   "foobar")
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_SILENCE_SOUNDS,
+                                   "foobar")
+
+    @requests_mock.mock()
+    def tests_area_settings(self, m):
+        """Check that device panel areas settings are working."""
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.SETTINGS_URL, text=mdev.door_contact_device())
+        m.get(const.PANEL_URL, text=mresp.panel_response())
+        m.put(const.AREAS_URL, text=mresp.SETTINGS_OK_RESPONSE)
+
+        try:
+            self.abode.set_setting(const.SETTING_ENTRY_DELAY_AWAY,
+                                   const.SETTING_ENTRY_EXIT_DELAY_10SEC)
+
+            self.abode.set_setting(const.SETTING_EXIT_DELAY_AWAY,
+                                   const.SETTING_ENTRY_EXIT_DELAY_30SEC)
+
+        except AbodeException:
+            self.fail("set_setting() raised AbodeException unexpectedly")
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_ENTRY_DELAY_AWAY,
+                                   "foobar")
+
+        # 10 seconds is invalid here
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_EXIT_DELAY_AWAY,
+                                   const.SETTING_ENTRY_EXIT_DELAY_10SEC)
+
+    @requests_mock.mock()
+    def tests_sound_settings(self, m):
+        """Check that device panel sound settings are working."""
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.SETTINGS_URL, text=mdev.door_contact_device())
+        m.get(const.PANEL_URL, text=mresp.panel_response())
+        m.put(const.SOUNDS_URL, text=mresp.SETTINGS_OK_RESPONSE)
+
+        try:
+            self.abode.set_setting(const.SETTING_DOOR_CHIME,
+                                   const.SETTING_SOUND_LOW)
+
+            self.abode.set_setting(const.SETTING_ALARM_LENGTH,
+                                   const.SETTING_ALARM_LENGTH_2MIN)
+
+            self.abode.set_setting(const.SETTING_FINAL_BEEPS,
+                                   const.SETTING_FINAL_BEEPS_3SEC)
+
+        except AbodeException:
+            self.fail("set_setting() raised AbodeException unexpectedly")
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_DOOR_CHIME,
+                                   "foobar")
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_ALARM_LENGTH,
+                                   "foobar")
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_FINAL_BEEPS,
+                                   "foobar")

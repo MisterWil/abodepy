@@ -26,18 +26,20 @@ import json
 import logging
 import threading
 import time
-
 import requests
 from requests.exceptions import RequestException
+
 from socketIO_client import SocketIO, LoggingNamespace
 from socketIO_client.exceptions import SocketIOError
+
+import abodecl
 
 import helpers.constants as CONST
 import helpers.errors as ERROR
 
 
 LOG_FORMATTER = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    '%(asctime)s - %(levelname)s - %(message)s')
 
 LOG_HANDLER = logging.StreamHandler()
 LOG_HANDLER.setFormatter(LOG_FORMATTER)
@@ -403,8 +405,6 @@ class AbodeDevice(object):
         if not self._name:
             if self._type:
                 self._name = self._type + ' ' + self._device_id
-            else:
-                self._name = 'Device ' + self._device_id
 
     def set_status(self, status):
         """Set device status."""
@@ -625,7 +625,7 @@ class AbodeAlarm(AbodeSwitch):
         if not mode:
             raise AbodeException(ERROR.MISSING_ALARM_MODE)
         elif mode.lower() not in CONST.ALL_MODES:
-            raise AbodeException(ERROR.INVALID_ALARM_MODE)
+            raise AbodeException(ERROR.INVALID_ALARM_MODE, CONST.ALL_MODES)
 
         mode = mode.lower()
 
@@ -883,3 +883,7 @@ class AbodeEvents(object):
                 self._clear_internal_socketio()
 
         LOG.info("Disconnected from Abode SocketIO server")
+
+
+if __name__ == '__main__':
+    abodecl.call(vars)
