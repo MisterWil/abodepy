@@ -26,7 +26,7 @@ Command Line Usage
 ==================
 Simple command line implementation arguments::
 
-    $ $ python abodepy.py -h
+    $ python abodepy.py -h
         usage: abodepy.py [-h] --username USERNAME --password PASSWORD [--mode]
                           [--arm ARM] [--setting SETTING] [--switchOn SWITCHON]
                           [--switchOff SWITCHOFF] [--lock LOCK] [--unlock UNLOCK]
