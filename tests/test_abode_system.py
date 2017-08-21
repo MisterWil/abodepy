@@ -13,7 +13,6 @@ import abodepy
 import helpers.constants as const
 import tests.mock_devices as mdev
 import tests.mock_responses as mresp
-from build.lib.abodepy import AbodeException
 
 
 USERNAME = 'foobar'
@@ -282,7 +281,7 @@ class TestAbodeSetup(unittest.TestCase):
 
             self.abode.set_setting(const.SETTING_SILENCE_SOUNDS,
                                    const.SETTING_ENABLE)
-        except AbodeException:
+        except abodepy.AbodeException:
             self.fail("set_setting() raised AbodeException unexpectedly")
 
         with self.assertRaises(abodepy.AbodeException):
@@ -313,7 +312,7 @@ class TestAbodeSetup(unittest.TestCase):
             self.abode.set_setting(const.SETTING_EXIT_DELAY_AWAY,
                                    const.SETTING_ENTRY_EXIT_DELAY_30SEC)
 
-        except AbodeException:
+        except abodepy.AbodeException:
             self.fail("set_setting() raised AbodeException unexpectedly")
 
         with self.assertRaises(abodepy.AbodeException):
@@ -344,7 +343,7 @@ class TestAbodeSetup(unittest.TestCase):
             self.abode.set_setting(const.SETTING_FINAL_BEEPS,
                                    const.SETTING_FINAL_BEEPS_3SEC)
 
-        except AbodeException:
+        except abodepy.AbodeException:
             self.fail("set_setting() raised AbodeException unexpectedly")
 
         with self.assertRaises(abodepy.AbodeException):
