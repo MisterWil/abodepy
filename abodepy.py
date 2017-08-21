@@ -204,6 +204,9 @@ class Abode():
         elif setting in CONST.SOUND_SETTINGS:
             url = CONST.SOUNDS_URL
             data = self._sound_settings(area, setting, value, validate_value)
+        elif setting in CONST.SIREN_SETTINGS:
+            url = CONST.SIREN_URL
+            data = self._siren_settings(setting, value, validate_value)
 
         return self.send_request(method="put", url=url, data=data)
 
@@ -258,6 +261,16 @@ class Abode():
                                      CONST.ALL_SETTING_FINAL_BEEPS)
 
         return {'area': area, setting: value}
+
+    @staticmethod
+    def _siren_settings(setting, value, validate_value):
+        """Will validate siren settings and values, returns data packet."""
+        if validate_value:
+            if value not in CONST.SETTING_DISABLE_ENABLE:
+                raise AbodeException(ERROR.INVALID_SETTING_VALUE,
+                                     CONST.SETTING_DISABLE_ENABLE)
+
+        return {'action': setting, 'option': value}
 
     def send_request(self, method, url, headers=None,
                      data=None, is_retry=False):

@@ -3,6 +3,10 @@ Changelog
 
 A list of changes between each release.
 
+0.7.1 (2017-08-21)
+^^^^^^^^^^^^^^^^^^
+- Added siren settings for Issue #1
+
 0.7.0 (2017-08-21)
 ^^^^^^^^^^^^^^^^^^
 - Wrote tests for setting changes

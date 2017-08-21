@@ -357,3 +357,37 @@ class TestAbodeSetup(unittest.TestCase):
         with self.assertRaises(abodepy.AbodeException):
             self.abode.set_setting(const.SETTING_FINAL_BEEPS,
                                    "foobar")
+
+    @requests_mock.mock()
+    def tests_siren_settings(self, m):
+        """Check that device panel siren settings are working."""
+        m.post(const.LOGIN_URL, text=mresp.login_response())
+        m.post(const.LOGOUT_URL, text=mresp.LOGOUT_RESPONSE)
+        m.get(const.SETTINGS_URL, text=mdev.door_contact_device())
+        m.get(const.PANEL_URL, text=mresp.panel_response())
+        m.put(const.SIREN_URL, text=mresp.SETTINGS_OK_RESPONSE)
+
+        try:
+            self.abode.set_setting(const.SETTING_SIREN_ENTRY_EXIT_SOUNDS,
+                                   const.SETTING_ENABLE)
+
+            self.abode.set_setting(const.SETTING_SIREN_CONFIRM_SOUNDS,
+                                   const.SETTING_ENABLE)
+
+            self.abode.set_setting(const.SETTING_SIREN_TAMPER_SOUNDS,
+                                   const.SETTING_ENABLE)
+
+        except abodepy.AbodeException:
+            self.fail("set_setting() raised AbodeException unexpectedly")
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_SIREN_ENTRY_EXIT_SOUNDS,
+                                   "foobar")
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_SIREN_CONFIRM_SOUNDS,
+                                   "foobar")
+
+        with self.assertRaises(abodepy.AbodeException):
+            self.abode.set_setting(const.SETTING_SIREN_TAMPER_SOUNDS,
+                                   "foobar")
