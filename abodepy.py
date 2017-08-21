@@ -29,7 +29,7 @@ import time
 
 import requests
 from requests.exceptions import RequestException
-from socketIO_client import SocketIO
+from socketIO_client import SocketIO, LoggingNamespace
 from socketIO_client.exceptions import SocketIOError
 
 import helpers.constants as CONST
@@ -50,10 +50,11 @@ LOG.addHandler(LOG_HANDLER)
 class AbodeException(Exception):
     """Class to throw general abode exception."""
 
-    def __init__(self, error):
+    def __init__(self, error, details=None):
         """Initialize AbodeException."""
         self.errcode = error[0]
         self.message = error[1]
+        self.details = details
 
 
 class AbodeAuthenticationException(AbodeException):
@@ -75,6 +76,8 @@ class Abode():
         self._token = None
         self._panel = None
         self._user = None
+
+        self.log_level = log_level
 
         self._abode_events = AbodeEvents(self)
 
@@ -183,6 +186,77 @@ class Abode():
 
         return self._abode_events.register(device, callback)
 
+    def set_setting(self, setting, value, area='1', validate_value=True):
+        """Set an abode system setting to a given value."""
+        setting = setting.lower()
+
+        if setting not in CONST.ALL_SETTINGS:
+            raise AbodeException(ERROR.INVALID_SETTING, CONST.ALL_SETTINGS)
+
+        if setting in CONST.PANEL_SETTINGS:
+            url = CONST.SETTINGS_URL
+            data = self._panel_settings(setting, value, validate_value)
+        elif setting in CONST.AREA_SETTINGS:
+            url = CONST.AREAS_URL
+            data = self._area_settings(area, setting, value, validate_value)
+        elif setting in CONST.SOUND_SETTINGS:
+            url = CONST.SOUNDS_URL
+            data = self._sound_settings(area, setting, value, validate_value)
+
+        return self.send_request(method="put", url=url, data=data)
+
+    @staticmethod
+    def _panel_settings(setting, value, validate_value):
+        """Will validate panel settings and values, returns data packet."""
+        if validate_value:
+            if (setting == CONST.SETTING_CAMERA_RESOLUTION
+                    and value not in CONST.SETTING_ALL_CAMERA_RES):
+                raise AbodeException(ERROR.INVALID_SETTING_VALUE,
+                                     CONST.SETTING_ALL_CAMERA_RES)
+            elif (setting in
+                  [CONST.SETTING_CAMERA_GRAYSCALE,
+                   CONST.SETTING_SILENCE_SOUNDS]
+                  and value not in
+                  CONST.SETTING_DISABLE_ENABLE):
+                raise AbodeException(ERROR.INVALID_SETTING_VALUE,
+                                     CONST.SETTING_DISABLE_ENABLE)
+
+        return {setting: value}
+
+    @staticmethod
+    def _area_settings(area, setting, value, validate_value):
+        """Will validate area settings and values, returns data packet."""
+        if validate_value:
+            # Exit delay has some specific limitations apparently
+            if (setting == CONST.SETTING_EXIT_DELAY_AWAY
+                    and value not in CONST.VALID_SETTING_EXIT_AWAY):
+                raise AbodeException(ERROR.INVALID_SETTING_VALUE,
+                                     CONST.VALID_SETTING_EXIT_AWAY)
+            elif value not in CONST.ALL_SETTING_ENTRY_EXIT_DELAY:
+                raise AbodeException(ERROR.INVALID_SETTING_VALUE,
+                                     CONST.ALL_SETTING_ENTRY_EXIT_DELAY)
+
+        return {'area': area, setting: value}
+
+    @staticmethod
+    def _sound_settings(area, setting, value, validate_value):
+        """Will validate sound settings and values, returns data packet."""
+        if validate_value:
+            if (setting in CONST.VALID_SOUND_SETTINGS
+                    and value not in CONST.ALL_SETTING_SOUND):
+                raise AbodeException(ERROR.INVALID_SETTING_VALUE,
+                                     CONST.ALL_SETTING_SOUND)
+            elif (setting == CONST.SETTING_ALARM_LENGTH
+                  and value not in CONST.ALL_SETTING_ALARM_LENGTH):
+                raise AbodeException(ERROR.INVALID_SETTING_VALUE,
+                                     CONST.ALL_SETTING_ALARM_LENGTH)
+            elif (setting == CONST.SETTING_FINAL_BEEPS
+                  and value not in CONST.ALL_SETTING_FINAL_BEEPS):
+                raise AbodeException(ERROR.INVALID_SETTING_VALUE,
+                                     CONST.ALL_SETTING_FINAL_BEEPS)
+
+        return {'area': area, setting: value}
+
     def send_request(self, method, url, headers=None,
                      data=None, is_retry=False):
         """Send requests to Abode."""
@@ -201,7 +275,6 @@ class Abode():
             if response and response.status_code == 200:
                 return response
         except RequestException:
-            print("LOLOL")
             LOG.info("Abode connection reset...")
 
         if not is_retry:
@@ -752,10 +825,11 @@ class AbodeEvents(object):
 
     def _get_socket_io(self, url=CONST.SOCKETIO_URL, port=443):
         # pylint: disable=W0212
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=self._abode.log_level)
         socketio = SocketIO(
             url, port, headers=CONST.SOCKETIO_HEADERS,
-            cookies=self._abode._get_session().cookies.get_dict())
+            cookies=self._abode._get_session().cookies.get_dict(),
+            namespace=LoggingNamespace)
 
         socketio.on('connect', lambda: self._on_socket_connect(socketio))
         socketio.on('pong', self._on_socket_pong)

@@ -35,6 +35,7 @@ PARSER.add_argument('--password', help='Password', required=True)
 PARSER.add_argument('--mode', help='Output Alarm Mode',
                     required=False, default=False, action="store_true")
 PARSER.add_argument('--arm', help='Arm Alarm To Mode', required=False)
+PARSER.add_argument('--setting', help='Set Setting', required=False)
 PARSER.add_argument('--devices', help='List All Devices',
                     required=False, default=False, action="store_true")
 PARSER.add_argument('--device', help='Get Device',
@@ -75,6 +76,12 @@ if ARGS['arm']:
         print("Mode changed to: %s" % ARGS['arm'])
     else:
         print("Mode failed to change to: %s" % ARGS['arm'])
+
+# Set setting
+if ARGS['setting']:
+    kv = ARGS['setting'].split("=")
+    if ABODE.set_setting(kv[0], kv[1]):
+        print("Setting", kv[0], "changed to", kv[1])
 
 
 def _device_print(dev, append=''):

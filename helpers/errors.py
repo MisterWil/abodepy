@@ -27,5 +27,11 @@ INVALID_DEFAULT_ALARM_MODE = (
 
 INVALID_DEVICE_ID = (12, "The given value is not a device or valid device ID")
 
+INVALID_SETTING = (
+    13, "Setting is not valid")
+
+INVALID_SETTING_VALUE = (
+    14, "Value for setting is not valid")
+
 EVENT_DEVICE_INVALID = (
     112, "Object given to event registration service is not a device object")
