@@ -757,7 +757,7 @@ class AbodeEvents(object):
                  device.name, device.device_id)
 
         self._devices[device.device_id].append(device)
-        self._callbacks[device].append((callback))
+        self._callbacks[device.device_id].append((callback))
 
         return True
 
@@ -769,7 +769,7 @@ class AbodeEvents(object):
 
         device = self._abode.get_device(devid, True)
 
-        for callback in self._callbacks.get(device, ()):
+        for callback in self._callbacks.get(device.device_id, ()):
             callback(device)
 
     def _on_mode_change(self, mode):
@@ -789,7 +789,7 @@ class AbodeEvents(object):
         # pylint: disable=W0212
         alarm_device._json_state['mode']['area_1'] = mode
 
-        for callback in self._callbacks.get(alarm_device, ()):
+        for callback in self._callbacks.get(alarm_device.device_id, ()):
             callback(alarm_device)
 
     def join(self):
