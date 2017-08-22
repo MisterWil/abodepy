@@ -10,9 +10,9 @@ import requests
 import requests_mock
 
 import abodepy
-import helpers.constants as const
-import tests.mock_devices as mdev
-import tests.mock_responses as mresp
+import abodepy.helpers.constants as const
+import abodepy.tests.mock_devices as mdev
+import abodepy.tests.mock_responses as mresp
 
 
 USERNAME = 'foobar'
@@ -81,7 +81,7 @@ class TestAbodeSetup(unittest.TestCase):
         self.assertEqual(abode._token, mresp.AUTH_TOKEN)
         self.assertEqual(abode._panel, json.loads(mresp.panel_response()))
         self.assertEqual(abode._user, json.loads(mresp.USER_RESPONSE))
-        self.assertIsNotNone(abode._device_id_lookup['1'])
+        self.assertIsNotNone(abode.get_alarm())
 
         abode.logout()
 
@@ -131,7 +131,7 @@ class TestAbodeSetup(unittest.TestCase):
         self.assertEqual(self.abode._token, mresp.AUTH_TOKEN)
         self.assertEqual(self.abode._panel, json.loads(mresp.panel_response()))
         self.assertEqual(self.abode._user, json.loads(mresp.USER_RESPONSE))
-        self.assertIsNotNone(self.abode._device_id_lookup['1'])
+        self.assertIsNotNone(self.abode.get_alarm())
         self.assertIsNotNone(self.abode._get_session())
         self.assertEqual(self.abode._get_session(), original_session)
 
@@ -141,8 +141,8 @@ class TestAbodeSetup(unittest.TestCase):
         self.assertIsNone(self.abode._token)
         self.assertIsNone(self.abode._panel)
         self.assertIsNone(self.abode._user)
-        self.assertListEqual(self.abode._devices, [])
-        self.assertDictEqual(self.abode._device_id_lookup, {})
+        self.assertIsNone(self.abode._devices)
+        self.assertIsNone(self.abode._device_id_lookup)
         self.assertIsNotNone(self.abode._session)
         self.assertNotEqual(self.abode._get_session(), original_session)
 
@@ -150,8 +150,10 @@ class TestAbodeSetup(unittest.TestCase):
     def test_abode_alarm_setup(self, m):
         """Check that Abode alarm device is set up properly."""
         test_alarm = json.loads(mresp.panel_response())
-        test_alarm['id'] = '1'
-        test_alarm['type'] = 'Alarm'
+        test_alarm['name'] = const.ALARM_NAME
+        test_alarm['id'] = const.ALARM_DEVICE_ID + '1'
+        test_alarm['type'] = const.ALARM_TYPE
+        test_alarm['type_tag'] = const.DEVICE_ALARM
 
         m.post(const.LOGIN_URL, text=mresp.login_response())
         m.get(const.DEVICES_URL, text=mresp.EMPTY_DEVICE_RESPONSE)

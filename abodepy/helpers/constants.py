@@ -6,8 +6,8 @@ Generates constants for use in abodepy
 import os
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 7
-PATCH_VERSION = '2'
+MINOR_VERSION = 8
+PATCH_VERSION = '0'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
@@ -54,6 +54,7 @@ PANEL_URL = BASE_URL + 'api/v1/panel'
 
 
 def PANEL_MODE_URL(area, mode):
+    """Create panel URL."""
     return BASE_URL + 'api/v1/panel/mode/' + area + '/' + mode
 
 
@@ -108,6 +109,25 @@ STATUS_ON = 'On'
 STATUS_ON_INT = 1
 STATUS_OFF = 'Off'
 STATUS_OFF_INT = 0
+
+ALARM_NAME = "Abode Alarm"
+ALARM_DEVICE_ID = "area_"
+ALARM_TYPE = "Alarm"
+
+'''
+DEVICE TYPE_TAGS
+'''
+
+DEVICE_ALARM = 'device_type.alarm'
+DEVICE_GLASS_BREAK = 'device_type.glass'
+DEVICE_KEYPAD = 'device_type.keypad'
+DEVICE_DOOR_CONTACT = 'device_type.door_contact'
+DEVICE_STATUS_DISPLAY = 'device_type.bx'
+DEVICE_MOTION_CAMERA = 'device_type.ir_camera'
+DEVICE_DOOR_LOCK = 'device_type.door_lock'
+DEVICE_POWER_SWITCH = 'device_type.power_switch_sensor'
+DEVICE_WATER_SENSOR = 'device_type.water_sensor'
+DEVICE_SECURE_BARRIER = 'device_type.secure_barrier'
 
 '''
 SETTINGS

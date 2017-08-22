@@ -26,92 +26,95 @@ Command Line Usage
 ==================
 Simple command line implementation arguments::
 
-    $ python abodepy.py -h
-        usage: abodepy.py [-h] --username USERNAME --password PASSWORD [--mode]
-                          [--arm ARM] [--setting SETTING] [--switchOn SWITCHON]
-                          [--switchOff SWITCHOFF] [--lock LOCK] [--unlock UNLOCK]
-                          [--devices] [--device DEVICE] [--listen] [--debug] [--quiet]
-        
-        optional arguments:
-          -h, --help            show this help message and exit
-          --username USERNAME   Username
-          --password PASSWORD   Password
-          --mode                Output Alarm Mode
-          --arm ARM             Arm Alarm To Mode
-          --setting SETTING     Set Setting
-          --switchOn SWITCHON   Switch On Given Device ID
-          --switchOff SWITCHOFF
-                                Switch Off Given Device ID
-          --lock LOCK           Lock Given Device ID
-          --unlock UNLOCK       Unlock Given Device ID
-          --devices             List All Devices
-          --device DEVICE       Get Device
-          --listen              Listen For Device Updates
-          --debug               Logging at Debug Level
-          --quiet               Output Warn Level
+    $ abodepy -h
+      usage: AbodePy: Command Line Utility [-h] -u USERNAME -p PASSWORD [--mode]
+                                           [--arm mode] [--set setting=value]
+                                           [--devices] [--device device_id]
+                                           [--on device_id] [--off device_id]
+                                           [--lock device_id] [--unlock device_id]
+                                           [--listen] [--debug] [--quiet]
+      
+      optional arguments:
+        -h, --help            show this help message and exit
+        -u USERNAME, --username USERNAME
+                              Username
+        -p PASSWORD, --password PASSWORD
+                              Password
+        --mode                Output current alarm mode
+        --arm mode            Arm alarm to mode
+        --set setting=value   Set setting to a value
+        --devices             Output all devices
+        --device device_id    Output one device for device_id
+        --on device_id        Switch on a given device_id
+        --off device_id       Switch off a given device_id
+        --lock device_id      Lock a given device_id
+        --unlock device_id    Unlock a given device_id
+        --listen              Block and listen for device_id
+        --debug               Enable debug logging
+        --quiet               Output only warnings and errors
 
 You can get the current alarm mode::
 
-    $ python abodepy.py --username USERNAME --password PASSWORD --mode
+    $ abodepy -u USERNAME -p PASSWORD --mode
     
-    Mode: standby
+      Mode: standby
     
 To set the alarm mode, one of 'standby', 'home', or 'away'::
 
-    $ python abodepy.py --username USERNAME --password PASSWORD --arm home
+    $ abodepy -u USERNAME -p PASSWORD --arm home
     
-    Mode set to: home
+      Mode set to: home
 
 A full list of devices and their current states::
 
-    $ python abodepy.py --username USERNAME --password PASSWORD --devices
+    $ abodepy -u USERNAME -p PASSWORD --devices
     
-    Device Name: Glass Break Sensor, Device ID: RF:xxxxxxxx, Device Type: GLASS, Device Status: Online
-    Device Name: Keypad, Device ID: RF:xxxxxxxx, Device Type: Keypad, Device Status: Online
-    Device Name: Remote, Device ID: RF:xxxxxxxx, Device Type: Remote Controller, Device Status: Online
-    Device Name: Garage Entry Door, Device ID: RF:xxxxxxxx, Device Type: Door Contact, Device Status: Closed
-    Device Name: Front Door, Device ID: RF:xxxxxxxx, Device Type: Door Contact, Device Status: Closed
-    Device Name: Back Door, Device ID: RF:xxxxxxxx, Device Type: Door Contact, Device Status: Closed
-    Device Name: Status Indicator, Device ID: ZB:xxxxxxxx, Device Type: Status Display, Device Status: Online
-    Device Name: Downstairs Motion Camera, Device ID: ZB:xxxxxxxx, Device Type: Motion Camera, Device Status: Online
-    Device Name: Back Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
-    Device Name: Front Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
-    Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
-    Device Name: Alarm area_1, Device ID: area_1, Device Type: Alarm, Device Status: standby
+      Device Name: Glass Break Sensor, Device ID: RF:xxxxxxxx, Device Type: GLASS, Device Status: Online
+      Device Name: Keypad, Device ID: RF:xxxxxxxx, Device Type: Keypad, Device Status: Online
+      Device Name: Remote, Device ID: RF:xxxxxxxx, Device Type: Remote Controller, Device Status: Online
+      Device Name: Garage Entry Door, Device ID: RF:xxxxxxxx, Device Type: Door Contact, Device Status: Closed
+      Device Name: Front Door, Device ID: RF:xxxxxxxx, Device Type: Door Contact, Device Status: Closed
+      Device Name: Back Door, Device ID: RF:xxxxxxxx, Device Type: Door Contact, Device Status: Closed
+      Device Name: Status Indicator, Device ID: ZB:xxxxxxxx, Device Type: Status Display, Device Status: Online
+      Device Name: Downstairs Motion Camera, Device ID: ZB:xxxxxxxx, Device Type: Motion Camera, Device Status: Online
+      Device Name: Back Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
+      Device Name: Front Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
+      Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
+      Device Name: Alarm area_1, Device ID: area_1, Device Type: Alarm, Device Status: standby
 
 The current state of a specific device using the device id::
 
-    $ python abodepy.py --username USERNAME --password PASSWORD --device ZW:xxxxxxxx
+    $ abodepy -u USERNAME -p PASSWORD --device ZW:xxxxxxxx
     
-    Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
+      Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
 
 Additionally, multiple specific devices using the device id::
     
-    $ python abodepy.py --username USERNAME --password PASSWORD --device ZW:xxxxxxxx --device RF:xxxxxxxx
+    $ abodepy -u USERNAME -p PASSWORD --device ZW:xxxxxxxx --device RF:xxxxxxxx
     
-    Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
-    Device Name: Back Door, Device ID: RF:xxxxxxxx, Device Type: Door Contact, Device Status: Closed
+      Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Device Type: Door Lock, Device Status: LockClosed
+      Device Name: Back Door, Device ID: RF:xxxxxxxx, Device Type: Door Contact, Device Status: Closed
     
 You can switch a device on or off, or lock and unlock a device by passing multiple arguments::
 
-    $ python abodepy.py --username USERNAME --password PASSWORD --lock ZW:xxxxxxxx --switchOn ZW:xxxxxxxx
+    $ abodepy -u USERNAME -p PASSWORD --lock ZW:xxxxxxxx --switchOn ZW:xxxxxxxx
     
-    Locked device with id: ZW:xxxxxxxx
-    Switched on device with id: ZW:xxxxxxxx
+      Locked device with id: ZW:xxxxxxxx
+      Switched on device with id: ZW:xxxxxxxx
    
 You can also block and listen for all mode and change events as they occur::
 
-    $ python abodepy.py --username USERNAME --password PASSWORD --listen
+    $ abodepy -u USERNAME -p PASSWORD --listen
     
-        No devices specified, adding all devices to listener...
-        Listening for device updates...
-        Device Name: Alarm area_1, Device ID: area_1, Status: standby, At: 2017-05-27 11:13:08
-        Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Status: LockOpen, At: 2017-05-27 11:13:31
-        Device Name: Garage Entry Door, Device ID: RF:xxxxxxxx, Status: Open, At: 2017-05-27 11:13:34
-        Device Name: Garage Entry Door, Device ID: RF:xxxxxxxx, Status: Closed, At: 2017-05-27 11:13:39
-        Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Status: LockClosed, At: 2017-05-27 11:13:41
-        Device Name: Alarm area_1, Device ID: area_1, Status: home, At: 2017-05-27 11:13:59
-        Device update listening stopped.
+      No devices specified, adding all devices to listener...
+      Listening for device updates...
+      Device Name: Alarm area_1, Device ID: area_1, Status: standby, At: 2017-05-27 11:13:08
+      Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Status: LockOpen, At: 2017-05-27 11:13:31
+      Device Name: Garage Entry Door, Device ID: RF:xxxxxxxx, Status: Open, At: 2017-05-27 11:13:34
+      Device Name: Garage Entry Door, Device ID: RF:xxxxxxxx, Status: Closed, At: 2017-05-27 11:13:39
+      Device Name: Garage Door Deadbolt, Device ID: ZW:xxxxxxxx, Status: LockClosed, At: 2017-05-27 11:13:41
+      Device Name: Alarm area_1, Device ID: area_1, Status: home, At: 2017-05-27 11:13:59
+      Device update listening stopped.
         
 If you specify one or more devices with the --device argument along with the --listen command then only those devices will listen for change events.
 
@@ -122,7 +125,7 @@ Settings
 
 You can change settings with abodepy either using abode.set_setting(setting, value) or through the command line::
 
-  $ python abodepy.py --username USERNAME --password PASSWORD --setting beeper_mute=1
+  $ abodepy -u USERNAME -p PASSWORD --set beeper_mute=1
   
     Setting beeper_mute changed to 1
 
@@ -187,15 +190,14 @@ Activate the virtual environment::
     
 Install abodepy locally::
 
-    $ pip3 install .
-
-To test from source directly, run pytest with the PWD added to the python path::
-
-    $ python -m pytest tests
+    $ pip3 install -e .
     
-Alternatively you can run the run the full test suite with tox::
+Run the run the full test suite with tox before commit::
 
     $ tox
+    
+Alternatively you can run just the tests::
+    $ tox -e py35
 
 Library Usage
 =============

@@ -32,11 +32,8 @@ from requests.exceptions import RequestException
 from socketIO_client import SocketIO, LoggingNamespace
 from socketIO_client.exceptions import SocketIOError
 
-import abodecl
-
-import helpers.constants as CONST
-import helpers.errors as ERROR
-
+import abodepy.helpers.constants as CONST
+import abodepy.helpers.errors as ERROR
 
 LOG_FORMATTER = logging.Formatter(
     '%(asctime)s - %(levelname)s - %(message)s')
@@ -85,8 +82,8 @@ class Abode():
 
         self._default_alarm_mode = CONST.MODE_AWAY
 
-        self._devices = []
-        self._device_id_lookup = {}
+        self._devices = None
+        self._device_id_lookup = None
 
         # Create a requests session to persist the cookies
         self._session = requests.session()
@@ -162,8 +159,8 @@ class Abode():
             self._panel = None
             self._user = None
 
-            self._devices = []
-            self._device_id_lookup = {}
+            self._devices = None
+            self._device_id_lookup = None
 
             LOG.info("Logout successful")
 
@@ -187,6 +184,119 @@ class Abode():
             raise AbodeException(ERROR.INVALID_DEVICE_ID)
 
         return self._abode_events.register(device, callback)
+
+    def get_devices(self, refresh=False, type_filter=None):
+        """Get all devices from Abode."""
+        if refresh or self._devices is None:
+            if self._devices is None:
+                # Set up the device libraries
+                self._devices = []
+                self._device_id_lookup = {}
+
+            LOG.info("Updating all devices...")
+            response = self.send_request("get", CONST.DEVICES_URL)
+            response_object = json.loads(response.text)
+
+            if (response_object and
+                    not isinstance(response_object, (tuple, list))):
+                response_object = [response_object]
+
+            LOG.debug("Get Devices Response: %s", response.text)
+
+            for device_json in response_object:
+                # Attempt to reuse an existing device
+                device = self._device_id_lookup.get(device_json['id'])
+
+                # No existing device, create a new one
+                if device:
+                    device.update(device_json)
+                else:
+                    self.__add_device(self.__new_device(device_json))
+
+            # We will be treating the Abode panel itself as an armable device.
+            panel_response = self.send_request("get", CONST.PANEL_URL)
+            panel_json = json.loads(panel_response.text)
+
+            self._panel.update(panel_json)
+
+            LOG.debug("Get Mode Panel Response: %s", response.text)
+
+            alarm_device = self._device_id_lookup.get(CONST.ALARM_DEVICE_ID)
+
+            if alarm_device:
+                alarm_device.update(panel_json)
+            else:
+                self.__add_device(self.__new_alarm(panel_json))
+
+        if type_filter:
+            devices = []
+            for device in self._devices:
+                if (device.type is not None and
+                        device.type in type_filter):
+                    devices.append(device)
+            return devices
+
+        return self._devices
+
+    def __new_device(self, device_json):
+        """Create new device object based on device_type."""
+        if device_json['type_tag'] is None:
+            return None
+
+        device_type = device_json['type_tag'].lower()
+
+        return {
+            CONST.DEVICE_GLASS_BREAK: AbodeBinarySensor(device_json, self),
+            CONST.DEVICE_KEYPAD: AbodeBinarySensor(device_json, self),
+            CONST.DEVICE_DOOR_CONTACT: AbodeBinarySensor(device_json, self),
+            CONST.DEVICE_STATUS_DISPLAY: AbodeBinarySensor(device_json, self),
+            CONST.DEVICE_MOTION_CAMERA: AbodeBinarySensor(device_json, self),
+            CONST.DEVICE_DOOR_LOCK: AbodeLock(device_json, self),
+            CONST.DEVICE_POWER_SWITCH: AbodeSwitch(device_json, self),
+            CONST.DEVICE_WATER_SENSOR: AbodeBinarySensor(device_json, self),
+            CONST.DEVICE_SECURE_BARRIER: AbodeCover(device_json, self),
+        }.get(device_type, AbodeDevice(device_json, self))
+
+    def __new_alarm(self, panel_json, area='1'):
+        panel_json['name'] = CONST.ALARM_NAME
+        panel_json['id'] = CONST.ALARM_DEVICE_ID + area
+        panel_json['type'] = CONST.ALARM_TYPE
+        panel_json['type_tag'] = CONST.DEVICE_ALARM
+
+        return AbodeAlarm(panel_json, self)
+
+    def __add_device(self, device):
+        """Add a device to the internal lookups."""
+        self._devices.append(device)
+        self._device_id_lookup[device.device_id] = device
+
+    def get_device(self, device_id, refresh=False):
+        """Get a single device."""
+        if self._devices is None:
+            self.get_devices()
+            refresh = False
+
+        device = self._device_id_lookup.get(device_id)
+
+        if device and refresh:
+            device.refresh()
+
+        return device
+
+    def get_alarm(self, area='1', refresh=False):
+        """Shortcut method to get the alarm device."""
+        if self._devices is None:
+            self.get_devices()
+            refresh = False
+
+        return self.get_device(CONST.ALARM_DEVICE_ID + area, refresh)
+
+    def set_default_mode(self, default_mode):
+        """Set the default mode when alarms are turned 'on'."""
+        if default_mode.lower() not in (CONST.MODE_AWAY, CONST.MODE_HOME):
+            raise AbodeException(ERROR.INVALID_DEFAULT_ALARM_MODE)
+
+        self._default_alarm_mode = default_mode.lower()
 
     def set_setting(self, setting, value, area='1', validate_value=True):
         """Set an abode system setting to a given value."""
@@ -301,97 +411,6 @@ class Abode():
 
         raise AbodeException((ERROR.REQUEST))
 
-    def __new_device(self, device_json):
-        """Create new device object based on device_type."""
-        if device_json['type_tag'] is None:
-            return None
-
-        device_type = device_json['type_tag'].lower()
-
-        return {
-            'device_type.door_lock': AbodeLock(device_json, self),
-            'device_type.door_contact': AbodeBinarySensor(device_json, self),
-            'device_type.glass': AbodeBinarySensor(device_json, self),
-            'device_type.power_switch_sensor': AbodeSwitch(device_json, self),
-        }.get(device_type, AbodeDevice(device_json, self))
-
-    def get_devices(self, category_filter=None):
-        """Get all devices from Abode."""
-        response = self.send_request("get", CONST.DEVICES_URL)
-        response_object = json.loads(response.text)
-
-        if response_object and not isinstance(response_object, (tuple, list)):
-            response_object = [response_object]
-
-        LOG.debug("Get Devices Response: %s", response.text)
-
-        # Clear the device libraries
-        self._devices = []
-        self._device_id_lookup = {}
-
-        # Create device objects for each device returned
-        for device_json in response_object:
-            device = self.__new_device(device_json)
-
-            if device:
-                self.__add_device(self.__new_device(device_json))
-
-        # We will be treating the Abode panel itself as an armable device.
-        panel_response = self.send_request("get", CONST.PANEL_URL)
-        panel_json = json.loads(panel_response.text)
-
-        self._panel.update(panel_json)
-
-        LOG.debug("Get Mode Panel Response: %s", response.text)
-
-        panel_json['id'] = '1'
-        panel_json['type'] = 'Alarm'
-
-        self.__add_device(AbodeAlarm(panel_json, self))
-
-        if category_filter:
-            devices = []
-            for device in self._devices:
-                if (device.type is not None and device.type != '' and
-                        device.type in category_filter):
-                    devices.append(device)
-            return devices
-
-        return self._devices
-
-    def __add_device(self, device):
-        """Add a device to the internal lookups."""
-        self._devices.append(device)
-        self._device_id_lookup[device.device_id] = device
-
-    def get_device(self, device_id, refresh=False):
-        """Get a single device."""
-        if not self._devices:
-            self.get_devices()
-            refresh = False
-
-        device = self._device_id_lookup.get(device_id)
-
-        if device and refresh:
-            device.refresh()
-
-        return device
-
-    def get_alarm(self, area='1', refresh=False):
-        """Shortcut method to get the alarm device."""
-        if not self._devices:
-            self.get_devices()
-            refresh = False
-
-        return self.get_device(area, refresh)
-
-    def set_default_mode(self, default_mode):
-        """Set the default mode when alarms are turned 'on'."""
-        if default_mode.lower() not in (CONST.MODE_AWAY, CONST.MODE_HOME):
-            raise AbodeException(ERROR.INVALID_DEFAULT_ALARM_MODE)
-
-        self._default_alarm_mode = default_mode.lower()
-
     @property
     def default_mode(self):
         """Get the default mode."""
@@ -413,11 +432,11 @@ class AbodeDevice(object):
         self._device_id = json_obj.get('id')
         self._name = json_obj.get('name')
         self._type = json_obj.get('type')
+        self._type_tag = json_obj.get('type_tag')
         self._abode_controller = abode_controller
 
         if not self._name:
-            if self._type:
-                self._name = self._type + ' ' + self._device_id
+            self._name = self._type + ' ' + self._device_id
 
     def set_status(self, status):
         """Set device status."""
@@ -551,9 +570,14 @@ class AbodeDevice(object):
         return self._name
 
     @property
-    def type(self):
+    def friendly_type(self):
         """Get the type of this device."""
         return self._type
+
+    @property
+    def type(self):
+        """Get the type tag of this device."""
+        return self._type_tag
 
     @property
     def device_id(self):
@@ -584,8 +608,30 @@ class AbodeSwitch(AbodeDevice):
 
     @property
     def is_on(self):
-        """Get switch state."""
-        return self.status not in CONST.STATUS_OFF
+        """
+        Get switch state.
+
+        Assume switch is on.
+        """
+        return self.status not in (CONST.STATUS_OFF, CONST.STATUS_OFFLINE)
+
+
+class AbodeCover(AbodeSwitch):
+    """Class to add cover functionality."""
+
+    @property
+    def is_open(self):
+        """Get if the cover is open."""
+        return self.is_on
+
+    @property
+    def is_on(self):
+        """
+        Get cover state.
+
+        Assume cover is open.
+        """
+        return self.status not in CONST.STATUS_CLOSED
 
 
 class AbodeSensor(AbodeDevice):
@@ -597,8 +643,13 @@ class AbodeBinarySensor(AbodeDevice):
 
     @property
     def is_on(self):
-        """Get sensor on off state."""
-        return self.status in (CONST.STATUS_ONLINE, CONST.STATUS_CLOSED)
+        """
+        Get sensor state.
+
+        Assume offline or open (worst case).
+        """
+        return self.status not in (CONST.STATUS_OFF, CONST.STATUS_OFFLINE,
+                                   CONST.STATUS_OPEN)
 
 
 class AbodeLock(AbodeDevice):
@@ -633,6 +684,11 @@ class AbodeLock(AbodeDevice):
 class AbodeAlarm(AbodeSwitch):
     """Class to represent the Abode alarm as a device."""
 
+    def __init__(self, json_obj, abode_controller, area='1'):
+        """Set up Abode alarm device."""
+        AbodeSwitch.__init__(self, json_obj, abode_controller)
+        self._area = area
+
     def set_mode(self, mode):
         """Set Abode alarm mode."""
         if not mode:
@@ -643,7 +699,7 @@ class AbodeAlarm(AbodeSwitch):
         mode = mode.lower()
 
         response = self._abode_controller.send_request(
-            "put", CONST.PANEL_MODE_URL(self.device_id, mode))
+            "put", CONST.PANEL_MODE_URL(self._area, mode))
 
         if not response or response.status_code != 200:
             raise AbodeException(ERROR.SET_MODE)
@@ -652,14 +708,13 @@ class AbodeAlarm(AbodeSwitch):
 
         response_object = json.loads(response.text)
 
-        if response_object['area'] != self.device_id:
+        if response_object['area'] != self._area:
             raise AbodeException(ERROR.SET_MODE_AREA)
 
         if response_object['mode'] != mode:
             raise AbodeException(ERROR.SET_MODE_MODE)
 
-        self._json_state['mode'][('area_' +
-                                  self.device_id)] = response_object['mode']
+        self._json_state['mode'][(self.device_id)] = response_object['mode']
 
         LOG.info("Set alarm %s mode to: %s",
                  self._device_id, response_object['mode'])
@@ -700,9 +755,24 @@ class AbodeAlarm(AbodeSwitch):
         return self.mode in (CONST.MODE_HOME, CONST.MODE_AWAY)
 
     @property
+    def is_standby(self):
+        """Is alarm in standby mode."""
+        return not self.mode
+
+    @property
+    def is_home(self):
+        """Is alarm in home mode."""
+        return self.mode in CONST.MODE_HOME
+
+    @property
+    def is_away(self):
+        """Is alarm in away mode."""
+        return self.mode in CONST.MODE_AWAY
+
+    @property
     def mode(self):
         """Get alarm mode."""
-        mode = self.get_value('mode').get('area_' + self.device_id, None)
+        mode = self.get_value('mode').get(self.device_id, None)
 
         if not mode:
             raise AbodeException(ERROR.MISSING_ALARM_MODE)
@@ -733,7 +803,6 @@ class AbodeEvents(object):
     def __init__(self, abode):
         """Init event subscription class."""
         self._abode = abode
-        self._devices = collections.defaultdict(list)
         self._callbacks = collections.defaultdict(list)
         self._thread = None
         self._socketio = None
@@ -756,7 +825,6 @@ class AbodeEvents(object):
         LOG.info("Subscribing to events for device: %s (%s)",
                  device.name, device.device_id)
 
-        self._devices[device.device_id].append(device)
         self._callbacks[device.device_id].append((callback))
 
         return True
@@ -896,7 +964,3 @@ class AbodeEvents(object):
                 self._clear_internal_socketio()
 
         LOG.info("Disconnected from Abode SocketIO server")
-
-
-if __name__ == '__main__':
-    abodecl.call(vars)

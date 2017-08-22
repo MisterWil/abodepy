@@ -1,3 +1,4 @@
+"""Errors for AbodePy."""
 USERNAME = (0, "Username must be a non-empty string")
 
 PASSWORD = (1, "Password must be a non-empty string")

@@ -5,9 +5,9 @@ import unittest
 import requests_mock
 
 import abodepy
-import helpers.constants as const
-import tests.mock_devices as mdev
-import tests.mock_responses as mresp
+import abodepy.helpers.constants as const
+import abodepy.tests.mock_devices as mdev
+import abodepy.tests.mock_responses as mresp
 
 
 USERNAME = 'foobar'
@@ -54,7 +54,8 @@ class TestAbodeDevicesSetup(unittest.TestCase):
         # pylint: disable=W0212
         self.assertEqual(device._json_state, device_json[0])
         self.assertEqual(device.name, device_json[0]['name'])
-        self.assertEqual(device.type, device_json[0]['type'])
+        self.assertEqual(device.type, device_json[0]['type_tag'])
+        self.assertEqual(device.friendly_type, device_json[0]['type'])
         self.assertEqual(device.device_id, device_json[0]['id'])
         self.assertEqual(device.status, const.STATUS_ONLINE)
         self.assertTrue(device.battery_low)
@@ -163,13 +164,15 @@ class TestAbodeDevicesSetup(unittest.TestCase):
         self.abode.logout()
 
         # Get our glass devices
-        devices = self.abode.get_devices(('GLASS'))
+        devices = self.abode.get_devices(
+            type_filter=(const.DEVICE_GLASS_BREAK))
 
         self.assertIsNotNone(devices)
         self.assertEqual(len(devices), 1)
 
         # Get our power switch devices
-        devices = self.abode.get_devices(('Power Switch Sensor'))
+        devices = self.abode.get_devices(
+            type_filter=(const.DEVICE_POWER_SWITCH))
 
         self.assertIsNotNone(devices)
         self.assertEqual(len(devices), 2)

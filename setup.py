@@ -1,9 +1,13 @@
+#!/usr/bin/env python3
+"""AbodePy setup script."""
 from setuptools import setup, find_packages
-from helpers.constants import (__version__, PROJECT_PACKAGE_NAME,
-                               PROJECT_LICENSE, PROJECT_URL,
-                               PROJECT_EMAIL, PROJECT_DESCRIPTION,
-                               PROJECT_CLASSIFIERS, PROJECT_AUTHOR,
-                               PROJECT_LONG_DESCRIPTION)
+from abodepy.helpers.constants import (__version__, PROJECT_PACKAGE_NAME,
+                                       PROJECT_LICENSE, PROJECT_URL,
+                                       PROJECT_EMAIL, PROJECT_DESCRIPTION,
+                                       PROJECT_CLASSIFIERS, PROJECT_AUTHOR,
+                                       PROJECT_LONG_DESCRIPTION)
+
+PACKAGES = find_packages(exclude=['tests', 'tests.*'])
 
 setup(
     name=PROJECT_PACKAGE_NAME,
@@ -15,9 +19,15 @@ setup(
     license=PROJECT_LICENSE,
     url=PROJECT_URL,
     platforms='any',
-    py_modules=['abodepy', 'abodecl'],
-    packages=find_packages(),
+    py_modules=['abodepy'],
+    packages=PACKAGES,
+    include_package_data=True,
     install_requires=['requests>=2,<3', 'socketIO-client3>=0.8.0'],
     test_suite='tests',
+    entry_points={
+        'console_scripts': [
+            'abodepy = abodepy.__main__:main'
+        ]
+    },
     classifiers=PROJECT_CLASSIFIERS
 )

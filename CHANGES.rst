@@ -3,6 +3,20 @@ Changelog
 
 A list of changes between each release.
 
+0.8.0 (2017-08-22)
+^^^^^^^^^^^^^^^^^^
+- Refactored almost the entire package layout
+- Command line is now called with the 'abodepy' command directly
+- Cleaned up command line help
+- Changed --setting to --set, --switchOn to --on, and --switchOff to --off
+- Modified get_devices() to update existing devices instead of creating new ones every time
+- Added additional property methods
+- Added support for more device types
+
+0.7.2 (2017-08-21)
+^^^^^^^^^^^^^^^^^^
+- Small bug fix release regarding event callbacks for HASS testing
+
 0.7.1 (2017-08-21)
 ^^^^^^^^^^^^^^^^^^
 - Added siren settings for Issue #1
