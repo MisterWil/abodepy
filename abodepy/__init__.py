@@ -757,17 +757,17 @@ class AbodeAlarm(AbodeSwitch):
     @property
     def is_standby(self):
         """Is alarm in standby mode."""
-        return not self.mode
+        return self.mode == CONST.MODE_STANDBY
 
     @property
     def is_home(self):
         """Is alarm in home mode."""
-        return self.mode in CONST.MODE_HOME
+        return self.mode == CONST.MODE_HOME
 
     @property
     def is_away(self):
         """Is alarm in away mode."""
-        return self.mode in CONST.MODE_AWAY
+        return self.mode == CONST.MODE_AWAY
 
     @property
     def mode(self):
