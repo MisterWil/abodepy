@@ -558,7 +558,7 @@ class TestAbodeDevicesSetup(unittest.TestCase):
         self.assertEqual(device.status, const.STATUS_CLOSED)
         self.assertFalse(device.battery_low)
         self.assertFalse(device.no_response)
-        self.assertTrue(device.is_on)
+        self.assertFalse(device.is_on)
 
         # Set up our direct device get url
         device_url = str.replace(const.DEVICE_URL,
@@ -577,4 +577,4 @@ class TestAbodeDevicesSetup(unittest.TestCase):
         self.assertEqual(device.status, const.STATUS_OPEN)
         self.assertTrue(device.battery_low)
         self.assertTrue(device.no_response)
-        self.assertFalse(device.is_on)
+        self.assertTrue(device.is_on)
