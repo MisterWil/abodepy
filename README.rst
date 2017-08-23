@@ -188,7 +188,7 @@ Activate the virtual environment::
 
     $ source venv/bin/activate
     
-Install abodepy locally::
+Install abodepy locally in "editable mode"::
 
     $ pip3 install -e .
     
@@ -197,6 +197,7 @@ Run the run the full test suite with tox before commit::
     $ tox
     
 Alternatively you can run just the tests::
+
     $ tox -e py35
 
 Library Usage
