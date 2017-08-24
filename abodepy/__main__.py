@@ -261,14 +261,14 @@ def call():
                 for device in abode.get_devices():
                     abode.register(device, _device_callback)
 
-            print("Listening for device updates...")
+            _LOGGER.info("Listening for device updates...")
             abode.start_listener()
             try:
                 while True:
                     time.sleep(1)
             except KeyboardInterrupt:
                 abode.stop_listener()
-                print("Device update listening stopped.")
+                _LOGGER.info("Device update listening stopped.")
     except abodepy.AbodeException as exc:
         _LOGGER.error(exc)
     finally:

@@ -124,7 +124,6 @@ class AbodeEvents(object):
 
     def _get_socket_io(self, url=CONST.SOCKETIO_URL, port=443):
         # pylint: disable=W0212
-        logging.basicConfig(level=self._abode.log_level)
         socketio = SocketIO(
             url, port, headers=CONST.SOCKETIO_HEADERS,
             cookies=self._abode._get_session().cookies.get_dict(),
@@ -133,11 +132,6 @@ class AbodeEvents(object):
         socketio.on('connect', lambda: self._on_socket_connect(socketio))
         socketio.on('pong', self._on_socket_pong)
 
-        def _on_message(*args, **kwargs):
-            _LOGGER.info("Message: %s", locals())
-
-        socketio.on('message', _on_message)
-
         socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
         socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
 
@@ -145,11 +139,16 @@ class AbodeEvents(object):
 
     def _clear_internal_socketio(self):
         if self._socketio:
-            self._socketio.off('connect')
-            self._socketio.off('pong')
-            self._socketio.off(CONST.DEVICE_UPDATE_EVENT)
-            self._socketio.off(CONST.GATEWAY_MODE_EVENT)
-            self._socketio.disconnect()
+            try:
+                self._socketio.off('connect')
+                self._socketio.off('pong')
+                self._socketio.off(CONST.DEVICE_UPDATE_EVENT)
+                self._socketio.off(CONST.GATEWAY_MODE_EVENT)
+                self._socketio.disconnect()
+            except Exception:
+                _LOGGER.warning(
+                    "Caught exception clearing old SocketIO object...")
+                raise
 
     def _run_socketio_thread(self):
         self._running = True
