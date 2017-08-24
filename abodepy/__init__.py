@@ -21,22 +21,16 @@ Abode's servers. Leverage the cloud push event notification functionality as
 much as possible. Please use this module responsibly.
 """
 
-import collections
 import json
 import logging
 import requests
 from requests.exceptions import RequestException
-import threading
-import time
-
-from socketIO_client import SocketIO, LoggingNamespace
-from socketIO_client.exceptions import SocketIOError
 
 from abodepy.devices import AbodeDevice
-import abodepy.devices as DEVICE
-import abodepy.devices.alarm as ALARM
 from abodepy.events import AbodeEvents
 from abodepy.exceptions import AbodeAuthenticationException, AbodeException
+import abodepy.devices as DEVICE
+import abodepy.devices.alarm as ALARM
 import abodepy.helpers.constants as CONST
 import abodepy.helpers.errors as ERROR
 
