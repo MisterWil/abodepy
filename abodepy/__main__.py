@@ -24,18 +24,45 @@ import argparse
 
 import abodepy
 
-LOG_FORMATTER = logging.Formatter(
-    '%(asctime)s - %(levelname)s - %(message)s')
-
-LOG_HANDLER = logging.StreamHandler()
-LOG_HANDLER.setFormatter(LOG_FORMATTER)
-
-LOG = logging.getLogger(__name__)
-LOG.addHandler(LOG_HANDLER)
+_LOGGER = logging.getLogger('abodecl')
 
 
-def call():
-    """Execute command line helper."""
+def setup_logging(log_level=logging.INFO):
+    """Set up the logging."""
+    logging.basicConfig(level=log_level)
+    fmt = ("%(asctime)s %(levelname)s (%(threadName)s) "
+           "[%(name)s] %(message)s")
+    colorfmt = "%(log_color)s{}%(reset)s".format(fmt)
+    datefmt = '%Y-%m-%d %H:%M:%S'
+
+    # Suppress overly verbose logs from libraries that aren't helpful
+    logging.getLogger('requests').setLevel(logging.WARNING)
+    logging.getLogger('urllib3').setLevel(logging.WARNING)
+    logging.getLogger('aiohttp.access').setLevel(logging.WARNING)
+
+    try:
+        from colorlog import ColoredFormatter
+        logging.getLogger().handlers[0].setFormatter(ColoredFormatter(
+            colorfmt,
+            datefmt=datefmt,
+            reset=True,
+            log_colors={
+                'DEBUG': 'cyan',
+                'INFO': 'green',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
+                'CRITICAL': 'red',
+            }
+        ))
+    except ImportError:
+        pass
+
+    logger = logging.getLogger('')
+    logger.setLevel(log_level)
+
+
+def get_arguments():
+    """Get parsed arguments."""
     parser = argparse.ArgumentParser("AbodePy: Command Line Utility")
 
     parser.add_argument(
@@ -116,7 +143,12 @@ def call():
         help='Output only warnings and errors',
         required=False, default=False, action="store_true")
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def call():
+    """Execute command line helper."""
+    args = get_arguments()
 
     # Set up logging
     if args.debug:
@@ -126,7 +158,7 @@ def call():
     else:
         log_level = logging.INFO
 
-    LOG.setLevel(log_level)
+    setup_logging(log_level)
 
     abode = None
 
@@ -134,24 +166,24 @@ def call():
         # Create abodepy instance.
         abode = abodepy.Abode(username=args.username,
                               password=args.password,
-                              get_devices=True, log_level=log_level)
+                              get_devices=True)
 
         # Output current mode.
         if args.mode:
-            LOG.info("Current alarm mode: %s", abode.get_alarm().mode)
+            _LOGGER.info("Current alarm mode: %s", abode.get_alarm().mode)
 
         # Change system mode.
         if args.arm:
             if abode.get_alarm().set_mode(args.arm):
-                LOG.info("Alarm mode changed to: %s", args.arm)
+                _LOGGER.info("Alarm mode changed to: %s", args.arm)
             else:
-                LOG.warning("Failed to change alarm mode to: %s", args.arm)
+                _LOGGER.warning("Failed to change alarm mode to: %s", args.arm)
 
         # Set setting
         for setting in args.set or []:
             keyval = setting.split("=")
             if abode.set_setting(keyval[0], keyval[1]):
-                LOG.info("Setting %s changed to %s", keyval[0], keyval[1])
+                _LOGGER.info("Setting %s changed to %s", keyval[0], keyval[1])
 
         # Switch on
         for device_id in args.on or []:
@@ -159,9 +191,9 @@ def call():
 
             if device:
                 if device.switch_on():
-                    LOG.info("Switched on device with id: %s", device_id)
+                    _LOGGER.info("Switched on device with id: %s", device_id)
             else:
-                LOG.warning("Could not find device with id: %s", device_id)
+                _LOGGER.warning("Could not find device with id: %s", device_id)
 
         # Switch off
         for device_id in args.off or []:
@@ -169,9 +201,9 @@ def call():
 
             if device:
                 if device.switch_off():
-                    LOG.info("Switched off device with id: %s", device_id)
+                    _LOGGER.info("Switched off device with id: %s", device_id)
             else:
-                LOG.warning("Could not find device with id: %s", device_id)
+                _LOGGER.warning("Could not find device with id: %s", device_id)
 
         # Lock
         for device_id in args.lock or []:
@@ -179,9 +211,9 @@ def call():
 
             if device:
                 if device.lock():
-                    LOG.info("Locked device with id: %s", device_id)
+                    _LOGGER.info("Locked device with id: %s", device_id)
             else:
-                LOG.warning("Could not find device with id: %s", device_id)
+                _LOGGER.warning("Could not find device with id: %s", device_id)
 
         # Unlock
         for device_id in args.unlock or []:
@@ -189,14 +221,14 @@ def call():
 
             if device:
                 if device.unlock():
-                    LOG.info("Unlocked device with id: %s", device_id)
+                    _LOGGER.info("Unlocked device with id: %s", device_id)
             else:
-                LOG.warning("Could not find device with id: %s", device_id)
+                _LOGGER.warning("Could not find device with id: %s", device_id)
 
         # Print
         def _device_print(dev, append=''):
-            LOG.info("Device Name: %s, ID: %s, Type: %s, Status: %s%s",
-                     dev.name, dev.device_id, dev.type, dev.status, append)
+            _LOGGER.info("Device Name: %s, ID: %s, Type: %s, Status: %s%s",
+                         dev.name, dev.device_id, dev.type, dev.status, append)
 
         # Print out all devices.
         if args.devices:
@@ -217,13 +249,14 @@ def call():
                     # Register the specific devices if we decide to listen.
                     abode.register(device, _device_callback)
                 else:
-                    LOG.warning("Could not find device with id: %s", device_id)
+                    _LOGGER.warning(
+                        "Could not find device with id: %s", device_id)
 
         # Start device change listener.
         if args.listen:
             # If no devices were specified then we listen to all devices.
             if args.device is None:
-                LOG.info("Adding all devices to listener...")
+                _LOGGER.info("Adding all devices to listener...")
 
                 for device in abode.get_devices():
                     abode.register(device, _device_callback)
@@ -237,14 +270,14 @@ def call():
                 abode.stop_listener()
                 print("Device update listening stopped.")
     except abodepy.AbodeException as exc:
-        LOG.error(exc)
+        _LOGGER.error(exc)
     finally:
         if abode:
             abode.logout()
 
 
 def main():
-    """Command line call."""
+    """Execute from command line."""
     call()
 
 

@@ -1,0 +1,35 @@
+"""Abode switch device."""
+
+from abodepy.devices import AbodeDevice
+import abodepy.helpers.constants as CONST
+
+
+class AbodeSwitch(AbodeDevice):
+    """Class to add switch functionality."""
+
+    def switch_on(self):
+        """Turn the switch on."""
+        success = self.set_status('1')
+
+        if success:
+            self._json_state['status'] = CONST.STATUS_ON
+
+        return success
+
+    def switch_off(self):
+        """Turn the switch off."""
+        success = self.set_status('0')
+
+        if success:
+            self._json_state['status'] = CONST.STATUS_OFF
+
+        return success
+
+    @property
+    def is_on(self):
+        """
+        Get switch state.
+
+        Assume switch is on.
+        """
+        return self.status not in (CONST.STATUS_OFF, CONST.STATUS_OFFLINE)
