@@ -178,7 +178,7 @@ class TestDevice(unittest.TestCase):
 
         # Get our power switch devices
         devices = self.abode.get_devices(
-            type_filter=(CONST.DEVICE_POWER_SWITCH))
+            type_filter=(CONST.DEVICE_POWER_SWITCH_SENSOR))
 
         self.assertIsNotNone(devices)
         self.assertEqual(len(devices), 2)

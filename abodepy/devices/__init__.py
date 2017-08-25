@@ -29,7 +29,8 @@ def new_device(device_json, abode):
         CONST.DEVICE_STATUS_DISPLAY: AbodeBinarySensor(device_json, abode),
         CONST.DEVICE_MOTION_CAMERA: AbodeBinarySensor(device_json, abode),
         CONST.DEVICE_DOOR_LOCK: AbodeLock(device_json, abode),
-        CONST.DEVICE_POWER_SWITCH: AbodeSwitch(device_json, abode),
+        CONST.DEVICE_POWER_SWITCH_SENSOR: AbodeSwitch(device_json, abode),
+        CONST.DEVICE_POWER_SWITCH_METER: AbodeSwitch(device_json, abode),
         CONST.DEVICE_WATER_SENSOR: AbodeBinarySensor(device_json, abode),
         CONST.DEVICE_SECURE_BARRIER: AbodeCover(device_json, abode),
     }.get(device_type, AbodeDevice(device_json, abode))

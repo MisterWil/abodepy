@@ -10,15 +10,15 @@ import tests.mock.login as LOGIN
 import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
 import tests.mock.devices as DEVICES
-import tests.mock.devices.power_switch_sensor as POWERSENSOR
+import tests.mock.devices.power_switch_meter as POWERMETER
 
 
 USERNAME = 'foobar'
 PASSWORD = 'deadbeef'
 
 
-class TestPowerSwitchSensor(unittest.TestCase):
-    """Test the AbodePy power switch sensor."""
+class TestPowerSwitchMeter(unittest.TestCase):
+    """Test the AbodePy power switch meter class."""
 
     def setUp(self):
         """Set up Abode module."""
@@ -38,16 +38,16 @@ class TestPowerSwitchSensor(unittest.TestCase):
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
         m.get(CONST.DEVICES_URL,
-              text=POWERSENSOR.device(devid=POWERSENSOR.DEVICE_ID,
-                                      status=CONST.STATUS_OFF,
-                                      low_battery=False,
-                                      no_response=False))
+              text=POWERMETER.device(devid=POWERMETER.DEVICE_ID,
+                                     status=CONST.STATUS_OFF,
+                                     low_battery=False,
+                                     no_response=False))
 
         # Logout to reset everything
         self.abode.logout()
 
         # Get our power switch
-        device = self.abode.get_device(POWERSENSOR.DEVICE_ID)
+        device = self.abode.get_device(POWERMETER.DEVICE_ID)
 
         # Test our device
         self.assertIsNotNone(device)
@@ -58,14 +58,14 @@ class TestPowerSwitchSensor(unittest.TestCase):
 
         # Set up our direct device get url
         device_url = str.replace(CONST.DEVICE_URL,
-                                 '$DEVID$', POWERSENSOR.DEVICE_ID)
+                                 '$DEVID$', POWERMETER.DEVICE_ID)
 
         # Change device properties
         m.get(device_url,
-              text=POWERSENSOR.device(devid=POWERSENSOR.DEVICE_ID,
-                                      status=CONST.STATUS_ON,
-                                      low_battery=True,
-                                      no_response=True))
+              text=POWERMETER.device(devid=POWERMETER.DEVICE_ID,
+                                     status=CONST.STATUS_ON,
+                                     low_battery=True,
+                                     no_response=True))
 
         # Refesh device and test changes
         device.refresh()
@@ -84,16 +84,16 @@ class TestPowerSwitchSensor(unittest.TestCase):
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
         m.get(CONST.DEVICES_URL,
-              text=POWERSENSOR.device(devid=POWERSENSOR.DEVICE_ID,
-                                      status=CONST.STATUS_OFF,
-                                      low_battery=False,
-                                      no_response=False))
+              text=POWERMETER.device(devid=POWERMETER.DEVICE_ID,
+                                     status=CONST.STATUS_OFF,
+                                     low_battery=False,
+                                     no_response=False))
 
         # Logout to reset everything
         self.abode.logout()
 
         # Get our power switch
-        device = self.abode.get_device(POWERSENSOR.DEVICE_ID)
+        device = self.abode.get_device(POWERMETER.DEVICE_ID)
 
         # Test that we have our device
         self.assertIsNotNone(device)
@@ -101,10 +101,10 @@ class TestPowerSwitchSensor(unittest.TestCase):
         self.assertFalse(device.is_on)
 
         # Set up control url response
-        control_url = CONST.BASE_URL + POWERSENSOR.CONTROL_URL
+        control_url = CONST.BASE_URL + POWERMETER.CONTROL_URL
         m.put(control_url,
               text=DEVICES.status_put_response_ok(
-                  devid=POWERSENSOR.DEVICE_ID,
+                  devid=POWERMETER.DEVICE_ID,
                   status=CONST.STATUS_ON_INT))
 
         # Change the mode to "on"
@@ -115,7 +115,7 @@ class TestPowerSwitchSensor(unittest.TestCase):
         # Change response
         m.put(control_url,
               text=DEVICES.status_put_response_ok(
-                  devid=POWERSENSOR.DEVICE_ID,
+                  devid=POWERMETER.DEVICE_ID,
                   status=CONST.STATUS_OFF_INT))
 
         # Change the mode to "off"
@@ -126,7 +126,7 @@ class TestPowerSwitchSensor(unittest.TestCase):
         # Test that an invalid status response throws exception
         m.put(control_url,
               text=DEVICES.status_put_response_ok(
-                  devid=POWERSENSOR.DEVICE_ID,
+                  devid=POWERMETER.DEVICE_ID,
                   status=CONST.STATUS_OFF_INT))
 
         with self.assertRaises(abodepy.AbodeException):
