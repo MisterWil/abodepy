@@ -189,7 +189,8 @@ class Abode():
 
             _LOGGER.debug("Get Mode Panel Response: %s", response.text)
 
-            alarm_device = self._device_id_lookup.get(CONST.ALARM_DEVICE_ID)
+            alarm_device = self._device_id_lookup.get(
+                CONST.ALARM_DEVICE_ID + '1')
 
             if alarm_device:
                 alarm_device.update(panel_json)

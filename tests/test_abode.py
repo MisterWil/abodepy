@@ -69,7 +69,7 @@ class TestAbode(unittest.TestCase):
 
     @requests_mock.mock()
     def tests_auto_login(self, m):
-        """Test that automatic login, device retrieval, and debug mode work."""
+        """Test that automatic login works."""
         auth_token = MOCK.AUTH_TOKEN
         user_json = USER.get_response_ok()
         login_json = LOGIN.post_response_ok(auth_token, user_json)
@@ -90,6 +90,39 @@ class TestAbode(unittest.TestCase):
         self.assertEqual(abode._token, MOCK.AUTH_TOKEN)
         self.assertEqual(abode._panel, json.loads(panel_json))
         self.assertEqual(abode._user, json.loads(user_json))
+        self.assertIsNone(abode._devices)
+
+        abode.logout()
+
+        abode = None
+
+    @requests_mock.mock()
+    def tests_auto_device_fetch(self, m):
+        """Test that automatic device retrieval works."""
+        auth_token = MOCK.AUTH_TOKEN
+        user_json = USER.get_response_ok()
+        login_json = LOGIN.post_response_ok(auth_token, user_json)
+        panel_json = PANEL.get_response_ok()
+
+        m.post(CONST.LOGIN_URL, text=login_json)
+        m.get(CONST.PANEL_URL, text=panel_json)
+        m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+
+        abode = abodepy.Abode(username='fizz',
+                              password='buzz',
+                              auto_login=False,
+                              get_devices=True)
+
+        # pylint: disable=W0212
+        self.assertEqual(abode._username, 'fizz')
+        self.assertEqual(abode._password, 'buzz')
+        self.assertEqual(abode._token, MOCK.AUTH_TOKEN)
+        self.assertEqual(abode._panel, json.loads(panel_json))
+        self.assertEqual(abode._user, json.loads(user_json))
+
+        # Contains one device, our alarm
+        self.assertEqual(abode._devices, [abode.get_alarm()])
 
         abode.logout()
 
@@ -247,6 +280,59 @@ class TestAbode(unittest.TestCase):
         # Test that an invalid device raises exception
         with self.assertRaises(abodepy.AbodeException):
             self.abode.register('slapstick', None)
+
+    @requests_mock.mock()
+    def test_all_device_refresh(self, m):
+        """Check that device refresh works and reuses the same objects."""
+        dc1_devid = 'RF:01'
+        dc1a = DOOR_CONTACT.device(
+            devid=dc1_devid, status=CONST.STATUS_ON)
+
+        dc2_devid = 'RF:02'
+        dc2a = DOOR_CONTACT.device(
+            devid=dc2_devid, status=CONST.STATUS_OFF)
+
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.DEVICES_URL, text='[' + dc1a + ',' + dc2a + ']')
+        m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
+
+        # Reset
+        self.abode.logout()
+
+        # Get all devices
+        self.abode.get_devices()
+
+        # Get and check devices
+        # pylint: disable=W0212
+        dc1a_dev = self.abode.get_device(dc1_devid)
+        self.assertEqual(json.loads(dc1a), dc1a_dev._json_state)
+
+        dc2a_dev = self.abode.get_device(dc2_devid)
+        self.assertEqual(json.loads(dc2a), dc2a_dev._json_state)
+
+        # Change device states
+        dc1b = DOOR_CONTACT.device(
+            devid=dc1_devid, status=CONST.STATUS_OFF)
+
+        dc2b = DOOR_CONTACT.device(
+            devid=dc2_devid, status=CONST.STATUS_ON)
+
+        m.get(CONST.DEVICES_URL, text='[' + dc1b + ',' + dc2b + ']')
+
+        # Refresh all devices
+        self.abode.get_devices(refresh=True)
+
+        # Get and check devices again, ensuring they are the same object
+        # Future note: "if a is b" tests that the object is the same
+        # Thus asserting dc1a_dev is dc1b_dev tests if they are the same object
+        dc1b_dev = self.abode.get_device(dc1_devid)
+        self.assertEqual(json.loads(dc1b), dc1b_dev._json_state)
+        self.assertIs(dc1a_dev, dc1b_dev)
+
+        dc2b_dev = self.abode.get_device(dc2_devid)
+        self.assertEqual(json.loads(dc2b), dc2b_dev._json_state)
+        self.assertIs(dc2a_dev, dc2b_dev)
 
     @requests_mock.mock()
     def tests_settings_validation(self, m):

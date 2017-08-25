@@ -120,37 +120,67 @@ class TestAlarm(unittest.TestCase):
         # Set and test text based mode changes
         self.assertTrue(alarm.set_mode(CONST.MODE_HOME))
         self.assertEqual(alarm.mode, CONST.MODE_HOME)
+        self.assertFalse(alarm.is_standby)
+        self.assertTrue(alarm.is_home)
+        self.assertFalse(alarm.is_away)
 
         self.assertTrue(alarm.set_mode(CONST.MODE_AWAY))
         self.assertEqual(alarm.mode, CONST.MODE_AWAY)
+        self.assertFalse(alarm.is_standby)
+        self.assertFalse(alarm.is_home)
+        self.assertTrue(alarm.is_away)
 
         self.assertTrue(alarm.set_mode(CONST.MODE_STANDBY))
         self.assertEqual(alarm.mode, CONST.MODE_STANDBY)
+        self.assertTrue(alarm.is_standby)
+        self.assertFalse(alarm.is_home)
+        self.assertFalse(alarm.is_away)
 
         # Set and test direct mode changes
         self.assertTrue(alarm.set_home())
         self.assertEqual(alarm.mode, CONST.MODE_HOME)
+        self.assertFalse(alarm.is_standby)
+        self.assertTrue(alarm.is_home)
+        self.assertFalse(alarm.is_away)
 
         self.assertTrue(alarm.set_away())
         self.assertEqual(alarm.mode, CONST.MODE_AWAY)
+        self.assertFalse(alarm.is_standby)
+        self.assertFalse(alarm.is_home)
+        self.assertTrue(alarm.is_away)
 
         self.assertTrue(alarm.set_standby())
         self.assertEqual(alarm.mode, CONST.MODE_STANDBY)
+        self.assertTrue(alarm.is_standby)
+        self.assertFalse(alarm.is_home)
+        self.assertFalse(alarm.is_away)
 
         # Set and test default mode changes
         self.assertTrue(alarm.switch_off())
         self.assertEqual(alarm.mode, CONST.MODE_STANDBY)
+        self.assertTrue(alarm.is_standby)
+        self.assertFalse(alarm.is_home)
+        self.assertFalse(alarm.is_away)
 
         self.abode.set_default_mode(CONST.MODE_HOME)
         self.assertTrue(alarm.switch_on())
         self.assertEqual(alarm.mode, CONST.MODE_HOME)
+        self.assertFalse(alarm.is_standby)
+        self.assertTrue(alarm.is_home)
+        self.assertFalse(alarm.is_away)
 
         self.assertTrue(alarm.switch_off())
         self.assertEqual(alarm.mode, CONST.MODE_STANDBY)
+        self.assertTrue(alarm.is_standby)
+        self.assertFalse(alarm.is_home)
+        self.assertFalse(alarm.is_away)
 
         self.abode.set_default_mode(CONST.MODE_AWAY)
         self.assertTrue(alarm.switch_on())
         self.assertEqual(alarm.mode, CONST.MODE_AWAY)
+        self.assertFalse(alarm.is_standby)
+        self.assertFalse(alarm.is_home)
+        self.assertTrue(alarm.is_away)
 
         # Test that no mode throws exception
         with self.assertRaises(abodepy.AbodeException):

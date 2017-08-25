@@ -41,9 +41,6 @@ class AbodeAlarm(AbodeSwitch):
         response = self._abode.send_request(
             "put", CONST.PANEL_MODE_URL(self._area, mode))
 
-        if not response or response.status_code != 200:
-            raise AbodeException(ERROR.SET_MODE)
-
         _LOGGER.debug("Set Alarm Home Response: %s", response.text)
 
         response_object = json.loads(response.text)
@@ -113,11 +110,6 @@ class AbodeAlarm(AbodeSwitch):
     def mode(self):
         """Get alarm mode."""
         mode = self.get_value('mode').get(self.device_id, None)
-
-        if not mode:
-            raise AbodeException(ERROR.MISSING_ALARM_MODE)
-        elif mode.lower() not in CONST.ALL_MODES:
-            raise AbodeException(ERROR.INVALID_ALARM_MODE)
 
         return mode.lower()
 

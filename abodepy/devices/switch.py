@@ -9,7 +9,7 @@ class AbodeSwitch(AbodeDevice):
 
     def switch_on(self):
         """Turn the switch on."""
-        success = self.set_status('1')
+        success = self.set_status(CONST.STATUS_ON_INT)
 
         if success:
             self._json_state['status'] = CONST.STATUS_ON
@@ -18,7 +18,7 @@ class AbodeSwitch(AbodeDevice):
 
     def switch_off(self):
         """Turn the switch off."""
-        success = self.set_status('0')
+        success = self.set_status(CONST.STATUS_OFF_INT)
 
         if success:
             self._json_state['status'] = CONST.STATUS_OFF
