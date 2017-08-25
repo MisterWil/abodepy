@@ -78,6 +78,9 @@ class AbodeEvents(object):
         for callback in self._callbacks.get(alarm_device.device_id, ()):
             callback(alarm_device)
 
+    # def _on_timeline_update(self, event):
+    #    self._abode.
+
     def join(self):
         """Don't allow the main thread to terminate until we have."""
         self._thread.join()
@@ -134,6 +137,7 @@ class AbodeEvents(object):
 
         socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
         socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
+        #socketio.on(CONST.TIMELINE_EVENT, self._on_timeline_update)
 
         return socketio
 
@@ -144,6 +148,7 @@ class AbodeEvents(object):
                 self._socketio.off('pong')
                 self._socketio.off(CONST.DEVICE_UPDATE_EVENT)
                 self._socketio.off(CONST.GATEWAY_MODE_EVENT)
+                # self._socketio.off(CONST.TIMELINE_EVENT)
                 self._socketio.disconnect()
             except Exception:
                 _LOGGER.warning(

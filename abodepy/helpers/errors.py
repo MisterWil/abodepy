@@ -34,5 +34,11 @@ INVALID_SETTING = (
 INVALID_SETTING_VALUE = (
     14, "Value for setting is not valid")
 
+INVALID_AUTOMATION_REFRESH_RESPONSE = (
+    15, "Automation refresh response did not match expected values.")
+
+INVALID_AUTOMATION_EDIT_RESPONSE = (
+    15, "Automation edit response did not match expected values.")
+
 EVENT_DEVICE_INVALID = (
     112, "Object given to event registration service is not a device object")

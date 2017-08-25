@@ -122,7 +122,7 @@ class TestAbode(unittest.TestCase):
         self.assertEqual(abode._user, json.loads(user_json))
 
         # Contains one device, our alarm
-        self.assertEqual(abode._devices, [abode.get_alarm()])
+        self.assertEqual(abode._devices, {'area_1': abode.get_alarm()})
 
         abode.logout()
 
@@ -188,7 +188,6 @@ class TestAbode(unittest.TestCase):
         self.assertIsNone(self.abode._panel)
         self.assertIsNone(self.abode._user)
         self.assertIsNone(self.abode._devices)
-        self.assertIsNone(self.abode._device_id_lookup)
         self.assertIsNotNone(self.abode._session)
         self.assertNotEqual(self.abode._get_session(), original_session)
 

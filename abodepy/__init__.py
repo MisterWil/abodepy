@@ -26,6 +26,7 @@ import logging
 import requests
 from requests.exceptions import RequestException
 
+from abodepy.automation import AbodeAutomation
 from abodepy.devices import AbodeDevice
 from abodepy.events import AbodeEvents
 from abodepy.exceptions import AbodeAuthenticationException, AbodeException
@@ -55,7 +56,8 @@ class Abode():
         self._default_alarm_mode = CONST.MODE_AWAY
 
         self._devices = None
-        self._device_id_lookup = None
+
+        self._automations = None
 
         # Create a requests session to persist the cookies
         self._session = requests.session()
@@ -128,7 +130,8 @@ class Abode():
             self._user = None
 
             self._devices = None
-            self._device_id_lookup = None
+
+            self._automations = None
 
             _LOGGER.info("Logout successful")
 
@@ -157,9 +160,7 @@ class Abode():
         """Get all devices from Abode."""
         if refresh or self._devices is None:
             if self._devices is None:
-                # Set up the device libraries
-                self._devices = []
-                self._device_id_lookup = {}
+                self._devices = {}
 
             _LOGGER.info("Updating all devices...")
             response = self.send_request("get", CONST.DEVICES_URL)
@@ -173,13 +174,14 @@ class Abode():
 
             for device_json in response_object:
                 # Attempt to reuse an existing device
-                device = self._device_id_lookup.get(device_json['id'])
+                device = self._devices.get(device_json['id'])
 
                 # No existing device, create a new one
                 if device:
                     device.update(device_json)
                 else:
-                    self.__add_device(DEVICE.new_device(device_json, self))
+                    device = DEVICE.new_device(device_json, self)
+                    self._devices[device.device_id] = device
 
             # We will be treating the Abode panel itself as an armable device.
             panel_response = self.send_request("get", CONST.PANEL_URL)
@@ -189,28 +191,23 @@ class Abode():
 
             _LOGGER.debug("Get Mode Panel Response: %s", response.text)
 
-            alarm_device = self._device_id_lookup.get(
-                CONST.ALARM_DEVICE_ID + '1')
+            alarm_device = self._devices.get(CONST.ALARM_DEVICE_ID + '1')
 
             if alarm_device:
                 alarm_device.update(panel_json)
             else:
-                self.__add_device(ALARM.create_alarm(panel_json, self))
+                alarm_device = ALARM.create_alarm(panel_json, self)
+                self._devices[alarm_device.device_id] = alarm_device
 
         if type_filter:
             devices = []
-            for device in self._devices:
+            for device in self._devices.values():
                 if (device.type is not None and
                         device.type in type_filter):
                     devices.append(device)
             return devices
 
-        return self._devices
-
-    def __add_device(self, device):
-        """Add a device to the internal lookups."""
-        self._devices.append(device)
-        self._device_id_lookup[device.device_id] = device
+        return list(self._devices.values())
 
     def get_device(self, device_id, refresh=False):
         """Get a single device."""
@@ -218,12 +215,55 @@ class Abode():
             self.get_devices()
             refresh = False
 
-        device = self._device_id_lookup.get(device_id)
+        device = self._devices.get(device_id)
 
         if device and refresh:
             device.refresh()
 
         return device
+
+    def get_automations(self, refresh=False):
+        """Get all automations."""
+        if refresh or self._automations is None:
+            if self._automations is None:
+                # Set up the device libraries
+                self._automations = {}
+
+            _LOGGER.info("Updating all automations...")
+            response = self.send_request("get", CONST.AUTOMATION_URL)
+            response_object = json.loads(response.text)
+
+            if (response_object and
+                    not isinstance(response_object, (tuple, list))):
+                response_object = [response_object]
+
+            _LOGGER.debug("Get Automations Response: %s", response.text)
+
+            for automation_json in response_object:
+                # Attempt to reuse an existing automation object
+                automation = self._automations.get(automation_json['id'])
+
+                # No existing automation, create a new one
+                if automation:
+                    automation.update(automation_json)
+                else:
+                    automation = AbodeAutomation(self, automation_json)
+                    self._automations[automation.automation_id] = automation
+
+            return list(self._automations.values())
+
+    def get_automation(self, automation_id, refresh=False):
+        """Get a single automation."""
+        if self._automations is None:
+            self.get_automations()
+            refresh = False
+
+        automation = self._automations.get(automation_id)
+
+        if automation and refresh:
+            automation.refresh()
+
+        return automation
 
     def get_alarm(self, area='1', refresh=False):
         """Shortcut method to get the alarm device."""
