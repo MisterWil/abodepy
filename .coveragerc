@@ -1,6 +1,6 @@
 [run]
 omit = 
-    helpers/*
+    abodepy/__main__.py
+    abodepy/helpers/*
     tests/*
     setup.py
-    abodecl.py
