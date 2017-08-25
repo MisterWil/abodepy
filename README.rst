@@ -45,6 +45,7 @@ Simple command line implementation arguments::
         --set setting=value   Set setting to a value
         --devices             Output all devices
         --device device_id    Output one device for device_id
+        --json device_id      Output the json for device_id
         --on device_id        Switch on a given device_id
         --off device_id       Switch off a given device_id
         --lock device_id      Lock a given device_id

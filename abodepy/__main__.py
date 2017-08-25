@@ -16,7 +16,7 @@ API calls faster than 60 seconds is not recommended as it can overwhelm
 Abode's servers. Leverage the cloud push event notification functionality as
 much as possible. Please use this module responsibly.
 """
-
+import json
 import logging
 import time
 
@@ -102,6 +102,12 @@ def get_arguments():
         '--device',
         metavar='device_id',
         help='Output one device for device_id',
+        required=False, action='append')
+
+    parser.add_argument(
+        '--json',
+        metavar='device_id',
+        help='Output the json for device_id',
         required=False, action='append')
 
     parser.add_argument(
@@ -222,6 +228,18 @@ def call():
             if device:
                 if device.unlock():
                     _LOGGER.info("Unlocked device with id: %s", device_id)
+            else:
+                _LOGGER.warning("Could not find device with id: %s", device_id)
+
+        # Output Json
+        for device_id in args.json or []:
+            device = abode.get_device(device_id)
+
+            if device:
+                # pylint: disable=protected-access
+                _LOGGER.info(device_id + " JSON:\n" +
+                             json.dumps(device._json_state, sort_keys=True,
+                                        indent=4, separators=(',', ': ')))
             else:
                 _LOGGER.warning("Could not find device with id: %s", device_id)
 
