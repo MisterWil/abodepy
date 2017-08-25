@@ -1,21 +1,20 @@
-"""Mock Abode PIR Device."""
+"""Mock Abode Siren Device."""
 import abodepy.helpers.constants as CONST
 
-DEVICE_ID = 'ZB:00000055'
+DEVICE_ID = 'ZB:0005674fff'
 
 
 def device(devid=DEVICE_ID, status=CONST.STATUS_ONLINE,
            low_battery=False, no_response=False):
-    """PIR mock device."""
+    """Siren mock device."""
     return '''
         {
           "id":"''' + devid + '''",
-          "type_tag":"device_type.pir",
-          "model":"L1",
-          "type":"IR",
-          "name":"Foyer Motion",
+          "type_tag":"device_type.siren",
+          "type":"Siren",
+          "name":"Basement Siren",
           "area":"1",
-          "zone":"13",
+          "zone":"8",
           "sort_order":null,
           "is_window":"",
           "bypass":"0",
@@ -54,5 +53,5 @@ def device(devid=DEVICE_ID, status=CONST.STATUS_ONLINE,
           ],
           "motion_event":"1",
           "wide_angle":"0",
-          "icon":"assets/icons/motioncamera-a.svg"
+          "icon":"assets/icons/indoor-siren.svg"
        }'''

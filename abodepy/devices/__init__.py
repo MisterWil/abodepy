@@ -35,6 +35,7 @@ def new_device(device_json, abode):
         CONST.DEVICE_SECURE_BARRIER: AbodeCover(device_json, abode),
         CONST.DEVICE_PIR: AbodeBinarySensor(device_json, abode),
         CONST.DEVICE_REMOTE_CONTROLLER: AbodeBinarySensor(device_json, abode),
+        CONST.DEVICE_SIREN: AbodeBinarySensor(device_json, abode)
     }.get(device_type, AbodeDevice(device_json, abode))
 
 
