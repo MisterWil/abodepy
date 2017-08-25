@@ -33,6 +33,7 @@ def new_device(device_json, abode):
         CONST.DEVICE_POWER_SWITCH_METER: AbodeSwitch(device_json, abode),
         CONST.DEVICE_WATER_SENSOR: AbodeBinarySensor(device_json, abode),
         CONST.DEVICE_SECURE_BARRIER: AbodeCover(device_json, abode),
+        CONST.DEVICE_PIR: AbodeBinarySensor(device_json, abode),
     }.get(device_type, AbodeDevice(device_json, abode))
 
 

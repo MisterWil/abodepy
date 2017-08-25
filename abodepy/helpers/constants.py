@@ -129,6 +129,7 @@ DEVICE_POWER_SWITCH_SENSOR = 'device_type.power_switch_sensor'
 DEVICE_POWER_SWITCH_METER = 'device_type.power_switch_meter'
 DEVICE_WATER_SENSOR = 'device_type.water_sensor'
 DEVICE_SECURE_BARRIER = 'device_type.secure_barrier'
+DEVICE_PIR = 'device_type.pir'
 
 '''
 SETTINGS
