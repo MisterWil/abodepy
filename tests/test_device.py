@@ -2,18 +2,32 @@
 import json
 import unittest
 
-import requests_mock
-
 import abodepy
-import abodepy.helpers.constants as CONST
 
+from abodepy.devices.alarm import AbodeAlarm
+from abodepy.devices.binary_sensor import AbodeBinarySensor
+from abodepy.devices.cover import AbodeCover
+from abodepy.devices.lock import AbodeLock
+from abodepy.devices.switch import AbodeSwitch
+import abodepy.helpers.constants as CONST
+import requests_mock
+import tests.mock.devices as DEVICES
+import tests.mock.devices.door_contact as DOOR_CONTACT
+import tests.mock.devices.door_lock as DOOR_LOCK
+import tests.mock.devices.glass as GLASS
+import tests.mock.devices.ir_camera as IR_CAMERA
+import tests.mock.devices.keypad as KEYPAD
+import tests.mock.devices.pir as PIR
+import tests.mock.devices.power_switch_meter as POWERMETER
+import tests.mock.devices.power_switch_sensor as POWERSENSOR
+import tests.mock.devices.remote_controller as REMOTE_CONTROLLER
+import tests.mock.devices.secure_barrier as SECUREBARRIER
+import tests.mock.devices.siren as SIREN
+import tests.mock.devices.status_display as STATUS_DISPLAY
+import tests.mock.devices.water_sensor as WATER_SENSOR
 import tests.mock.login as LOGIN
 import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
-import tests.mock.devices as DEVICES
-import tests.mock.devices.door_contact as DOOR_CONTACT
-import tests.mock.devices.glass as GLASS
-import tests.mock.devices.power_switch_sensor as POWERSENSOR
 
 
 USERNAME = 'foobar'
@@ -269,3 +283,55 @@ class TestDevice(unittest.TestCase):
 
         with self.assertRaises(abodepy.AbodeException):
             device.switch_on()
+
+    @requests_mock.mock()
+    def tests_all_devices(self, m):
+        """Tests that all supported devices are mapped correctly."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+
+        # Create all devices
+        all_devices = '[' + \
+            DOOR_CONTACT.device() + ',' + \
+            DOOR_LOCK.device() + ',' + \
+            GLASS.device() + ',' + \
+            IR_CAMERA.device() + ',' + \
+            KEYPAD.device() + ',' + \
+            PIR.device() + ',' + \
+            POWERMETER.device() + ',' + \
+            POWERSENSOR.device() + ',' + \
+            REMOTE_CONTROLLER.device() + ',' + \
+            SECUREBARRIER.device() + ',' + \
+            SIREN.device() + ',' + \
+            STATUS_DISPLAY.device() + ',' + \
+            WATER_SENSOR.device() + ']'
+
+        m.get(CONST.DEVICES_URL, text=all_devices)
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Loop through all devices
+        for device in self.abode.get_devices():
+            class_type = {
+                CONST.DEVICE_ALARM: AbodeAlarm,
+                CONST.DEVICE_GLASS_BREAK: AbodeBinarySensor,
+                CONST.DEVICE_KEYPAD: AbodeBinarySensor,
+                CONST.DEVICE_DOOR_CONTACT: AbodeBinarySensor,
+                CONST.DEVICE_STATUS_DISPLAY: AbodeBinarySensor,
+                CONST.DEVICE_MOTION_CAMERA: AbodeBinarySensor,
+                CONST.DEVICE_DOOR_LOCK: AbodeLock,
+                CONST.DEVICE_POWER_SWITCH_SENSOR: AbodeSwitch,
+                CONST.DEVICE_POWER_SWITCH_METER: AbodeSwitch,
+                CONST.DEVICE_WATER_SENSOR: AbodeBinarySensor,
+                CONST.DEVICE_SECURE_BARRIER: AbodeCover,
+                CONST.DEVICE_PIR: AbodeBinarySensor,
+                CONST.DEVICE_REMOTE_CONTROLLER: AbodeBinarySensor,
+                CONST.DEVICE_SIREN: AbodeBinarySensor
+            }.get(device.type)
+
+            self.assertIsNotNone(class_type, device.type + ' is not mapped.')
+            self.assertTrue(isinstance(device, class_type))
