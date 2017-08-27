@@ -135,6 +135,29 @@ def get_arguments():
         required=False, action='append')
 
     parser.add_argument(
+        '--automations',
+        help='Output all automations',
+        required=False, default=False, action="store_true")
+
+    parser.add_argument(
+        '--activate',
+        metavar='automation_id',
+        help='Activate (enable) an automation by automation_id',
+        required=False, action='append')
+
+    parser.add_argument(
+        '--deactivate',
+        metavar='automation_id',
+        help='Disable (disable) an automation by automation_id',
+        required=False, action='append')
+
+    parser.add_argument(
+        '--trigger',
+        metavar='automation_id',
+        help='Trigger an automation (manual quick-action) by automation_id',
+        required=False, action='append')
+
+    parser.add_argument(
         '--listen',
         help='Block and listen for device_id',
         required=False, default=False, action="store_true")
@@ -245,8 +268,49 @@ def call():
 
         # Print
         def _device_print(dev, append=''):
-            _LOGGER.info("Device Name: %s, ID: %s, Type: %s, Status: %s%s",
-                         dev.name, dev.device_id, dev.type, dev.status, append)
+            _LOGGER.info("%s%s",
+                         dev.desc, append)
+
+        # Print out all automations
+        if args.automations:
+            for automation in abode.get_automations():
+                _device_print(automation)
+
+        # Enable automation
+        for automation_id in args.activate or []:
+            automation = abode.get_automation(automation_id)
+
+            if automation:
+                if automation.set_active(True):
+                    _LOGGER.info(
+                        "Activated automation with id: %s", automation_id)
+            else:
+                _LOGGER.warning(
+                    "Could not find automation with id: %s", automation_id)
+
+        # Disable automation
+        for automation_id in args.deactivate or []:
+            automation = abode.get_automation(automation_id)
+
+            if automation:
+                if automation.set_active(False):
+                    _LOGGER.info(
+                        "Deactivated automation with id: %s", automation_id)
+            else:
+                _LOGGER.warning(
+                    "Could not find automation with id: %s", automation_id)
+
+        # Trigger automation
+        for automation_id in args.trigger or []:
+            automation = abode.get_automation(automation_id)
+
+            if automation:
+                if automation.trigger():
+                    _LOGGER.info(
+                        "Triggered automation with id: %s", automation_id)
+            else:
+                _LOGGER.warning(
+                    "Could not find automation with id: %s", automation_id)
 
         # Print out all devices.
         if args.devices:

@@ -38,7 +38,10 @@ INVALID_AUTOMATION_REFRESH_RESPONSE = (
     15, "Automation refresh response did not match expected values.")
 
 INVALID_AUTOMATION_EDIT_RESPONSE = (
-    15, "Automation edit response did not match expected values.")
+    16, "Automation edit response did not match expected values.")
+
+TRIGGER_NON_QUICKACTION = (
+    17, "Can not trigger an automation that is not a manual quick-action.")
 
 EVENT_DEVICE_INVALID = (
     112, "Object given to event registration service is not a device object")

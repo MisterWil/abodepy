@@ -91,6 +91,7 @@ class TestAbode(unittest.TestCase):
         self.assertEqual(abode._panel, json.loads(panel_json))
         self.assertEqual(abode._user, json.loads(user_json))
         self.assertIsNone(abode._devices)
+        self.assertIsNone(abode._automations)
 
         abode.logout()
 
@@ -188,6 +189,7 @@ class TestAbode(unittest.TestCase):
         self.assertIsNone(self.abode._panel)
         self.assertIsNone(self.abode._user)
         self.assertIsNone(self.abode._devices)
+        self.assertIsNone(self.abode._automations)
         self.assertIsNotNone(self.abode._session)
         self.assertNotEqual(self.abode._get_session(), original_session)
 

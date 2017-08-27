@@ -250,7 +250,7 @@ class Abode():
                     automation = AbodeAutomation(self, automation_json)
                     self._automations[automation.automation_id] = automation
 
-            return list(self._automations.values())
+        return list(self._automations.values())
 
     def get_automation(self, automation_id, refresh=False):
         """Get a single automation."""
@@ -258,7 +258,7 @@ class Abode():
             self.get_automations()
             refresh = False
 
-        automation = self._automations.get(automation_id)
+        automation = self._automations.get(str(automation_id))
 
         if automation and refresh:
             automation.refresh()

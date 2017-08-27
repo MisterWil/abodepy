@@ -199,3 +199,10 @@ class AbodeDevice(object):
     def device_id(self):
         """Get the device id."""
         return self._device_id
+
+    @property
+    def desc(self):
+        """Get a short description of the device."""
+        # Garage Entry Door (ZW:00000003) - Door Lock - Closed
+        return '{0} (ID: {1}) - {2} - {3}'.format(
+            self.name, self.device_id, self.friendly_type, self.status)

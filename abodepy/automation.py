@@ -33,10 +33,12 @@ class AbodeAutomation:
 
         self._automation = response_object
 
+        return True
+
     def trigger(self, only_manual=True):
         """Trigger a quick-action automation."""
         if not self.is_quick_action and only_manual:
-            return False
+            raise AbodeException((ERROR.TRIGGER_NON_QUICKACTION))
 
         url = CONST.AUTOMATION_APPLY_URL
         url = url.replace(
@@ -64,7 +66,7 @@ class AbodeAutomation:
     @property
     def automation_id(self):
         """Get the id of the automation."""
-        return self._automation['id']
+        return str(self._automation['id'])
 
     @property
     def name(self):
@@ -90,3 +92,14 @@ class AbodeAutomation:
     def is_quick_action(self):
         """Return if the automation is a quick action."""
         return self.type == CONST.AUTOMATION_TYPE_MANUAL
+
+    @property
+    def desc(self):
+        """Get a short description of the automation."""
+        # Auto Away (1) - Location - Enabled
+        active = 'inactive'
+        if self.is_active:
+            active = 'active'
+
+        return '{0} (ID: {1}) - {2} - {3}'.format(
+            self.name, self.automation_id, self.type, active)
