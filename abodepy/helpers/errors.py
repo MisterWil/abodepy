@@ -43,5 +43,8 @@ INVALID_AUTOMATION_EDIT_RESPONSE = (
 TRIGGER_NON_QUICKACTION = (
     17, "Can not trigger an automation that is not a manual quick-action.")
 
+UNABLE_TO_MAP_DEVICE = (
+    18, "Unable to map device json to device class - no type tag found.")
+
 EVENT_DEVICE_INVALID = (
     112, "Object given to event registration service is not a device object")
