@@ -9,6 +9,7 @@ from abodepy.devices.binary_sensor import AbodeBinarySensor
 from abodepy.devices.cover import AbodeCover
 from abodepy.devices.lock import AbodeLock
 from abodepy.devices.switch import AbodeSwitch
+import abodepy.devices as AbodeDevices
 import abodepy.helpers.constants as CONST
 import requests_mock
 import tests.mock.devices as DEVICES
@@ -46,6 +47,53 @@ class TestDevice(unittest.TestCase):
         """Clean up after test."""
         self.abode = None
 
+    def tests_device_mapping_typetag(self):
+        """Check the generic Abode device maps to none without typetag."""
+        # Set up device
+        device_text = GLASS.device(
+            status=CONST.STATUS_ONLINE,
+            low_battery=True, no_response=True,
+            tampered=True, out_of_order=True)
+
+        device_json = json.loads(device_text)
+
+        with self.assertRaises(abodepy.AbodeException):
+            device_json['type_tag'] = ""
+            AbodeDevices.new_device(device_json, self.abode)
+
+        with self.assertRaises(abodepy.AbodeException):
+            device_json['type_tag'] = None
+            AbodeDevices.new_device(device_json, self.abode)
+
+        with self.assertRaises(abodepy.AbodeException):
+            del device_json['type_tag']
+            AbodeDevices.new_device(device_json, self.abode)
+
+    def tests_device_auto_naming(self):
+        """Check the generic Abode device creates a name."""
+        # Set up device
+        device_text = GLASS.device(
+            status=CONST.STATUS_ONLINE,
+            low_battery=True, no_response=True,
+            tampered=True, out_of_order=True)
+
+        device_json = json.loads(device_text)
+
+        device_json['name'] = ""
+        device = AbodeDevices.new_device(device_json, self.abode)
+        generated_name = device.friendly_type + ' ' + device.device_id
+        self.assertEqual(device.name, generated_name)
+
+        device_json['name'] = None
+        device = AbodeDevices.new_device(device_json, self.abode)
+        generated_name = device.friendly_type + ' ' + device.device_id
+        self.assertEqual(device.name, generated_name)
+
+        del device_json['name']
+        device = AbodeDevices.new_device(device_json, self.abode)
+        generated_name = device.friendly_type + ' ' + device.device_id
+        self.assertEqual(device.name, generated_name)
+
     @requests_mock.mock()
     def tests_device_init(self, m):
         """Check the generic Abode device class init's properly."""
@@ -82,6 +130,7 @@ class TestDevice(unittest.TestCase):
         self.assertTrue(device.no_response)
         self.assertTrue(device.tampered)
         self.assertTrue(device.out_of_order)
+        self.assertIsNotNone(device.desc)
 
     @requests_mock.mock()
     def tests_generic_device_refresh(self, m):
@@ -283,6 +332,73 @@ class TestDevice(unittest.TestCase):
 
         with self.assertRaises(abodepy.AbodeException):
             device.switch_on()
+
+    @requests_mock.mock()
+    def tests_device_level_changes(self, m):
+        """Tests that device level changes work as expected."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+
+        # TODO: Test with a device that supports levels
+        m.get(CONST.DEVICES_URL,
+              text=POWERSENSOR.device(devid=POWERSENSOR.DEVICE_ID,
+                                      status=CONST.STATUS_OFF,
+                                      low_battery=False,
+                                      no_response=False))
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our power switch
+        device = self.abode.get_device(POWERSENSOR.DEVICE_ID)
+
+        # Test that we have our device
+        self.assertIsNotNone(device)
+        self.assertEqual(device.status, CONST.STATUS_OFF)
+        self.assertFalse(device.is_on)
+
+        # Set up control url response
+        control_url = CONST.BASE_URL + POWERSENSOR.CONTROL_URL
+        m.put(control_url,
+              text=DEVICES.level_put_response_ok(
+                  devid=POWERSENSOR.DEVICE_ID,
+                  level='100'))
+
+        # Change the level to int 100
+        self.assertTrue(device.set_level(100))
+        # self.assertEqual(device.level, '100')
+
+        # Change response
+        control_url = CONST.BASE_URL + POWERSENSOR.CONTROL_URL
+        m.put(control_url,
+              text=DEVICES.level_put_response_ok(
+                  devid=POWERSENSOR.DEVICE_ID,
+                  level='25'))
+
+        # Change the level to str '25'
+        self.assertTrue(device.set_level('25'))
+        # self.assertEqual(device.level, '25')
+
+        # Test that an invalid device ID in response throws exception
+        m.put(control_url,
+              text=DEVICES.level_put_response_ok(
+                  devid='ZW:deadbeef',
+                  level='25'))
+
+        with self.assertRaises(abodepy.AbodeException):
+            device.set_level(25)
+
+        # Test that an invalid level in response throws exception
+        m.put(control_url,
+              text=DEVICES.level_put_response_ok(
+                  devid=POWERSENSOR.DEVICE_ID,
+                  level='98'))
+
+        with self.assertRaises(abodepy.AbodeException):
+            device.set_level('28')
 
     @requests_mock.mock()
     def tests_all_devices(self, m):
