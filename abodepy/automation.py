@@ -27,11 +27,14 @@ class AbodeAutomation:
 
         response_object = json.loads(response.text)
 
-        if (response_object['id'] != self.automation_id or
+        if isinstance(response_object, (tuple, list)):
+            response_object = response_object[0]
+
+        if (str(response_object['id']) != str(self._automation['id']) or
                 response_object['is_active'] != self._automation['is_active']):
             raise AbodeException((ERROR.INVALID_AUTOMATION_EDIT_RESPONSE))
 
-        self._automation = response_object
+        self.update(response_object)
 
         return True
 
@@ -58,10 +61,18 @@ class AbodeAutomation:
         response = self._abode.send_request(method="get", url=url)
         response_object = json.loads(response.text)
 
-        if response_object['id'] != self.automation_id:
+        if isinstance(response_object, (tuple, list)):
+            response_object = response_object[0]
+
+        if response_object['id'] != self._automation['id']:
             raise AbodeException((ERROR.INVALID_AUTOMATION_REFRESH_RESPONSE))
 
-        self._automation = response_object
+        self.update(response_object)
+
+    def update(self, automation):
+        """Update the internal automation json."""
+        self._automation.update(
+            {k: automation[k] for k in automation if self._automation.get(k)})
 
     @property
     def automation_id(self):
