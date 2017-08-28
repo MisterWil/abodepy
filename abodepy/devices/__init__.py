@@ -17,10 +17,12 @@ def new_device(device_json, abode):
     from abodepy.devices.lock import AbodeLock
     from abodepy.devices.switch import AbodeSwitch
 
-    if device_json['type_tag'] is None:
-        return None
+    device_type = device_json.get('type_tag')
 
-    device_type = device_json['type_tag'].lower()
+    if not device_type:
+        raise AbodeException((ERROR.UNABLE_TO_MAP_DEVICE))
+
+    device_type = device_type.lower()
 
     return {
         CONST.DEVICE_GLASS_BREAK: AbodeBinarySensor(device_json, abode),
@@ -52,7 +54,7 @@ class AbodeDevice(object):
         self._abode = abode
 
         if not self._name:
-            self._name = self._type + ' ' + self._device_id
+            self._name = self.friendly_type + ' ' + self.device_id
 
     def set_status(self, status):
         """Set device status."""
@@ -107,6 +109,7 @@ class AbodeDevice(object):
                 raise AbodeException((ERROR.SET_STATUS_STATE))
 
             # TODO: Figure out where level is indicated in device json object
+            self.update(response_object)
 
             _LOGGER.info("Set device %s level to: %s", self.device_id, level)
 
@@ -138,11 +141,8 @@ class AbodeDevice(object):
         if response_object and not isinstance(response_object, (tuple, list)):
             response_object = [response_object]
 
-        if response_object:
-            for device in response_object:
-                self.update(device)
-        else:
-            raise AbodeException(ERROR.REFRESH)
+        for device in response_object:
+            self.update(device)
 
         return response_object
 
@@ -158,6 +158,11 @@ class AbodeDevice(object):
     def status(self):
         """Shortcut to get the generic status of a device."""
         return self.get_value('status')
+
+    @property
+    def level(self):
+        """Shortcut to get the generic level of a device."""
+        return self.get_value('level')
 
     @property
     def battery_low(self):
