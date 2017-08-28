@@ -28,9 +28,12 @@ from requests.exceptions import RequestException
 
 from abodepy.automation import AbodeAutomation
 from abodepy.devices import AbodeDevice
+from abodepy.devices.binary_sensor import AbodeBinarySensor
+from abodepy.devices.cover import AbodeCover
+from abodepy.devices.lock import AbodeLock
+from abodepy.devices.switch import AbodeSwitch
 from abodepy.events import AbodeEvents
 from abodepy.exceptions import AbodeAuthenticationException, AbodeException
-import abodepy.devices as DEVICE
 import abodepy.devices.alarm as ALARM
 import abodepy.helpers.constants as CONST
 import abodepy.helpers.errors as ERROR
@@ -180,7 +183,7 @@ class Abode():
                 if device:
                     device.update(device_json)
                 else:
-                    device = DEVICE.new_device(device_json, self)
+                    device = new_device(device_json, self)
                     self._devices[device.device_id] = device
 
             # We will be treating the Abode panel itself as an armable device.
@@ -403,3 +406,29 @@ class Abode():
         self.send_request("get", CONST.PANEL_URL)
 
         return self._session
+
+
+def new_device(device_json, abode):
+    """Create new device object for the given type."""
+    device_type = device_json.get('type_tag')
+
+    if not device_type:
+        raise AbodeException((ERROR.UNABLE_TO_MAP_DEVICE))
+
+    device_type = device_type.lower()
+
+    return {
+        CONST.DEVICE_GLASS_BREAK: AbodeBinarySensor(device_json, abode),
+        CONST.DEVICE_KEYPAD: AbodeBinarySensor(device_json, abode),
+        CONST.DEVICE_DOOR_CONTACT: AbodeBinarySensor(device_json, abode),
+        CONST.DEVICE_STATUS_DISPLAY: AbodeBinarySensor(device_json, abode),
+        CONST.DEVICE_MOTION_CAMERA: AbodeBinarySensor(device_json, abode),
+        CONST.DEVICE_DOOR_LOCK: AbodeLock(device_json, abode),
+        CONST.DEVICE_POWER_SWITCH_SENSOR: AbodeSwitch(device_json, abode),
+        CONST.DEVICE_POWER_SWITCH_METER: AbodeSwitch(device_json, abode),
+        CONST.DEVICE_WATER_SENSOR: AbodeBinarySensor(device_json, abode),
+        CONST.DEVICE_SECURE_BARRIER: AbodeCover(device_json, abode),
+        CONST.DEVICE_PIR: AbodeBinarySensor(device_json, abode),
+        CONST.DEVICE_REMOTE_CONTROLLER: AbodeBinarySensor(device_json, abode),
+        CONST.DEVICE_SIREN: AbodeBinarySensor(device_json, abode)
+    }.get(device_type, AbodeDevice(device_json, abode))

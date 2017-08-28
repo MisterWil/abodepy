@@ -2,6 +2,8 @@
 import json
 import unittest
 
+import requests_mock
+
 import abodepy
 
 from abodepy.devices.alarm import AbodeAlarm
@@ -9,9 +11,7 @@ from abodepy.devices.binary_sensor import AbodeBinarySensor
 from abodepy.devices.cover import AbodeCover
 from abodepy.devices.lock import AbodeLock
 from abodepy.devices.switch import AbodeSwitch
-import abodepy.devices as AbodeDevices
 import abodepy.helpers.constants as CONST
-import requests_mock
 import tests.mock.devices as DEVICES
 import tests.mock.devices.door_contact as DOOR_CONTACT
 import tests.mock.devices.door_lock as DOOR_LOCK
@@ -59,15 +59,15 @@ class TestDevice(unittest.TestCase):
 
         with self.assertRaises(abodepy.AbodeException):
             device_json['type_tag'] = ""
-            AbodeDevices.new_device(device_json, self.abode)
+            abodepy.new_device(device_json, self.abode)
 
         with self.assertRaises(abodepy.AbodeException):
             device_json['type_tag'] = None
-            AbodeDevices.new_device(device_json, self.abode)
+            abodepy.new_device(device_json, self.abode)
 
         with self.assertRaises(abodepy.AbodeException):
             del device_json['type_tag']
-            AbodeDevices.new_device(device_json, self.abode)
+            abodepy.new_device(device_json, self.abode)
 
     def tests_device_auto_naming(self):
         """Check the generic Abode device creates a name."""
@@ -80,17 +80,17 @@ class TestDevice(unittest.TestCase):
         device_json = json.loads(device_text)
 
         device_json['name'] = ""
-        device = AbodeDevices.new_device(device_json, self.abode)
+        device = abodepy.new_device(device_json, self.abode)
         generated_name = device.friendly_type + ' ' + device.device_id
         self.assertEqual(device.name, generated_name)
 
         device_json['name'] = None
-        device = AbodeDevices.new_device(device_json, self.abode)
+        device = abodepy.new_device(device_json, self.abode)
         generated_name = device.friendly_type + ' ' + device.device_id
         self.assertEqual(device.name, generated_name)
 
         del device_json['name']
-        device = AbodeDevices.new_device(device_json, self.abode)
+        device = abodepy.new_device(device_json, self.abode)
         generated_name = device.friendly_type + ' ' + device.device_id
         self.assertEqual(device.name, generated_name)
 

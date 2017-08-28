@@ -11,6 +11,7 @@ class AbodeAutomation:
     """Class for viewing and controlling automations."""
 
     def __init__(self, abode, automation):
+        """Init AbodeAutomation class."""
         self._abode = abode
         self._automation = automation
 

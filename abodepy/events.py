@@ -137,7 +137,7 @@ class AbodeEvents(object):
 
         socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
         socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
-        #socketio.on(CONST.TIMELINE_EVENT, self._on_timeline_update)
+        # socketio.on(CONST.TIMELINE_EVENT, self._on_timeline_update)
 
         return socketio
 

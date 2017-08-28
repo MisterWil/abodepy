@@ -39,7 +39,7 @@ class AbodeAlarm(AbodeSwitch):
         mode = mode.lower()
 
         response = self._abode.send_request(
-            "put", CONST.PANEL_MODE_URL(self._area, mode))
+            "put", CONST.get_panel_mode_url(self._area, mode))
 
         _LOGGER.debug("Set Alarm Home Response: %s", response.text)
 

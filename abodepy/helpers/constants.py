@@ -1,8 +1,4 @@
-"""
-constants.py
-
-Generates constants for use in abodepy
-"""
+"""AbodePy constants."""
 import os
 
 MAJOR_VERSION = 0
@@ -53,7 +49,7 @@ LOGOUT_URL = BASE_URL + 'api/v1/logout'
 PANEL_URL = BASE_URL + 'api/v1/panel'
 
 
-def PANEL_MODE_URL(area, mode):
+def get_panel_mode_url(area, mode):
     """Create panel URL."""
     return BASE_URL + 'api/v1/panel/mode/' + area + '/' + mode
 

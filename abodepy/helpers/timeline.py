@@ -1,8 +1,4 @@
-"""
-timeline.py
-
-Timeline constants
-"""
+"""Timeline constants."""
 
 ALARM_EVENTS = {
     'start_event_code': '1100',

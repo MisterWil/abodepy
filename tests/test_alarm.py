@@ -110,11 +110,11 @@ class TestAlarm(unittest.TestCase):
         self.assertEqual(alarm.status, CONST.MODE_STANDBY)
 
         # Set mode URLs
-        m.put(CONST.PANEL_MODE_URL('1', CONST.MODE_STANDBY),
+        m.put(CONST.get_panel_mode_url('1', CONST.MODE_STANDBY),
               text=PANEL.put_response_ok(mode=CONST.MODE_STANDBY))
-        m.put(CONST.PANEL_MODE_URL('1', CONST.MODE_AWAY),
+        m.put(CONST.get_panel_mode_url('1', CONST.MODE_AWAY),
               text=PANEL.put_response_ok(mode=CONST.MODE_AWAY))
-        m.put(CONST.PANEL_MODE_URL('1', CONST.MODE_HOME),
+        m.put(CONST.get_panel_mode_url('1', CONST.MODE_HOME),
               text=PANEL.put_response_ok(mode=CONST.MODE_HOME))
 
         # Set and test text based mode changes
@@ -191,14 +191,14 @@ class TestAlarm(unittest.TestCase):
             alarm.set_mode('chestnuts')
 
         # Test that an invalid mode change response throws exception
-        m.put(CONST.PANEL_MODE_URL('1', CONST.MODE_HOME),
+        m.put(CONST.get_panel_mode_url('1', CONST.MODE_HOME),
               text=PANEL.put_response_ok(mode=CONST.MODE_AWAY))
 
         with self.assertRaises(abodepy.AbodeException):
             alarm.set_mode(CONST.MODE_HOME)
 
         # Test that an invalid area in mode change response throws exception
-        m.put(CONST.PANEL_MODE_URL('1', CONST.MODE_HOME),
+        m.put(CONST.get_panel_mode_url('1', CONST.MODE_HOME),
               text=PANEL.put_response_ok(area='2', mode=CONST.MODE_HOME))
 
         with self.assertRaises(abodepy.AbodeException):

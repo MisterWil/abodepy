@@ -1,6 +1,6 @@
 """Abode cover device."""
 
-from abodepy.devices.switch import AbodeDevice
+from abodepy.devices import AbodeDevice
 import abodepy.helpers.constants as CONST
 
 
