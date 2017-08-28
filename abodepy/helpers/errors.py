@@ -46,5 +46,17 @@ TRIGGER_NON_QUICKACTION = (
 UNABLE_TO_MAP_DEVICE = (
     18, "Unable to map device json to device class - no type tag found.")
 
+EVENT_CODE_MISSING = (
+    19, "Event is not valid, start and end event codes are missing.")
+
+EVENT_CODE_MISSING = (
+    20, "Timeline event is not valid, event code missing.")
+
+INVALID_TIMELINE_EVENT = (
+    21, "Timeline event received missing an event code or type.")
+
+EVENT_GROUP_INVALID = (
+    22, "Timeline event group is not valid.")
+
 EVENT_DEVICE_INVALID = (
     112, "Object given to event registration service is not a device object")

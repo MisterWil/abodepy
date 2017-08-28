@@ -7,83 +7,33 @@ import time
 from socketIO_client import SocketIO, LoggingNamespace
 from socketIO_client.exceptions import SocketIOError
 
-from abodepy.devices.switch import AbodeDevice
 from abodepy.exceptions import AbodeException
 import abodepy.helpers.constants as CONST
 import abodepy.helpers.errors as ERROR
+import abodepy.helpers.timeline as TIMELINE
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class AbodeEvents(object):
+class AbodeEventController(object):
     """Class for subscribing to abode events."""
 
     def __init__(self, abode):
         """Init event subscription class."""
         self._abode = abode
-        self._callbacks = collections.defaultdict(list)
         self._thread = None
         self._socketio = None
         self._running = False
+
+        # Setup callback dicts
+        self._device_callbacks = collections.defaultdict(list)
+        self._event_callbacks = collections.defaultdict(list)
+        self._timeline_callbacks = collections.defaultdict(list)
 
         # Default "sane" values
         self._ping_interval = 25.0
         self._ping_timeout = 60.0
         self._last_pong = None
-
-    def register(self, device, callback):
-        """Register a callback.
-
-        device: device to be updated by subscription
-        callback: callback for notification of changes
-        """
-        if not device or not isinstance(device, AbodeDevice):
-            raise AbodeException(ERROR.EVENT_DEVICE_INVALID)
-
-        _LOGGER.info("Subscribing to events for device: %s (%s)",
-                     device.name, device.device_id)
-
-        self._callbacks[device.device_id].append((callback))
-
-        return True
-
-    def _on_device_update(self, devid):
-        if devid is None:
-            return
-
-        _LOGGER.info("Device update event from device ID: %s", devid)
-
-        device = self._abode.get_device(devid, True)
-
-        for callback in self._callbacks.get(device.device_id, ()):
-            callback(device)
-
-    def _on_mode_change(self, mode):
-        if mode is None:
-            return
-
-        if not mode or mode.lower() not in CONST.ALL_MODES:
-            raise AbodeException(ERROR.INVALID_ALARM_MODE)
-
-        _LOGGER.info("Alarm mode change event to: %s", mode)
-
-        alarm_device = self._abode.get_alarm(refresh=True)
-
-        # At the time of development, refreshing after mode change notification
-        # didn't seem to get the latest update immediately. As such, we will
-        # force the mode status now to match the notification.
-        # pylint: disable=W0212
-        alarm_device._json_state['mode']['area_1'] = mode
-
-        for callback in self._callbacks.get(alarm_device.device_id, ()):
-            callback(alarm_device)
-
-    # def _on_timeline_update(self, event):
-    #    self._abode.
-
-    def join(self):
-        """Don't allow the main thread to terminate until we have."""
-        self._thread.join()
 
     def start(self):
         """Start a thread to handle Abode blocked SocketIO notifications."""
@@ -91,7 +41,7 @@ class AbodeEvents(object):
             _LOGGER.info("Starting SocketIO thread...")
 
             self._thread = threading.Thread(target=self._run_socketio_thread,
-                                            name='Abode SocketIO Thread')
+                                            name='SocketIOThread')
             self._thread.deamon = True
             self._thread.start()
 
@@ -105,6 +55,99 @@ class AbodeEvents(object):
 
             if self._socketio:
                 self._socketio.disconnect()
+
+    def join(self):
+        """Don't allow the main thread to terminate until we have."""
+        self._thread.join()
+
+    def add_device_callback(self, device_id, callback):
+        """Register a device callback."""
+        _LOGGER.debug("Subscribing to updated for device_id: %s", device_id)
+
+        self._device_callbacks[device_id].append((callback))
+
+        return True
+
+    def add_event_group_callback(self, event_group, callback):
+        """Register callback for a group of timeline events."""
+        if event_group not in TIMELINE.ALL_EVENT_GROUPS:
+            raise AbodeException(ERROR.EVENT_GROUP_INVALID,
+                                 TIMELINE.ALL_EVENT_GROUPS)
+
+        _LOGGER.debug("Subscribing to event group: %s", event_group)
+
+        self._event_callbacks[event_group].append((callback))
+
+        return True
+
+    def add_timeline_callback(self, timeline_event, callback):
+        """Register a callback for a specific timeline event."""
+        event_code = timeline_event.get('event_code')
+
+        if not event_code:
+            raise AbodeException((ERROR.EVENT_CODE_MISSING))
+
+        _LOGGER.debug("Subscribing to timeline event: %s", timeline_event)
+
+        self._timeline_callbacks[event_code].append((callback))
+
+        return True
+
+    def _on_device_update(self, devid):
+        """Device callback from Abode SocketIO server."""
+        if devid is None:
+            return
+
+        _LOGGER.debug("Device update event for device ID: %s", devid)
+
+        device = self._abode.get_device(devid, True)
+
+        for callback in self._device_callbacks.get(device.device_id, ()):
+            callback(device)
+
+    def _on_mode_change(self, mode):
+        """Mode change broadcast from Abode SocketIO server."""
+        if mode is None:
+            return
+
+        if not mode or mode.lower() not in CONST.ALL_MODES:
+            raise AbodeException((ERROR.INVALID_ALARM_MODE))
+
+        _LOGGER.debug("Alarm mode change event to: %s", mode)
+
+        # We're just going to convert it to an Alarm device
+        alarm_device = self._abode.get_alarm(refresh=True)
+
+        # At the time of development, refreshing after mode change notification
+        # didn't seem to get the latest update immediately. As such, we will
+        # force the mode status now to match the notification.
+        # pylint: disable=W0212
+        alarm_device._json_state['mode']['area_1'] = mode
+
+        for callback in self._device_callbacks.get(alarm_device.device_id, ()):
+            callback(alarm_device)
+
+    def _on_timeline_update(self, event):
+        """Timeline update broadcast from Abode SocketIO server."""
+        event_type = event.get('event_type')
+        event_code = event.get('event_code')
+
+        if not event_type or not event_code:
+            raise AbodeException((ERROR.INVALID_TIMELINE_EVENT))
+
+        _LOGGER.debug("Timeline event received: %s - %s (%s)",
+                      event.get('event_name'), event_type, event_code)
+
+        # Callback for anything registered for the exact event code
+        for callback in self._timeline_callbacks.get(event_code, ()):
+            callback(event)
+
+        # Attempt to map the event code to a group and callback
+        event_group = TIMELINE.map_event_code(event_code)
+
+        if event_group:
+            for callback in self._event_callbacks.get(event_group, ()):
+                callback(event)
 
     def _on_socket_connect(self, socket):
         # We will try to see what our ping check should be. It does use
@@ -137,7 +180,7 @@ class AbodeEvents(object):
 
         socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
         socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
-        # socketio.on(CONST.TIMELINE_EVENT, self._on_timeline_update)
+        socketio.on(CONST.TIMELINE_EVENT, self._on_timeline_update)
 
         return socketio
 
@@ -148,7 +191,7 @@ class AbodeEvents(object):
                 self._socketio.off('pong')
                 self._socketio.off(CONST.DEVICE_UPDATE_EVENT)
                 self._socketio.off(CONST.GATEWAY_MODE_EVENT)
-                # self._socketio.off(CONST.TIMELINE_EVENT)
+                self._socketio.off(CONST.TIMELINE_EVENT)
                 self._socketio.disconnect()
             except Exception:
                 _LOGGER.warning(

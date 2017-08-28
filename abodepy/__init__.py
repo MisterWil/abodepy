@@ -32,7 +32,7 @@ from abodepy.devices.binary_sensor import AbodeBinarySensor
 from abodepy.devices.cover import AbodeCover
 from abodepy.devices.lock import AbodeLock
 from abodepy.devices.switch import AbodeSwitch
-from abodepy.events import AbodeEvents
+from abodepy.event_controller import AbodeEventController
 from abodepy.exceptions import AbodeAuthenticationException, AbodeException
 import abodepy.devices.alarm as ALARM
 import abodepy.helpers.constants as CONST
@@ -54,7 +54,7 @@ class Abode():
         self._panel = None
         self._user = None
 
-        self._abode_events = AbodeEvents(self)
+        self._event_controller = AbodeEventController(self)
 
         self._default_alarm_mode = CONST.MODE_AWAY
 
@@ -140,24 +140,9 @@ class Abode():
 
         return True
 
-    def start_listener(self):
-        """Start the Abode event listener."""
-        self._abode_events.start()
-
-    def stop_listener(self):
-        """Stop the Abode Event listener."""
-        self._abode_events.stop()
-
-    def register(self, device, callback):
-        """Register a device to the Event listener."""
-        if not isinstance(device, AbodeDevice):
-            dev_id = device
-            device = self.get_device(dev_id)
-
-        if not device:
-            raise AbodeException(ERROR.INVALID_DEVICE_ID)
-
-        return self._abode_events.register(device, callback)
+    def get_event_controller(self):
+        """Return the event controller."""
+        return self._event_controller
 
     def get_devices(self, refresh=False, type_filter=None):
         """Get all devices from Abode."""

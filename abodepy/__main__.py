@@ -320,6 +320,8 @@ def call():
         def _device_callback(dev):
             _device_print(dev, ", At: " + time.strftime("%Y-%m-%d %H:%M:%S"))
 
+        event_controller = abode.get_event_controller()
+
         # Print out specific devices by device id.
         if args.device:
             for device_id in args.device:
@@ -329,7 +331,8 @@ def call():
                     _device_print(device)
 
                     # Register the specific devices if we decide to listen.
-                    abode.register(device, _device_callback)
+                    event_controller.add_device_callback(device_id,
+                                                         _device_callback)
                 else:
                     _LOGGER.warning(
                         "Could not find device with id: %s", device_id)
@@ -341,15 +344,16 @@ def call():
                 _LOGGER.info("Adding all devices to listener...")
 
                 for device in abode.get_devices():
-                    abode.register(device, _device_callback)
+                    event_controller.add_device_callback(device.device_id,
+                                                         _device_callback)
 
             _LOGGER.info("Listening for device updates...")
-            abode.start_listener()
+            event_controller.start()
             try:
                 while True:
                     time.sleep(1)
             except KeyboardInterrupt:
-                abode.stop_listener()
+                event_controller.stop()
                 _LOGGER.info("Device update listening stopped.")
     except abodepy.AbodeException as exc:
         _LOGGER.error(exc)

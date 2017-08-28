@@ -1,54 +1,54 @@
-"""Timeline constants."""
+"""Timeline event constants."""
 
-ALARM_EVENTS = {
-    'start_event_code': '1100',
-    'end_event_code': '1199'
-}
+# Timeline event groups.
 
-ALARM_END_EVENTS = {
-    'start_event_code': '3100',
-    'end_event_code': '3199'
-}
+ALARM_GROUP = 'events.alarm'
+ALARM_END_GROUP = 'events.alarm_end'
+PANEL_FAULT_GROUP = 'events.panel_fault'
+PANEL_RESTORE_GROUP = 'events.panel_restore'
+DISARM_GROUP = 'events.disarm'
+ARM_GROUP = 'events.arm'
+TEST_GROUP = 'events.test'
+CAPTURE_GROUP = 'events.capture'
+DEVICE_GROUP = 'events.device'
+AUTOMATION_GROUP = 'events.automation'
 
-PANEL_FAULT_EVENTS = {
-    'start_event_code': '1300',
-    'end_event_code': '1399'
-}
+ALL_EVENT_GROUPS = [ALARM_GROUP, ALARM_END_GROUP, PANEL_FAULT_GROUP,
+                    PANEL_RESTORE_GROUP, DISARM_GROUP, ARM_GROUP, TEST_GROUP,
+                    CAPTURE_GROUP, DEVICE_GROUP, AUTOMATION_GROUP]
 
-PANEL_RESTORE_EVENTS = {
-    'start_event_code': '3300',
-    'end_event_code': '3399'
-}
 
-DISARM_EVENTS = {
-    'start_event_code': '1400',
-    'end_event_code': '1499'
-}
+def map_event_code(event_code):
+    """Map a specific event_code to an event group."""
+    event_code = int(event_code)
 
-ARM_EVENTS = {
-    'start_event_code': '3400',
-    'end_event_code': '3799'
-}
+    # Honestly, these are just guessing based on the below event list.
+    # It could be wrong, I have no idea.
+    if 1100 <= event_code <= 1199:
+        return ALARM_GROUP
+    elif 3100 <= event_code <= 3199:
+        return ALARM_END_GROUP
+    elif 1300 <= event_code <= 1399:
+        return PANEL_FAULT_GROUP
+    elif 3300 <= event_code <= 3399:
+        return PANEL_RESTORE_GROUP
+    elif 1400 <= event_code <= 1499:
+        return DISARM_GROUP
+    elif 3400 <= event_code <= 3799:
+        return ARM_GROUP
+    elif 1600 <= event_code <= 1699:
+        return TEST_GROUP
+    elif 5000 <= event_code <= 5099:
+        return CAPTURE_GROUP
+    elif 5100 <= event_code <= 5199:
+        return DEVICE_GROUP
+    elif 5200 <= event_code <= 5299:
+        return AUTOMATION_GROUP
 
-TEST_EVENTS = {
-    'start_event_code': '1600',
-    'end_event_code': '1699'
-}
+    return None
 
-CAPTURE_EVENTS = {
-    'start_event_code': '5000',
-    'end_event_code': '5099'
-}
 
-DEVICE_EVENTS = {
-    'start_event_code': '5100',
-    'end_event_code': '5199'
-}
-
-AUTOMATION_EVENTS = {
-    'start_event_code': '5200',
-    'end_event_code': '5299'
-}
+# Specific timeline events by event code.
 
 MEDICAL = {
     'event_code': '1100',

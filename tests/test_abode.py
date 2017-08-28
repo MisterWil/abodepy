@@ -181,6 +181,7 @@ class TestAbode(unittest.TestCase):
         self.assertIsNotNone(self.abode.get_alarm())
         self.assertIsNotNone(self.abode._get_session())
         self.assertEqual(self.abode._get_session(), original_session)
+        self.assertIsNotNone(self.abode.get_event_controller())
 
         self.abode.logout()
 
@@ -255,32 +256,6 @@ class TestAbode(unittest.TestCase):
 
         with self.assertRaises(abodepy.AbodeException):
             self.abode.set_default_mode('foobar')
-
-    @requests_mock.mock()
-    def tests_device_event_registration(self, m):
-        """Check that device registration is working."""
-        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
-        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
-        m.get(CONST.DEVICES_URL, text=DOOR_CONTACT.device())
-        m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
-
-        # Reset
-        self.abode.logout()
-
-        # Get devices
-        device = self.abode.get_device(DOOR_CONTACT.DEVICE_ID)
-
-        self.assertIsNotNone(device)
-
-        # Register device
-        self.assertTrue(self.abode.register(device, None))
-
-        # Test that you can register a device by devid
-        self.assertTrue(self.abode.register(DOOR_CONTACT.DEVICE_ID, None))
-
-        # Test that an invalid device raises exception
-        with self.assertRaises(abodepy.AbodeException):
-            self.abode.register('slapstick', None)
 
     @requests_mock.mock()
     def test_all_device_refresh(self, m):
