@@ -148,13 +148,13 @@ def get_arguments():
     parser.add_argument(
         '--deactivate',
         metavar='automation_id',
-        help='Disable (disable) an automation by automation_id',
+        help='Deactivate (disable) an automation by automation_id',
         required=False, action='append')
 
     parser.add_argument(
         '--trigger',
         metavar='automation_id',
-        help='Trigger an automation (manual quick-action) by automation_id',
+        help='Trigger (apply) an automation (manual quick-action) by automation_id',
         required=False, action='append')
 
     parser.add_argument(
