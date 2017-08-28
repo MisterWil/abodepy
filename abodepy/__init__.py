@@ -241,7 +241,7 @@ class Abode():
 
             for automation_json in response_object:
                 # Attempt to reuse an existing automation object
-                automation = self._automations.get(automation_json['id'])
+                automation = self._automations.get(str(automation_json['id']))
 
                 # No existing automation, create a new one
                 if automation:
