@@ -26,13 +26,17 @@ Command Line Usage
 ==================
 Simple command line implementation arguments::
 
-    $ abodepy -h
+    $ abodepy --help
       usage: AbodePy: Command Line Utility [-h] -u USERNAME -p PASSWORD [--mode]
                                            [--arm mode] [--set setting=value]
                                            [--devices] [--device device_id]
-                                           [--on device_id] [--off device_id]
-                                           [--lock device_id] [--unlock device_id]
-                                           [--listen] [--debug] [--quiet]
+                                           [--json device_id] [--on device_id]
+                                           [--off device_id] [--lock device_id]
+                                           [--unlock device_id] [--automations]
+                                           [--activate automation_id]
+                                           [--deactivate automation_id]
+                                           [--trigger automation_id] [--listen]
+                                           [--debug] [--quiet]
       
       optional arguments:
         -h, --help            show this help message and exit
@@ -50,6 +54,14 @@ Simple command line implementation arguments::
         --off device_id       Switch off a given device_id
         --lock device_id      Lock a given device_id
         --unlock device_id    Unlock a given device_id
+        --automations         Output all automations
+        --activate automation_id
+                              Activate (enable) an automation by  automation_id
+        --deactivate automation_id
+                              Deactivate (disable) an automation by automation_id
+        --trigger automation_id
+                              Trigger (apply) an automation (manual quick-action) by
+                              automation_id
         --listen              Block and listen for device_id
         --debug               Enable debug logging
         --quiet               Output only warnings and errors
@@ -120,6 +132,30 @@ You can also block and listen for all mode and change events as they occur::
 If you specify one or more devices with the --device argument along with the --listen command then only those devices will listen for change events.
 
 Keyboard interupt (CTRL+C) to exit listening mode.
+
+To obtain a list of automations::
+
+    $ abodepy -u USERNAME -p PASSWORD --automations
+    
+      Deadbolts Lock Home (ID: 6) - status - active
+      Auto Home (ID: 3) - location - active
+      Lock Garage Quick Action (ID: 7) - manual - active
+      Deadbolts Lock Away (ID: 5) - status - active
+      Autostandby (ID: 4) - schedule - active
+      Auto Away (ID: 2) - location - active
+      Sleep Mode (ID: 1) - schedule - active
+      
+To activate or deactivate an automation::
+
+    $ abodepy -u USERNAME -p PASSWORD --activate 1
+    
+      Activated automation with id: 1
+      
+To trigger a manual (quick) automation::
+
+    $ abodepy -u USERNAME -p PASSWORD --trigger 7
+    
+      Triggered automation with id: 1
 
 Settings
 ========
