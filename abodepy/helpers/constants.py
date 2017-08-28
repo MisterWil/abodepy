@@ -84,6 +84,7 @@ SOCKETIO_HEADERS = {
 DEVICE_UPDATE_EVENT = 'com.goabode.device.update'
 GATEWAY_MODE_EVENT = 'com.goabode.gateway.mode'
 TIMELINE_EVENT = 'com.goabode.gateway.timeline'
+AUTOMATION_EVENT = 'com.goabode.automation'
 
 '''
 DICTIONARIES
