@@ -3,6 +3,26 @@ Changelog
 
 A list of changes between each release.
 
+0.10.0 (2017-08-29)
+^^^^^^^^^^^^^^^^^^^
+- Full test coverage outside of event service.
+- Added support for automations and quick actions #7 and #8
+- Added PIR Device Offline/Online #13
+- Added Remote Controller Offline/Online #14
+- Added Siren Device #15
+- Added --json argument #11
+- Added support for timeline event via event service #12
+
+0.9.0 (2017-08-25)
+^^^^^^^^^^^^^^^^^^
+- Refactored file structure.
+- Added power switch meter #9
+- More bug fixes.
+
+0.8.2 (2017-08-22)
+^^^^^^^^^^^^^^^^^^
+- Fixed various bugs.
+
 0.8.0 (2017-08-22)
 ^^^^^^^^^^^^^^^^^^
 - Refactored almost the entire package layout
