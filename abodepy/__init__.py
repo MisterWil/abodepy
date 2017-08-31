@@ -144,7 +144,7 @@ class Abode():
         """Return the event controller."""
         return self._event_controller
 
-    def get_devices(self, refresh=False, type_filter=None):
+    def get_devices(self, refresh=False, generic_type=None):
         """Get all devices from Abode."""
         if refresh or self._devices is None:
             if self._devices is None:
@@ -187,11 +187,11 @@ class Abode():
                 alarm_device = ALARM.create_alarm(panel_json, self)
                 self._devices[alarm_device.device_id] = alarm_device
 
-        if type_filter:
+        if generic_type:
             devices = []
             for device in self._devices.values():
-                if (device.type is not None and
-                        device.type in type_filter):
+                if (device.generic_type is not None and
+                        device.generic_type in generic_type):
                     devices.append(device)
             return devices
 
@@ -393,27 +393,51 @@ class Abode():
         return self._session
 
 
+def _new_sensor(device_json, abode):
+    # if any(key in device_json for key in CONST.SENSOR_KEYS):
+        # TODO: Create sensor device
+        # device_json['generic_type'] = CONST.TYPE_SENSOR
+        # return AbodeSensor(device_json, abode)
+        # return AbodeBinarySensor(device_json, abode)
+    version = device_json.get('version', '')
+
+    if not version.lower().startswith('minipir'):
+        # Motion Sensor
+        device_json['generic_type'] = CONST.TYPE_MOTION
+    else:
+        device_json['generic_type'] = CONST.TYPE_OCCUPANCY
+
+    return AbodeBinarySensor(device_json, abode)
+
+
 def new_device(device_json, abode):
     """Create new device object for the given type."""
-    device_type = device_json.get('type_tag')
+    type_tag = device_json.get('type_tag')
 
-    if not device_type:
+    if not type_tag:
         raise AbodeException((ERROR.UNABLE_TO_MAP_DEVICE))
 
-    device_type = device_type.lower()
+    generic_type = CONST.get_generic_type(type_tag.lower())
+    device_json['generic_type'] = generic_type
 
     return {
-        CONST.DEVICE_GLASS_BREAK: AbodeBinarySensor(device_json, abode),
-        CONST.DEVICE_KEYPAD: AbodeBinarySensor(device_json, abode),
-        CONST.DEVICE_DOOR_CONTACT: AbodeBinarySensor(device_json, abode),
-        CONST.DEVICE_STATUS_DISPLAY: AbodeBinarySensor(device_json, abode),
-        CONST.DEVICE_MOTION_CAMERA: AbodeBinarySensor(device_json, abode),
-        CONST.DEVICE_DOOR_LOCK: AbodeLock(device_json, abode),
-        CONST.DEVICE_POWER_SWITCH_SENSOR: AbodeSwitch(device_json, abode),
-        CONST.DEVICE_POWER_SWITCH_METER: AbodeSwitch(device_json, abode),
-        CONST.DEVICE_WATER_SENSOR: AbodeBinarySensor(device_json, abode),
-        CONST.DEVICE_SECURE_BARRIER: AbodeCover(device_json, abode),
-        CONST.DEVICE_PIR: AbodeBinarySensor(device_json, abode),
-        CONST.DEVICE_REMOTE_CONTROLLER: AbodeBinarySensor(device_json, abode),
-        CONST.DEVICE_SIREN: AbodeBinarySensor(device_json, abode)
-    }.get(device_type, AbodeDevice(device_json, abode))
+        # Binary Sensor
+        CONST.TYPE_CONNECTIVITY: AbodeBinarySensor(device_json, abode),
+        CONST.TYPE_MOISTURE: AbodeBinarySensor(device_json, abode),
+        CONST.TYPE_OPENING: AbodeBinarySensor(device_json, abode),
+
+        # Camera
+        CONST.TYPE_CAMERA: AbodeBinarySensor(device_json, abode),
+
+        # Cover
+        CONST.TYPE_COVER: AbodeCover(device_json, abode),
+
+        # Lock
+        CONST.TYPE_LOCK: AbodeLock(device_json, abode),
+
+        # Switch
+        CONST.TYPE_SWITCH: AbodeSwitch(device_json, abode),
+
+        # Unknown Sensor
+        CONST.TYPE_UNKNOWN_SENSOR: _new_sensor(device_json, abode)
+    }.get(generic_type, AbodeDevice(device_json, abode))

@@ -38,9 +38,6 @@ PROJECT_GITHUB_REPOSITORY = 'abodepy'
 
 PYPI_URL = 'https://pypi.python.org/pypi/{}'.format(PROJECT_PACKAGE_NAME)
 
-'''
-URLS
-'''
 BASE_URL = 'https://my.goabode.com/'
 
 LOGIN_URL = BASE_URL + 'api/auth2/login'
@@ -68,9 +65,6 @@ AUTOMATION_ID_URL = AUTOMATION_URL + '$AUTOMATIONID$/'
 AUTOMATION_EDIT_URL = AUTOMATION_ID_URL + 'edit'
 AUTOMATION_APPLY_URL = AUTOMATION_ID_URL + 'apply'
 
-'''
-NOTIFICATION CONSTANTS
-'''
 SOCKETIO_URL = 'https://my.goabode.com'
 
 SOCKETIO_HEADERS = {
@@ -82,9 +76,6 @@ GATEWAY_MODE_EVENT = 'com.goabode.gateway.mode'
 TIMELINE_EVENT = 'com.goabode.gateway.timeline'
 AUTOMATION_EVENT = 'com.goabode.automation'
 
-'''
-DICTIONARIES
-'''
 MODE_STANDBY = 'standby'
 MODE_HOME = 'home'
 MODE_AWAY = 'away'
@@ -125,28 +116,127 @@ AUTOMATION_TYPE_STATUS = 'status'
 AUTOMATION_SUBTYPE_ENTERING_HOME = 'entering_home'
 AUTOMATION_SUBTYPE_LEAVING_HOME = 'leaving_home'
 
-'''
-DEVICE TYPE_TAGS
-'''
+# GENERIC ABODE DEVICE TYPES
+TYPE_ALARM = "alarm"
+TYPE_CAMERA = "camera"
+TYPE_CONNECTIVITY = "connectivity"
+TYPE_COVER = "cover"
+TYPE_DIMMER = "dimmer"
+TYPE_LOCK = "lock"
+TYPE_MOISTURE = "moisture"
+TYPE_MOTION = "motion"
+TYPE_OCCUPANCY = "occupancy"
+TYPE_OPENING = "opening"
+TYPE_SENSOR = "sensor"
+TYPE_SWITCH = "switch"
 
+TYPE_UNKNOWN_SENSOR = "unknown_sensor"
+
+# DEVICE TYPE_TAGS
+# Alarm
 DEVICE_ALARM = 'device_type.alarm'
+
+# Binary Sensors - Connectivity
 DEVICE_GLASS_BREAK = 'device_type.glass'
 DEVICE_KEYPAD = 'device_type.keypad'
-DEVICE_DOOR_CONTACT = 'device_type.door_contact'
-DEVICE_STATUS_DISPLAY = 'device_type.bx'
-DEVICE_MOTION_CAMERA = 'device_type.ir_camera'
-DEVICE_DOOR_LOCK = 'device_type.door_lock'
-DEVICE_POWER_SWITCH_SENSOR = 'device_type.power_switch_sensor'
-DEVICE_POWER_SWITCH_METER = 'device_type.power_switch_meter'
-DEVICE_WATER_SENSOR = 'device_type.water_sensor'
-DEVICE_SECURE_BARRIER = 'device_type.secure_barrier'
-DEVICE_PIR = 'device_type.pir'
 DEVICE_REMOTE_CONTROLLER = 'device_type.remote_controller'
 DEVICE_SIREN = 'device_type.siren'
+DEVICE_STATUS_DISPLAY = 'device_type.bx'
 
-'''
-SETTINGS
-'''
+# Binary Sensors - Opening
+DEVICE_DOOR_CONTACT = 'device_type.door_contact'
+
+# Cameras
+DEVICE_MOTION_CAMERA = 'device_type.ir_camera'
+DEVICE_MOTION_VIDEO_CAMERA = 'device_type.ir_camcoder'
+DEVICE_IP_CAM = 'device_type.ipcam'
+DEVICE_OUTDOOR_MOTION_CAMERA = 'device_type.out_view'
+
+# Covers
+DEVICE_SECURE_BARRIER = 'device_type.secure_barrier'
+
+# Dimmers
+DEVICE_DIMMER = 'device_type.dimmer'
+DEVICE_DIMMER_METER = 'device_type.dimmer_meter'
+DEVICE_HUE = 'device_type.hue'
+
+# Locks
+DEVICE_DOOR_LOCK = 'device_type.door_lock'
+
+# Moisture
+DEVICE_WATER_SENSOR = 'device_type.water_sensor'
+
+# Switches
+DEVICE_SWITCH = 'device_type.switch'
+DEVICE_NIGHT_SWITCH = 'device_type.night_switch'
+DEVICE_POWER_SWITCH_SENSOR = 'device_type.power_switch_sensor'
+DEVICE_POWER_SWITCH_METER = 'device_type.power_switch_meter'
+
+# Unknown Sensor
+# These device types are all considered 'occupancy' but could apparently
+# also be multi-sensors based on their json.
+DEVICE_ROOM_SENSOR = 'device_type.room_sensor'
+DEVICE_TEMPERATURE_SENSOR = 'device_type.temperature_sensor'
+DEVICE_MULTI_SENSOR = 'device_type.lm'  # LM = LIGHT MOTION?
+DEVICE_PIR = 'device_type.pir'  # Passive Infrared Occupancy?
+DEVICE_POVS = 'device_type.povs'
+
+SENSOR_KEYS = ('temp_status', 'lux_status', 'humi_status')
+
+
+def get_generic_type(type_tag):
+    """Map type tag to generic type."""
+    return {
+        # Alarm
+        DEVICE_ALARM: TYPE_ALARM,
+
+        # Binary Sensors - Connectivity
+        DEVICE_GLASS_BREAK: TYPE_CONNECTIVITY,
+        DEVICE_KEYPAD: TYPE_CONNECTIVITY,
+        DEVICE_REMOTE_CONTROLLER: TYPE_CONNECTIVITY,
+        DEVICE_SIREN: TYPE_CONNECTIVITY,
+        DEVICE_STATUS_DISPLAY: TYPE_CONNECTIVITY,
+
+        # Binary Sensors - Opening
+        DEVICE_DOOR_CONTACT: TYPE_OPENING,
+
+        # Cameras
+        DEVICE_MOTION_CAMERA: TYPE_CAMERA,
+        DEVICE_MOTION_VIDEO_CAMERA: TYPE_CAMERA,
+        DEVICE_IP_CAM: TYPE_CAMERA,
+        DEVICE_OUTDOOR_MOTION_CAMERA: TYPE_CAMERA,
+
+        # Covers
+        DEVICE_SECURE_BARRIER: TYPE_COVER,
+
+        # Dimmers
+        DEVICE_DIMMER: TYPE_DIMMER,
+        DEVICE_DIMMER_METER: TYPE_DIMMER,
+        DEVICE_HUE: TYPE_DIMMER,
+
+        # Locks
+        DEVICE_DOOR_LOCK: TYPE_LOCK,
+
+        # Moisture
+        DEVICE_WATER_SENSOR: TYPE_MOISTURE,
+
+        # Switches
+        DEVICE_SWITCH: TYPE_SWITCH,
+        DEVICE_NIGHT_SWITCH: TYPE_SWITCH,
+        DEVICE_POWER_SWITCH_SENSOR: TYPE_SWITCH,
+        DEVICE_POWER_SWITCH_METER: TYPE_SWITCH,
+
+        # Unknown Sensors
+        # More data needed to determine type
+        DEVICE_ROOM_SENSOR: TYPE_UNKNOWN_SENSOR,
+        DEVICE_TEMPERATURE_SENSOR: TYPE_UNKNOWN_SENSOR,
+        DEVICE_MULTI_SENSOR: TYPE_UNKNOWN_SENSOR,
+        DEVICE_PIR: TYPE_UNKNOWN_SENSOR,
+        DEVICE_POVS: TYPE_UNKNOWN_SENSOR,
+    }.get(type_tag.lower(), None)
+
+
+# SETTINGS
 SETTING_CAMERA_RESOLUTION = 'ircamera_resolution_t'
 SETTING_CAMERA_GRAYSCALE = 'ircamera_gray_t'
 SETTING_SILENCE_SOUNDS = 'beeper_mute'
@@ -187,10 +277,8 @@ SIREN_SETTINGS = [SETTING_SIREN_ENTRY_EXIT_SOUNDS, SETTING_SIREN_TAMPER_SOUNDS,
 
 ALL_SETTINGS = PANEL_SETTINGS + AREA_SETTINGS + SOUND_SETTINGS + SIREN_SETTINGS
 
-'''
-SETTING VALUES
-'''
 
+# SETTING VALUES
 SETTING_CAMERA_RES_320_240 = '0'
 SETTING_CAMERA_RES_640_480 = '2'
 

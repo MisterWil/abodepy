@@ -21,10 +21,11 @@ class AbodeDevice(object):
         self._name = json_obj.get('name')
         self._type = json_obj.get('type')
         self._type_tag = json_obj.get('type_tag')
+        self._generic_type = json_obj.get('generic_type')
         self._abode = abode
 
         if not self._name:
-            self._name = self.friendly_type + ' ' + self.device_id
+            self._name = self.type + ' ' + self.device_id
 
     def set_status(self, status):
         """Set device status."""
@@ -161,12 +162,17 @@ class AbodeDevice(object):
         return self._name
 
     @property
-    def friendly_type(self):
+    def generic_type(self):
+        """Get the generic type of this device."""
+        return self._generic_type
+
+    @property
+    def type(self):
         """Get the type of this device."""
         return self._type
 
     @property
-    def type(self):
+    def type_tag(self):
         """Get the type tag of this device."""
         return self._type_tag
 
@@ -180,4 +186,4 @@ class AbodeDevice(object):
         """Get a short description of the device."""
         # Garage Entry Door (ZW:00000003) - Door Lock - Closed
         return '{0} (ID: {1}) - {2} - {3}'.format(
-            self.name, self.device_id, self.friendly_type, self.status)
+            self.name, self.device_id, self.type, self.status)

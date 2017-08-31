@@ -6,6 +6,7 @@ import requests_mock
 
 import abodepy
 
+from abodepy.devices import AbodeDevice
 from abodepy.devices.alarm import AbodeAlarm
 from abodepy.devices.binary_sensor import AbodeBinarySensor
 from abodepy.devices.cover import AbodeCover
@@ -81,17 +82,17 @@ class TestDevice(unittest.TestCase):
 
         device_json['name'] = ""
         device = abodepy.new_device(device_json, self.abode)
-        generated_name = device.friendly_type + ' ' + device.device_id
+        generated_name = device.type + ' ' + device.device_id
         self.assertEqual(device.name, generated_name)
 
         device_json['name'] = None
         device = abodepy.new_device(device_json, self.abode)
-        generated_name = device.friendly_type + ' ' + device.device_id
+        generated_name = device.type + ' ' + device.device_id
         self.assertEqual(device.name, generated_name)
 
         del device_json['name']
         device = abodepy.new_device(device_json, self.abode)
-        generated_name = device.friendly_type + ' ' + device.device_id
+        generated_name = device.type + ' ' + device.device_id
         self.assertEqual(device.name, generated_name)
 
     @requests_mock.mock()
@@ -120,10 +121,9 @@ class TestDevice(unittest.TestCase):
         # Check device states match
         self.assertIsNotNone(device)
         # pylint: disable=W0212
-        self.assertEqual(device._json_state, device_json[0])
         self.assertEqual(device.name, device_json[0]['name'])
-        self.assertEqual(device.type, device_json[0]['type_tag'])
-        self.assertEqual(device.friendly_type, device_json[0]['type'])
+        self.assertEqual(device.type, device_json[0]['type'])
+        self.assertEqual(device.type_tag, device_json[0]['type_tag'])
         self.assertEqual(device.device_id, device_json[0]['id'])
         self.assertEqual(device.status, CONST.STATUS_ONLINE)
         self.assertTrue(device.battery_low)
@@ -234,14 +234,14 @@ class TestDevice(unittest.TestCase):
 
         # Get our glass devices
         devices = self.abode.get_devices(
-            type_filter=(CONST.DEVICE_GLASS_BREAK))
+            generic_type=(CONST.TYPE_CONNECTIVITY))
 
         self.assertIsNotNone(devices)
         self.assertEqual(len(devices), 1)
 
         # Get our power switch devices
         devices = self.abode.get_devices(
-            type_filter=(CONST.DEVICE_POWER_SWITCH_SENSOR))
+            generic_type=(CONST.TYPE_SWITCH))
 
         self.assertIsNotNone(devices)
         self.assertEqual(len(devices), 2)
@@ -402,7 +402,7 @@ class TestDevice(unittest.TestCase):
 
     @requests_mock.mock()
     def tests_all_devices(self, m):
-        """Tests that all supported devices are mapped correctly."""
+        """Tests that all mocked devices are mapped correctly."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
@@ -433,21 +433,35 @@ class TestDevice(unittest.TestCase):
         # Loop through all devices
         for device in self.abode.get_devices():
             class_type = {
-                CONST.DEVICE_ALARM: AbodeAlarm,
-                CONST.DEVICE_GLASS_BREAK: AbodeBinarySensor,
-                CONST.DEVICE_KEYPAD: AbodeBinarySensor,
-                CONST.DEVICE_DOOR_CONTACT: AbodeBinarySensor,
-                CONST.DEVICE_STATUS_DISPLAY: AbodeBinarySensor,
-                CONST.DEVICE_MOTION_CAMERA: AbodeBinarySensor,
-                CONST.DEVICE_DOOR_LOCK: AbodeLock,
-                CONST.DEVICE_POWER_SWITCH_SENSOR: AbodeSwitch,
-                CONST.DEVICE_POWER_SWITCH_METER: AbodeSwitch,
-                CONST.DEVICE_WATER_SENSOR: AbodeBinarySensor,
-                CONST.DEVICE_SECURE_BARRIER: AbodeCover,
-                CONST.DEVICE_PIR: AbodeBinarySensor,
-                CONST.DEVICE_REMOTE_CONTROLLER: AbodeBinarySensor,
-                CONST.DEVICE_SIREN: AbodeBinarySensor
-            }.get(device.type)
+                # Alarm
+                CONST.TYPE_ALARM: AbodeAlarm,
+
+                # Binary Sensors
+                CONST.TYPE_CONNECTIVITY: AbodeBinarySensor,
+                CONST.TYPE_MOISTURE: AbodeBinarySensor,
+                CONST.TYPE_OPENING: AbodeBinarySensor,
+                CONST.TYPE_MOTION: AbodeBinarySensor,
+                CONST.TYPE_OCCUPANCY: AbodeBinarySensor,
+
+                # Camera
+                CONST.TYPE_CAMERA: AbodeDevice,
+
+                # Cover
+                CONST.TYPE_COVER: AbodeCover,
+
+                # Dimmer
+                CONST.TYPE_DIMMER: None,
+
+                # Lock
+                CONST.TYPE_LOCK: AbodeLock,
+
+                # Switch
+                CONST.TYPE_SWITCH: AbodeSwitch
+            }.get(device.generic_type)
 
             self.assertIsNotNone(class_type, device.type + ' is not mapped.')
-            self.assertTrue(isinstance(device, class_type))
+            self.assertTrue(
+                isinstance(device, class_type),
+                device.type + ' is of class ' +
+                str(device.__class__.__name__) +
+                ' but mapped to ' + str(class_type.__name__))

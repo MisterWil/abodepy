@@ -7,6 +7,7 @@ import time
 from socketIO_client import SocketIO, LoggingNamespace
 from socketIO_client.exceptions import SocketIOError
 
+from abodepy.devices import AbodeDevice
 from abodepy.exceptions import AbodeException
 import abodepy.helpers.constants as CONST
 import abodepy.helpers.errors as ERROR
@@ -62,6 +63,10 @@ class AbodeEventController(object):
 
     def add_device_callback(self, device_id, callback):
         """Register a device callback."""
+        # In case device_id is a device, pull device_id from device
+        if isinstance(device_id, AbodeDevice):
+            device_id = device_id.device_id
+
         _LOGGER.debug("Subscribing to updated for device_id: %s", device_id)
 
         self._device_callbacks[device_id].append((callback))

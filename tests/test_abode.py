@@ -282,10 +282,10 @@ class TestAbode(unittest.TestCase):
         # Get and check devices
         # pylint: disable=W0212
         dc1a_dev = self.abode.get_device(dc1_devid)
-        self.assertEqual(json.loads(dc1a), dc1a_dev._json_state)
+        self.assertEqual(json.loads(dc1a)['id'], dc1a_dev.device_id)
 
         dc2a_dev = self.abode.get_device(dc2_devid)
-        self.assertEqual(json.loads(dc2a), dc2a_dev._json_state)
+        self.assertEqual(json.loads(dc2a)['id'], dc2a_dev.device_id)
 
         # Change device states
         dc1b = DOOR_CONTACT.device(
@@ -303,11 +303,11 @@ class TestAbode(unittest.TestCase):
         # Future note: "if a is b" tests that the object is the same
         # Thus asserting dc1a_dev is dc1b_dev tests if they are the same object
         dc1b_dev = self.abode.get_device(dc1_devid)
-        self.assertEqual(json.loads(dc1b), dc1b_dev._json_state)
+        self.assertEqual(json.loads(dc1b)['id'], dc1b_dev.device_id)
         self.assertIs(dc1a_dev, dc1b_dev)
 
         dc2b_dev = self.abode.get_device(dc2_devid)
-        self.assertEqual(json.loads(dc2b), dc2b_dev._json_state)
+        self.assertEqual(json.loads(dc2b)['id'], dc2b_dev.device_id)
         self.assertIs(dc2a_dev, dc2b_dev)
 
     @requests_mock.mock()

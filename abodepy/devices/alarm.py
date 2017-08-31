@@ -17,6 +17,7 @@ def create_alarm(panel_json, abode, area='1'):
     panel_json['id'] = CONST.ALARM_DEVICE_ID + area
     panel_json['type'] = CONST.ALARM_TYPE
     panel_json['type_tag'] = CONST.DEVICE_ALARM
+    panel_json['generic_type'] = CONST.TYPE_ALARM
 
     return AbodeAlarm(panel_json, abode, area)
 

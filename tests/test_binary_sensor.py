@@ -11,9 +11,7 @@ import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
 import tests.mock.devices.door_contact as DOOR_CONTACT
 import tests.mock.devices.glass as GLASS
-import tests.mock.devices.ir_camera as IR_CAMERA
 import tests.mock.devices.keypad as KEYPAD
-import tests.mock.devices.pir as PIR
 import tests.mock.devices.remote_controller as REMOTE_CONTROLLER
 import tests.mock.devices.siren as SIREN
 import tests.mock.devices.status_display as STATUS_DISPLAY
@@ -55,18 +53,10 @@ class TestBinarySensors(unittest.TestCase):
                          status=CONST.STATUS_OFFLINE,
                          low_battery=False,
                          no_response=False) + ',' + \
-            IR_CAMERA.device(devid=IR_CAMERA.DEVICE_ID,
-                             status=CONST.STATUS_OFFLINE,
-                             low_battery=False,
-                             no_response=False) + ',' + \
             KEYPAD.device(devid=KEYPAD.DEVICE_ID,
                           status=CONST.STATUS_OFFLINE,
                           low_battery=False,
                           no_response=False) + ',' + \
-            PIR.device(devid=PIR.DEVICE_ID,
-                       status=CONST.STATUS_OFFLINE,
-                       low_battery=False,
-                       no_response=False) + ',' + \
             REMOTE_CONTROLLER.device(devid=REMOTE_CONTROLLER.DEVICE_ID,
                                      status=CONST.STATUS_OFFLINE,
                                      low_battery=False,
@@ -112,18 +102,10 @@ class TestBinarySensors(unittest.TestCase):
                          status=CONST.STATUS_ONLINE,
                          low_battery=True,
                          no_response=True) + ',' + \
-            IR_CAMERA.device(devid=IR_CAMERA.DEVICE_ID,
-                             status=CONST.STATUS_ONLINE,
-                             low_battery=True,
-                             no_response=True) + ',' + \
             KEYPAD.device(devid=KEYPAD.DEVICE_ID,
                           status=CONST.STATUS_ONLINE,
                           low_battery=True,
                           no_response=True) + ',' + \
-            PIR.device(devid=PIR.DEVICE_ID,
-                       status=CONST.STATUS_ONLINE,
-                       low_battery=True,
-                       no_response=True) + ',' + \
             REMOTE_CONTROLLER.device(devid=REMOTE_CONTROLLER.DEVICE_ID,
                                      status=CONST.STATUS_ONLINE,
                                      low_battery=True,
@@ -146,7 +128,7 @@ class TestBinarySensors(unittest.TestCase):
         # Refesh devices and test changes
         for device in self.abode.get_devices(refresh=True):
             # Skip alarm devices
-            if device.type == CONST.DEVICE_ALARM:
+            if device.type_tag == CONST.DEVICE_ALARM:
                 continue
 
             self.assertTrue(device.is_on,
