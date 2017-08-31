@@ -2,9 +2,9 @@
 import os
 import unittest
 
-import abodepy
 import requests_mock
 
+import abodepy
 import abodepy.helpers.constants as CONST
 import tests.mock as MOCK
 import tests.mock.devices.ir_camera as IRCAMERA
