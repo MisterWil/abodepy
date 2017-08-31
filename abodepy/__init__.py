@@ -29,6 +29,7 @@ from requests.exceptions import RequestException
 from abodepy.automation import AbodeAutomation
 from abodepy.devices import AbodeDevice
 from abodepy.devices.binary_sensor import AbodeBinarySensor
+from abodepy.devices.camera import AbodeCamera
 from abodepy.devices.cover import AbodeCover
 from abodepy.devices.lock import AbodeLock
 from abodepy.devices.switch import AbodeSwitch
@@ -139,10 +140,6 @@ class Abode():
             _LOGGER.info("Logout successful")
 
         return True
-
-    def get_event_controller(self):
-        """Return the event controller."""
-        return self._event_controller
 
     def get_devices(self, refresh=False, generic_type=None):
         """Get all devices from Abode."""
@@ -367,7 +364,7 @@ class Abode():
             response = getattr(self._session, method)(
                 url, headers=headers, data=data)
 
-            if response and response.status_code == 200:
+            if response and response.status_code < 400:
                 return response
         except RequestException:
             _LOGGER.info("Abode connection reset...")
@@ -386,6 +383,11 @@ class Abode():
         """Get the default mode."""
         return self._default_alarm_mode
 
+    @property
+    def events(self):
+        """Get the event controller."""
+        return self._event_controller
+
     def _get_session(self):
         # Perform a generic update so we know we're logged in
         self.send_request("get", CONST.PANEL_URL)
@@ -401,11 +403,12 @@ def _new_sensor(device_json, abode):
         # return AbodeBinarySensor(device_json, abode)
     version = device_json.get('version', '')
 
-    if not version.lower().startswith('minipir'):
-        # Motion Sensor
-        device_json['generic_type'] = CONST.TYPE_MOTION
-    else:
+    # this.version.startsWith('MINIPIR') == true ? 'Occupancy Sensor'
+    # : 'Motion Sensor';
+    if version.lower().startswith('minipir'):
         device_json['generic_type'] = CONST.TYPE_OCCUPANCY
+    else:
+        device_json['generic_type'] = CONST.TYPE_MOTION
 
     return AbodeBinarySensor(device_json, abode)
 
@@ -427,7 +430,7 @@ def new_device(device_json, abode):
         CONST.TYPE_OPENING: AbodeBinarySensor(device_json, abode),
 
         # Camera
-        CONST.TYPE_CAMERA: AbodeBinarySensor(device_json, abode),
+        CONST.TYPE_CAMERA: AbodeCamera(device_json, abode),
 
         # Cover
         CONST.TYPE_COVER: AbodeCover(device_json, abode),

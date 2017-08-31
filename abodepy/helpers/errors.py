@@ -58,5 +58,20 @@ INVALID_TIMELINE_EVENT = (
 EVENT_GROUP_INVALID = (
     22, "Timeline event group is not valid.")
 
+CAM_IMAGE_REFRESH_NO_FILE = (
+    23, "Camera image refresh did not have a file path.")
+
+CAM_IMAGE_UNEXPECTED_RESPONSE = (
+    24, "Unknown camera image response.")
+
+CAM_IMAGE_NO_LOCATION_HEADER = (
+    25, "Camera file path did not redirect to image location.")
+
+CAM_TIMELINE_EVENT_INVALID = (
+    26, "Timeline event_code invalid - expected 5001.")
+
+CAM_IMAGE_REQUEST_INVALID = (
+    27, "Received an invalid response from AWS servers for image.")
+
 EVENT_DEVICE_INVALID = (
     112, "Object given to event registration service is not a device object")

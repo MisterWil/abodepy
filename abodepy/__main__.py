@@ -23,6 +23,8 @@ import time
 import argparse
 
 import abodepy
+import abodepy.helpers.timeline as TIMELINE
+from abodepy.exceptions import AbodeException
 
 _LOGGER = logging.getLogger('abodecl')
 
@@ -155,6 +157,18 @@ def get_arguments():
         '--trigger',
         metavar='automation_id',
         help='Trigger (apply) a manual (quick) automation by automation_id',
+        required=False, action='append')
+
+    parser.add_argument(
+        '--capture',
+        metavar='device_id',
+        help='Trigger a new image capture for the given device_id',
+        required=False, action='append')
+
+    parser.add_argument(
+        '--image',
+        metavar='device_id=location/image.jpg',
+        help='Save an image from a camera (if available) to the given path',
         required=False, action='append')
 
     parser.add_argument(
@@ -312,6 +326,39 @@ def call():
                 _LOGGER.warning(
                     "Could not find automation with id: %s", automation_id)
 
+        # Trigger image capture
+        for device_id in args.capture or []:
+            device = abode.get_device(device_id)
+
+            if device:
+                if device.capture():
+                    _LOGGER.info(
+                        "Image requested from device with id: %s", device_id)
+                else:
+                    _LOGGER.warning(
+                        "Failed to request image from device with id: %s",
+                        device_id)
+            else:
+                _LOGGER.warning("Could not find device with id: %s", device_id)
+
+        # Save camera image
+        for keyval in args.image or []:
+            devloc = keyval.split("=")
+            device = abode.get_device(devloc[0])
+
+            if device:
+                try:
+                    if (device.refresh_image() and
+                            device.image_to_file(devloc[1])):
+                        _LOGGER.info(
+                            "Saved image to %s for device id: %s", devloc[1],
+                            devloc[0])
+                except AbodeException as exc:
+                    _LOGGER.warning("Unable to save image: %s", exc)
+            else:
+                _LOGGER.warning(
+                    "Could not find device with id: %s", devloc[0])
+
         # Print out all devices.
         if args.devices:
             for device in abode.get_devices():
@@ -320,7 +367,15 @@ def call():
         def _device_callback(dev):
             _device_print(dev, ", At: " + time.strftime("%Y-%m-%d %H:%M:%S"))
 
-        event_controller = abode.get_event_controller()
+        def _timeline_callback(tl_json):
+            event_code = int(tl_json['event_code'])
+            if 5100 <= event_code <= 5199:
+                # Ignore device changes
+                return
+
+            _LOGGER.info("%s - %s at %s %s",
+                         tl_json['event_name'], tl_json['event_type'],
+                         tl_json['date'], tl_json['time'])
 
         # Print out specific devices by device id.
         if args.device:
@@ -331,8 +386,8 @@ def call():
                     _device_print(device)
 
                     # Register the specific devices if we decide to listen.
-                    event_controller.add_device_callback(device_id,
-                                                         _device_callback)
+                    abode.events.add_device_callback(device_id,
+                                                     _device_callback)
                 else:
                     _LOGGER.warning(
                         "Could not find device with id: %s", device_id)
@@ -344,16 +399,19 @@ def call():
                 _LOGGER.info("Adding all devices to listener...")
 
                 for device in abode.get_devices():
-                    event_controller.add_device_callback(device.device_id,
-                                                         _device_callback)
+                    abode.events.add_device_callback(device.device_id,
+                                                     _device_callback)
 
-            _LOGGER.info("Listening for device updates...")
-            event_controller.start()
+            abode.events.add_timeline_callback(TIMELINE.ALL,
+                                               _timeline_callback)
+
+            _LOGGER.info("Listening for device and timeline updates...")
+            abode.events.start()
             try:
                 while True:
                     time.sleep(1)
             except KeyboardInterrupt:
-                event_controller.stop()
+                abode.events.stop()
                 _LOGGER.info("Device update listening stopped.")
     except abodepy.AbodeException as exc:
         _LOGGER.error(exc)

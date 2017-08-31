@@ -59,6 +59,11 @@ def map_event_code(event_code):
 
 # Specific timeline events by event code.
 
+ALL = {
+    'event_code': '0',
+    'event_type': 'All Timeline Events (AbodePy)'
+}
+
 MEDICAL = {
     'event_code': '1100',
     'event_type': 'Medical'

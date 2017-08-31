@@ -181,7 +181,7 @@ class TestAbode(unittest.TestCase):
         self.assertIsNotNone(self.abode.get_alarm())
         self.assertIsNotNone(self.abode._get_session())
         self.assertEqual(self.abode._get_session(), original_session)
-        self.assertIsNotNone(self.abode.get_event_controller())
+        self.assertIsNotNone(self.abode.events)
 
         self.abode.logout()
 

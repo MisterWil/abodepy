@@ -147,6 +147,11 @@ class AbodeEventController(object):
         for callback in self._timeline_callbacks.get(event_code, ()):
             callback(event)
 
+        # Callback for "TIMELINE.ALL" events
+        for callback in self._timeline_callbacks.get(
+                TIMELINE.ALL['event_code'], ()):
+            callback(event)
+
         # Attempt to map the event code to a group and callback
         event_group = TIMELINE.map_event_code(event_code)
 

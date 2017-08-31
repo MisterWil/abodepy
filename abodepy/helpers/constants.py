@@ -2,7 +2,7 @@
 import os
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 10
+MINOR_VERSION = 11
 PATCH_VERSION = '0'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
@@ -38,6 +38,7 @@ PROJECT_GITHUB_REPOSITORY = 'abodepy'
 
 PYPI_URL = 'https://pypi.python.org/pypi/{}'.format(PROJECT_PACKAGE_NAME)
 
+# URLS
 BASE_URL = 'https://my.goabode.com/'
 
 LOGIN_URL = BASE_URL + 'api/auth2/login'
@@ -65,6 +66,13 @@ AUTOMATION_ID_URL = AUTOMATION_URL + '$AUTOMATIONID$/'
 AUTOMATION_EDIT_URL = AUTOMATION_ID_URL + 'edit'
 AUTOMATION_APPLY_URL = AUTOMATION_ID_URL + 'apply'
 
+CAMS_ID_CAPTURE_URL = BASE_URL + 'api/v1/cams/$DEVID$/capture'
+
+TIMELINE_IMAGES_ID_URL = BASE_URL + \
+    'api/v1/timeline?device_id=$DEVID$&dir=next' + \
+    '&event_label=Image+Capture&size=1'
+
+# NOTIFICATION CONSTANTS
 SOCKETIO_URL = 'https://my.goabode.com'
 
 SOCKETIO_HEADERS = {
@@ -76,6 +84,7 @@ GATEWAY_MODE_EVENT = 'com.goabode.gateway.mode'
 TIMELINE_EVENT = 'com.goabode.gateway.timeline'
 AUTOMATION_EVENT = 'com.goabode.automation'
 
+# DICTIONARIES
 MODE_STANDBY = 'standby'
 MODE_HOME = 'home'
 MODE_AWAY = 'away'
@@ -104,10 +113,6 @@ STATUS_ON_INT = 1
 STATUS_OFF = 'Off'
 STATUS_OFF_INT = 0
 
-ALARM_NAME = "Abode Alarm"
-ALARM_DEVICE_ID = "area_"
-ALARM_TYPE = "Alarm"
-
 AUTOMATION_TYPE_MANUAL = 'manual'
 AUTOMATION_TYPE_LOCATION = 'location'
 AUTOMATION_TYPE_SCHEDULE = 'schedule'
@@ -131,6 +136,9 @@ TYPE_SENSOR = "sensor"
 TYPE_SWITCH = "switch"
 
 TYPE_UNKNOWN_SENSOR = "unknown_sensor"
+
+BINARY_SENSOR_TYPES = [TYPE_CONNECTIVITY, TYPE_MOISTURE, TYPE_MOTION,
+                       TYPE_OCCUPANCY, TYPE_OPENING]
 
 # DEVICE TYPE_TAGS
 # Alarm
@@ -181,7 +189,10 @@ DEVICE_MULTI_SENSOR = 'device_type.lm'  # LM = LIGHT MOTION?
 DEVICE_PIR = 'device_type.pir'  # Passive Infrared Occupancy?
 DEVICE_POVS = 'device_type.povs'
 
-SENSOR_KEYS = ('temp_status', 'lux_status', 'humi_status')
+TEMP_STATUS_KEY = 'temp_status'
+LUX_STATUS_KEY = 'lux_status'
+HUMI_STATUS_KEY = 'humi_status'
+SENSOR_KEYS = [TEMP_STATUS_KEY, LUX_STATUS_KEY, HUMI_STATUS_KEY]
 
 
 def get_generic_type(type_tag):
@@ -235,6 +246,11 @@ def get_generic_type(type_tag):
         DEVICE_POVS: TYPE_UNKNOWN_SENSOR,
     }.get(type_tag.lower(), None)
 
+
+# Constants to be used to fill our imaginary alarm device
+ALARM_NAME = "Abode Alarm"
+ALARM_DEVICE_ID = "area_"
+ALARM_TYPE = "Alarm"
 
 # SETTINGS
 SETTING_CAMERA_RESOLUTION = 'ircamera_resolution_t'
