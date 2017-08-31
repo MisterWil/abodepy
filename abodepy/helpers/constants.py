@@ -189,10 +189,19 @@ DEVICE_MULTI_SENSOR = 'device_type.lm'  # LM = LIGHT MOTION?
 DEVICE_PIR = 'device_type.pir'  # Passive Infrared Occupancy?
 DEVICE_POVS = 'device_type.povs'
 
+# This is a guess currently
+MOTION_STATUS_KEY = 'motion_event'
+OCCUPANCY_STATUS_KEY = 'motion_event'
+
 TEMP_STATUS_KEY = 'temp_status'
 LUX_STATUS_KEY = 'lux_status'
 HUMI_STATUS_KEY = 'humi_status'
 SENSOR_KEYS = [TEMP_STATUS_KEY, LUX_STATUS_KEY, HUMI_STATUS_KEY]
+
+UNIT_CELSIUS = '°C'
+UNIT_FAHRENHEIT = '°F'
+UNIT_PERCENT = '%'
+UNIT_LUX = 'lux'
 
 
 def get_generic_type(type_tag):

@@ -33,6 +33,7 @@ from abodepy.devices.camera import AbodeCamera
 from abodepy.devices.cover import AbodeCover
 from abodepy.devices.lock import AbodeLock
 from abodepy.devices.switch import AbodeSwitch
+from abodepy.devices.sensor import AbodeSensor
 from abodepy.event_controller import AbodeEventController
 from abodepy.exceptions import AbodeAuthenticationException, AbodeException
 import abodepy.devices.alarm as ALARM
@@ -396,11 +397,10 @@ class Abode():
 
 
 def _new_sensor(device_json, abode):
-    # if any(key in device_json for key in CONST.SENSOR_KEYS):
-        # TODO: Create sensor device
-        # device_json['generic_type'] = CONST.TYPE_SENSOR
-        # return AbodeSensor(device_json, abode)
-        # return AbodeBinarySensor(device_json, abode)
+    if any(key in device_json for key in CONST.SENSOR_KEYS):
+        device_json['generic_type'] = CONST.TYPE_SENSOR
+        return AbodeSensor(device_json, abode)
+
     version = device_json.get('version', '')
 
     # this.version.startsWith('MINIPIR') == true ? 'Occupancy Sensor'
