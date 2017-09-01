@@ -2,16 +2,16 @@
 
 # Timeline event groups.
 
-ALARM_GROUP = 'events.alarm'
-ALARM_END_GROUP = 'events.alarm_end'
-PANEL_FAULT_GROUP = 'events.panel_fault'
-PANEL_RESTORE_GROUP = 'events.panel_restore'
-DISARM_GROUP = 'events.disarm'
-ARM_GROUP = 'events.arm'
-TEST_GROUP = 'events.test'
-CAPTURE_GROUP = 'events.capture'
-DEVICE_GROUP = 'events.device'
-AUTOMATION_GROUP = 'events.automation'
+ALARM_GROUP = 'abode_alarm'
+ALARM_END_GROUP = 'abode_alarm_end'
+PANEL_FAULT_GROUP = 'abode_panel_fault'
+PANEL_RESTORE_GROUP = 'abode_panel_restore'
+DISARM_GROUP = 'abode_disarm'
+ARM_GROUP = 'abode_arm'
+TEST_GROUP = 'abode_test'
+CAPTURE_GROUP = 'abode_capture'
+DEVICE_GROUP = 'abode_device'
+AUTOMATION_GROUP = 'abode_automation'
 
 ALL_EVENT_GROUPS = [ALARM_GROUP, ALARM_END_GROUP, PANEL_FAULT_GROUP,
                     PANEL_RESTORE_GROUP, DISARM_GROUP, ARM_GROUP, TEST_GROUP,
