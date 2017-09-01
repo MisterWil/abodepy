@@ -61,53 +61,72 @@ class AbodeEventController(object):
         """Don't allow the main thread to terminate until we have."""
         self._thread.join()
 
-    def add_device_callback(self, device, callback):
+    def add_device_callback(self, devices, callback):
         """Register a device callback."""
-        if not device:
+        if not devices:
             return False
 
-        # Device may be a device_id
-        device_id = device
+        if not isinstance(devices, (tuple, list)):
+            devices = [devices]
 
-        # If they gave us an actual device, get that devices ID
-        if isinstance(device, AbodeDevice):
-            device_id = device.device_id
+        for device in devices:
+            # Device may be a device_id
+            device_id = device
 
-        # Validate the device is valid
-        if not self._abode.get_device(device_id):
-            raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
+            # If they gave us an actual device, get that devices ID
+            if isinstance(device, AbodeDevice):
+                device_id = device.device_id
 
-        _LOGGER.debug("Subscribing to updated for device_id: %s", device_id)
+            # Validate the device is valid
+            if not self._abode.get_device(device_id):
+                raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
 
-        self._device_callbacks[device_id].append((callback))
+            _LOGGER.debug(
+                "Subscribing to updated for device_id: %s", device_id)
+
+            self._device_callbacks[device_id].append((callback))
 
         return True
 
-    def add_event_callback(self, event_group, callback):
+    def add_event_callback(self, event_groups, callback):
         """Register callback for a group of timeline events."""
-        if event_group not in TIMELINE.ALL_EVENT_GROUPS:
-            raise AbodeException(ERROR.EVENT_GROUP_INVALID,
-                                 TIMELINE.ALL_EVENT_GROUPS)
+        if not event_groups:
+            return False
 
-        _LOGGER.debug("Subscribing to event group: %s", event_group)
+        if not isinstance(event_groups, (tuple, list)):
+            event_groups = [event_groups]
 
-        self._event_callbacks[event_group].append((callback))
+        for event_group in event_groups:
+            if event_group not in TIMELINE.ALL_EVENT_GROUPS:
+                raise AbodeException(ERROR.EVENT_GROUP_INVALID,
+                                     TIMELINE.ALL_EVENT_GROUPS)
+
+            _LOGGER.debug("Subscribing to event group: %s", event_group)
+
+            self._event_callbacks[event_group].append((callback))
 
         return True
 
-    def add_timeline_callback(self, timeline_event, callback):
+    def add_timeline_callback(self, timeline_events, callback):
         """Register a callback for a specific timeline event."""
-        if not isinstance(timeline_event, dict):
-            raise AbodeException((ERROR.EVENT_CODE_MISSING))
+        if not timeline_events:
+            return False
 
-        event_code = timeline_event.get('event_code')
+        if not isinstance(timeline_events, (tuple, list)):
+            timeline_events = [timeline_events]
 
-        if not event_code:
-            raise AbodeException((ERROR.EVENT_CODE_MISSING))
+        for timeline_event in timeline_events:
+            if not isinstance(timeline_event, dict):
+                raise AbodeException((ERROR.EVENT_CODE_MISSING))
 
-        _LOGGER.debug("Subscribing to timeline event: %s", timeline_event)
+            event_code = timeline_event.get('event_code')
 
-        self._timeline_callbacks[event_code].append((callback))
+            if not event_code:
+                raise AbodeException((ERROR.EVENT_CODE_MISSING))
+
+            _LOGGER.debug("Subscribing to timeline event: %s", timeline_event)
+
+            self._timeline_callbacks[event_code].append((callback))
 
         return True
 

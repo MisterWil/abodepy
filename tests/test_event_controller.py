@@ -1,7 +1,7 @@
 """Test the Abode event controller class."""
 import json
 import unittest
-from unittest.mock import Mock
+from unittest.mock import call, Mock
 
 import requests_mock
 
@@ -148,6 +148,9 @@ class TestEventController(unittest.TestCase):
         self.assertTrue(
             events.add_event_callback(TIMELINE.ALARM_GROUP, callback))
 
+        # Test that no event group returns false
+        self.assertFalse(events.add_event_callback(None, callback))
+
         # Test that an invalid event throws exception
         with self.assertRaises(abodepy.AbodeException):
             events.add_event_callback("lol", callback)
@@ -158,21 +161,24 @@ class TestEventController(unittest.TestCase):
         events = self.abode.events
         self.assertIsNotNone(events)
 
-        def _our_callback(event_json):
-            self.assertIsNotNone(event_json)
+        # Create mock callback
+        callback = Mock()
 
         # Test that a valid timeline event registers
         self.assertTrue(
             events.add_timeline_callback(
-                TIMELINE.CAPTURE_IMAGE, _our_callback))
+                TIMELINE.CAPTURE_IMAGE, callback))
+
+        # Test that no timeline event returns false
+        self.assertFalse(events.add_timeline_callback(None, callback))
 
         # Test that an invalid timeline event string throws exception
         with self.assertRaises(abodepy.AbodeException):
-            events.add_timeline_callback("lol", _our_callback)
+            events.add_timeline_callback("lol", callback)
 
         # Test that an invalid timeline event dict throws exception
         with self.assertRaises(abodepy.AbodeException):
-            events.add_timeline_callback({"lol": "lol"}, _our_callback)
+            events.add_timeline_callback({"lol": "lol"}, callback)
 
     @requests_mock.mock()
     def tests_device_callback(self, m):
@@ -357,3 +363,116 @@ class TestEventController(unittest.TestCase):
         # pylint: disable=protected-access
         event_json = json.loads(IRCAMERA.timeline_event())
         events._on_timeline_update(event_json)
+
+    @requests_mock.mock()
+    def tests_multi_device_callback(self, m):
+        """Tests that multiple device updates callback correctly."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+        m.get(CONST.DEVICES_URL,
+              text='[' +
+              COVER.device(devid=COVER.DEVICE_ID,
+                           status=CONST.STATUS_CLOSED,
+                           low_battery=False,
+                           no_response=False) + ", " +
+              DOORCONTACT.device(devid=DOORCONTACT.DEVICE_ID,
+                                 status=CONST.STATUS_CLOSED) + ']')
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our devices
+        cover = self.abode.get_device(COVER.DEVICE_ID)
+        self.assertIsNotNone(cover)
+
+        doorcontact = self.abode.get_device(DOORCONTACT.DEVICE_ID)
+        self.assertIsNotNone(doorcontact)
+
+        # Get the event controller
+        events = self.abode.events
+        self.assertIsNotNone(events)
+
+        callback = Mock()
+
+        # Register our devices
+        self.assertTrue(
+            events.add_device_callback([cover, doorcontact], callback))
+
+        # Set up device update URL's
+        cover_url = str.replace(CONST.DEVICE_URL,
+                                '$DEVID$', COVER.DEVICE_ID)
+        m.get(cover_url, text=COVER.device(devid=COVER.DEVICE_ID,
+                                           status=CONST.STATUS_OPEN,
+                                           low_battery=False,
+                                           no_response=False))
+
+        door_url = str.replace(CONST.DEVICE_URL,
+                               '$DEVID$', DOORCONTACT.DEVICE_ID)
+        m.get(door_url, text=DOORCONTACT.device(devid=COVER.DEVICE_ID,
+                                                status=CONST.STATUS_OPEN))
+
+        # Call our device callback method for our cover
+        # pylint: disable=protected-access
+        events._on_device_update(cover.device_id)
+        callback.assert_called_with(cover)
+
+        # Test that our device updated
+        self.assertEqual(cover.status, CONST.STATUS_OPEN)
+
+        # Test that our other device didn't update
+        self.assertEqual(doorcontact.status, CONST.STATUS_CLOSED)
+
+        # Call our device callback method for our door contact
+        events._on_device_update(doorcontact.device_id)
+        callback.assert_has_calls([call(cover), call(doorcontact)])
+
+        # Test that our door updated now
+        self.assertEqual(doorcontact.status, CONST.STATUS_OPEN)
+
+    def tests_multi_events_callback(self):
+        """Tests that multiple event updates callback correctly."""
+        # Get the event controller
+        events = self.abode.events
+        self.assertIsNotNone(events)
+
+        # Create mock callback
+        callback = Mock()
+
+        # Register our events
+        self.assertTrue(
+            events.add_event_callback(
+                [TIMELINE.ALARM_GROUP, TIMELINE.CAPTURE_GROUP],
+                callback))
+
+        # Call our events callback method and trigger a capture group event
+        # pylint: disable=protected-access
+        event_json = json.loads(IRCAMERA.timeline_event())
+        events._on_timeline_update(event_json)
+
+        # Ensure our callback was called
+        callback.assert_called_with(event_json)
+
+    def tests_multi_timeline_callback(self):
+        """Tests that multiple timeline updates callback correctly."""
+        # Get the event controller
+        events = self.abode.events
+        self.assertIsNotNone(events)
+
+        # Create mock callback
+        callback = Mock()
+
+        # Register our events
+        self.assertTrue(
+            events.add_timeline_callback(
+                [TIMELINE.CAPTURE_IMAGE, TIMELINE.OPENED], callback))
+
+        # Call our events callback method and trigger a capture group event
+        # pylint: disable=protected-access
+        event_json = json.loads(IRCAMERA.timeline_event())
+        events._on_timeline_update(event_json)
+
+        # Ensure our callback was called
+        callback.assert_called_with(event_json)
