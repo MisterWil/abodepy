@@ -476,3 +476,24 @@ class TestEventController(unittest.TestCase):
 
         # Ensure our callback was called
         callback.assert_called_with(event_json)
+
+    def tests_automations_callback(self):
+        """Tests that automation updates callback correctly."""
+        # Get the event controller
+        events = self.abode.events
+        self.assertIsNotNone(events)
+
+        # Create mock callbacks
+        automation_callback = Mock()
+
+        # Register our events
+        self.assertTrue(
+            events.add_event_callback(
+                TIMELINE.AUTOMATION_EDIT_GROUP, automation_callback))
+
+        # Call our events callback method and trigger a capture group event
+        # pylint: disable=protected-access
+        events._on_automation_update('{}')
+
+        # Our capture callback should get one, but our alarm should not
+        automation_callback.assert_called_with('{}')

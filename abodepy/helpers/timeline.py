@@ -12,10 +12,12 @@ TEST_GROUP = 'abode_test'
 CAPTURE_GROUP = 'abode_capture'
 DEVICE_GROUP = 'abode_device'
 AUTOMATION_GROUP = 'abode_automation'
+AUTOMATION_EDIT_GROUP = 'abode_automation_edited'
 
 ALL_EVENT_GROUPS = [ALARM_GROUP, ALARM_END_GROUP, PANEL_FAULT_GROUP,
                     PANEL_RESTORE_GROUP, DISARM_GROUP, ARM_GROUP, TEST_GROUP,
-                    CAPTURE_GROUP, DEVICE_GROUP, AUTOMATION_GROUP]
+                    CAPTURE_GROUP, DEVICE_GROUP, AUTOMATION_GROUP,
+                    AUTOMATION_EDIT_GROUP]
 
 
 def map_event_code(event_code):

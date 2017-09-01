@@ -199,6 +199,13 @@ class AbodeEventController(object):
             for callback in self._event_callbacks.get(event_group, ()):
                 _execute_callback(callback, event)
 
+    def _on_automation_update(self, event):
+        """Automation update broadcast from Abode SocketIO server."""
+        event_group = TIMELINE.AUTOMATION_EDIT_GROUP
+
+        for callback in self._event_callbacks.get(event_group, ()):
+            _execute_callback(callback, event)
+
     def _on_socket_connect(self, socket):
         # We will try to see what our ping check should be. It does use
         # _variables, so we'll have a fallback value
@@ -231,6 +238,7 @@ class AbodeEventController(object):
         socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
         socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
         socketio.on(CONST.TIMELINE_EVENT, self._on_timeline_update)
+        socketio.on(CONST.AUTOMATION_EVENT, self._on_automation_update)
 
         return socketio
 
@@ -242,6 +250,7 @@ class AbodeEventController(object):
                 self._socketio.off(CONST.DEVICE_UPDATE_EVENT)
                 self._socketio.off(CONST.GATEWAY_MODE_EVENT)
                 self._socketio.off(CONST.TIMELINE_EVENT)
+                self._socketio.off(CONST.AUTOMATION_EVENT)
                 self._socketio.disconnect()
             except Exception:
                 _LOGGER.warning(
