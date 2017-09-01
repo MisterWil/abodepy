@@ -48,7 +48,7 @@ class Abode():
     """Main Abode class."""
 
     def __init__(self, username=None, password=None,
-                 auto_login=False, get_devices=False):
+                 auto_login=False, get_devices=False, get_automations=False):
         """Init Abode object."""
         self._username = username
         self._password = password
@@ -75,6 +75,9 @@ class Abode():
 
         if get_devices:
             self.get_devices()
+
+        if get_automations:
+            self.get_automations()
 
     def login(self, username=None, password=None):
         """Explicit Abode login."""

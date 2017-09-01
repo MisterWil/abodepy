@@ -98,8 +98,8 @@ class TestAbode(unittest.TestCase):
         abode = None
 
     @requests_mock.mock()
-    def tests_auto_device_fetch(self, m):
-        """Test that automatic device retrieval works."""
+    def tests_auto_fetch(self, m):
+        """Test that automatic device and automation retrieval works."""
         auth_token = MOCK.AUTH_TOKEN
         user_json = USER.get_response_ok()
         login_json = LOGIN.post_response_ok(auth_token, user_json)
@@ -108,12 +108,14 @@ class TestAbode(unittest.TestCase):
         m.post(CONST.LOGIN_URL, text=login_json)
         m.get(CONST.PANEL_URL, text=panel_json)
         m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
+        m.get(CONST.AUTOMATION_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
 
         abode = abodepy.Abode(username='fizz',
                               password='buzz',
                               auto_login=False,
-                              get_devices=True)
+                              get_devices=True,
+                              get_automations=True)
 
         # pylint: disable=W0212
         self.assertEqual(abode._username, 'fizz')
@@ -124,6 +126,9 @@ class TestAbode(unittest.TestCase):
 
         # Contains one device, our alarm
         self.assertEqual(abode._devices, {'area_1': abode.get_alarm()})
+
+        # Contains no automations
+        self.assertEqual(abode._automations, {})
 
         abode.logout()
 
