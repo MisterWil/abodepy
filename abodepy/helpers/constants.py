@@ -126,7 +126,7 @@ TYPE_ALARM = "alarm"
 TYPE_CAMERA = "camera"
 TYPE_CONNECTIVITY = "connectivity"
 TYPE_COVER = "cover"
-TYPE_DIMMER = "dimmer"
+TYPE_LIGHT = "light"
 TYPE_LOCK = "lock"
 TYPE_MOISTURE = "moisture"
 TYPE_MOTION = "motion"
@@ -198,6 +198,10 @@ LUX_STATUS_KEY = 'lux_status'
 HUMI_STATUS_KEY = 'humi_status'
 SENSOR_KEYS = [TEMP_STATUS_KEY, LUX_STATUS_KEY, HUMI_STATUS_KEY]
 
+# More guesses!
+COLOR_KEY = 'color_status'
+BRIGHTNESS_KEY = 'statusEx'
+
 UNIT_CELSIUS = '°C'
 UNIT_FAHRENHEIT = '°F'
 UNIT_PERCENT = '%'
@@ -229,10 +233,10 @@ def get_generic_type(type_tag):
         # Covers
         DEVICE_SECURE_BARRIER: TYPE_COVER,
 
-        # Dimmers
-        DEVICE_DIMMER: TYPE_DIMMER,
-        DEVICE_DIMMER_METER: TYPE_DIMMER,
-        DEVICE_HUE: TYPE_DIMMER,
+        # Lights (Dimmers)
+        DEVICE_DIMMER: TYPE_LIGHT,
+        DEVICE_DIMMER_METER: TYPE_LIGHT,
+        DEVICE_HUE: TYPE_LIGHT,
 
         # Locks
         DEVICE_DOOR_LOCK: TYPE_LOCK,

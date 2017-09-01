@@ -31,6 +31,7 @@ from abodepy.devices import AbodeDevice
 from abodepy.devices.binary_sensor import AbodeBinarySensor
 from abodepy.devices.camera import AbodeCamera
 from abodepy.devices.cover import AbodeCover
+from abodepy.devices.light import AbodeLight
 from abodepy.devices.lock import AbodeLock
 from abodepy.devices.switch import AbodeSwitch
 from abodepy.devices.sensor import AbodeSensor
@@ -434,6 +435,9 @@ def new_device(device_json, abode):
 
         # Cover
         CONST.TYPE_COVER: AbodeCover(device_json, abode),
+
+        # Light
+        CONST.TYPE_LIGHT: AbodeLight(device_json, abode),
 
         # Lock
         CONST.TYPE_LOCK: AbodeLock(device_json, abode),

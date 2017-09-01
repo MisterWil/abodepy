@@ -61,11 +61,21 @@ class AbodeEventController(object):
         """Don't allow the main thread to terminate until we have."""
         self._thread.join()
 
-    def add_device_callback(self, device_id, callback):
+    def add_device_callback(self, device, callback):
         """Register a device callback."""
-        # In case device_id is a device, pull device_id from device
-        if isinstance(device_id, AbodeDevice):
-            device_id = device_id.device_id
+        if not device:
+            return False
+
+        # Device may be a device_id
+        device_id = device
+
+        # If they gave us an actual device, get that devices ID
+        if isinstance(device, AbodeDevice):
+            device_id = device.device_id
+
+        # Validate the device is valid
+        if not self._abode.get_device(device_id):
+            raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
 
         _LOGGER.debug("Subscribing to updated for device_id: %s", device_id)
 
@@ -73,7 +83,7 @@ class AbodeEventController(object):
 
         return True
 
-    def add_event_group_callback(self, event_group, callback):
+    def add_event_callback(self, event_group, callback):
         """Register callback for a group of timeline events."""
         if event_group not in TIMELINE.ALL_EVENT_GROUPS:
             raise AbodeException(ERROR.EVENT_GROUP_INVALID,
@@ -87,6 +97,9 @@ class AbodeEventController(object):
 
     def add_timeline_callback(self, timeline_event, callback):
         """Register a callback for a specific timeline event."""
+        if not isinstance(timeline_event, dict):
+            raise AbodeException((ERROR.EVENT_CODE_MISSING))
+
         event_code = timeline_event.get('event_code')
 
         if not event_code:
@@ -101,22 +114,29 @@ class AbodeEventController(object):
     def _on_device_update(self, devid):
         """Device callback from Abode SocketIO server."""
         if devid is None:
+            _LOGGER.warning("Device update with no device id.")
             return
 
         _LOGGER.debug("Device update event for device ID: %s", devid)
 
         device = self._abode.get_device(devid, True)
 
+        if not device:
+            _LOGGER.warning("Got device update for unknown device: %s", devid)
+            return
+
         for callback in self._device_callbacks.get(device.device_id, ()):
-            callback(device)
+            _execute_callback(callback, device)
 
     def _on_mode_change(self, mode):
         """Mode change broadcast from Abode SocketIO server."""
         if mode is None:
+            _LOGGER.warning("Mode change event with no mode.")
             return
 
         if not mode or mode.lower() not in CONST.ALL_MODES:
-            raise AbodeException((ERROR.INVALID_ALARM_MODE))
+            _LOGGER.warning("Mode change event with unknown mode: %s", mode)
+            return
 
         _LOGGER.debug("Alarm mode change event to: %s", mode)
 
@@ -130,7 +150,7 @@ class AbodeEventController(object):
         alarm_device._json_state['mode']['area_1'] = mode
 
         for callback in self._device_callbacks.get(alarm_device.device_id, ()):
-            callback(alarm_device)
+            _execute_callback(callback, alarm_device)
 
     def _on_timeline_update(self, event):
         """Timeline update broadcast from Abode SocketIO server."""
@@ -138,26 +158,27 @@ class AbodeEventController(object):
         event_code = event.get('event_code')
 
         if not event_type or not event_code:
-            raise AbodeException((ERROR.INVALID_TIMELINE_EVENT))
+            _LOGGER.warning("Invalid timeline update event: %s", event)
+            return
 
         _LOGGER.debug("Timeline event received: %s - %s (%s)",
                       event.get('event_name'), event_type, event_code)
 
-        # Callback for anything registered for the exact event code
-        for callback in self._timeline_callbacks.get(event_code, ()):
-            callback(event)
+        # Compress our callbacks into those that match this event_code
+        # or ones registered to get callbacks for all events
+        codes = (event_code, TIMELINE.ALL['event_code'])
+        all_callbacks = [self._timeline_callbacks[code] for code in codes]
 
-        # Callback for "TIMELINE.ALL" events
-        for callback in self._timeline_callbacks.get(
-                TIMELINE.ALL['event_code'], ()):
-            callback(event)
+        for callbacks in all_callbacks:
+            for callback in callbacks:
+                _execute_callback(callback, event)
 
         # Attempt to map the event code to a group and callback
         event_group = TIMELINE.map_event_code(event_code)
 
         if event_group:
             for callback in self._event_callbacks.get(event_group, ()):
-                callback(event)
+                _execute_callback(callback, event)
 
     def _on_socket_connect(self, socket):
         # We will try to see what our ping check should be. It does use
@@ -246,3 +267,12 @@ class AbodeEventController(object):
                 self._clear_internal_socketio()
 
         _LOGGER.info("Disconnected from Abode SocketIO server")
+
+
+def _execute_callback(callback, *args, **kwargs):
+    # Callback with some data, capturing any exceptions to prevent chaos
+    try:
+        callback(*args, **kwargs)
+    # pylint: disable=W0703
+    except Exception as exc:
+        _LOGGER.warning("Captured exception during callback: %s", exc)

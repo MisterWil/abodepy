@@ -74,4 +74,4 @@ CAM_IMAGE_REQUEST_INVALID = (
     27, "Received an invalid response from AWS servers for image.")
 
 EVENT_DEVICE_INVALID = (
-    112, "Object given to event registration service is not a device object")
+    28, "Object given to event registration service is not a device object")

@@ -10,6 +10,7 @@ from abodepy.devices import AbodeDevice
 from abodepy.devices.alarm import AbodeAlarm
 from abodepy.devices.binary_sensor import AbodeBinarySensor
 from abodepy.devices.cover import AbodeCover
+from abodepy.devices.light import AbodeLight
 from abodepy.devices.lock import AbodeLock
 from abodepy.devices.switch import AbodeSwitch
 import abodepy.helpers.constants as CONST
@@ -450,7 +451,7 @@ class TestDevice(unittest.TestCase):
                 CONST.TYPE_COVER: AbodeCover,
 
                 # Dimmer
-                CONST.TYPE_DIMMER: None,
+                CONST.TYPE_LIGHT: AbodeLight,
 
                 # Lock
                 CONST.TYPE_LOCK: AbodeLock,
