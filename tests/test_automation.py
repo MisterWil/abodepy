@@ -68,6 +68,7 @@ class TestDevice(unittest.TestCase):
                          str(automation_json['id']))
         self.assertEqual(automation.is_active, True)
         self.assertEqual(automation.is_quick_action, False)
+        self.assertEqual(automation.generic_type, CONST.TYPE_AUTOMATION)
         self.assertIsNotNone(automation.desc)
 
     @requests_mock.mock()
@@ -418,3 +419,47 @@ class TestDevice(unittest.TestCase):
 
         # Test triggering
         self.assertTrue(automation.trigger(only_manual=False))
+
+    @requests_mock.mock()
+    def tests_automation_filtering(self, m):
+        """Check that automations can be filtered by generic type."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
+
+        # Set up automations
+        automation_text = '[' + \
+            AUTOMATION.get_response_ok(
+                aid=1,
+                name='Test Automation Uno',
+                is_active=False,
+                the_type=CONST.AUTOMATION_TYPE_LOCATION,
+                sub_type=CONST.AUTOMATION_SUBTYPE_ENTERING_HOME) + ',' + \
+            AUTOMATION.get_response_ok(
+                aid=2,
+                name='Test Automation Dos',
+                is_active=True,
+                the_type=CONST.AUTOMATION_TYPE_MANUAL) + ']'
+
+        automation_json = json.loads(automation_text)
+
+        m.get(CONST.AUTOMATION_URL, text=automation_text)
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get the automation and test
+        automations = self.abode.get_automations(
+            generic_type=CONST.TYPE_AUTOMATION)
+
+        quick_actions = self.abode.get_automations(
+            generic_type=CONST.TYPE_QUICK_ACTION)
+
+        # Tests
+        self.assertTrue(len(automations), 1)
+        self.assertTrue(len(quick_actions), 1)
+
+        # pylint: disable=W0212
+        self.assertEqual(automations[0]._automation, automation_json[0])
+        self.assertEqual(quick_actions[0]._automation, automation_json[1])

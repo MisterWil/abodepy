@@ -86,6 +86,14 @@ class AbodeAutomation:
         return self._automation['name']
 
     @property
+    def generic_type(self):
+        """Get the generic type of the automation."""
+        if self.is_quick_action:
+            return CONST.TYPE_QUICK_ACTION
+
+        return CONST.TYPE_AUTOMATION
+
+    @property
     def type(self):
         """Get the type of the automation."""
         return self._automation['type']

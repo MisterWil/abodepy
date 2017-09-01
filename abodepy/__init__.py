@@ -209,7 +209,7 @@ class Abode():
 
         return device
 
-    def get_automations(self, refresh=False):
+    def get_automations(self, refresh=False, generic_type=None):
         """Get all automations."""
         if refresh or self._automations is None:
             if self._automations is None:
@@ -236,6 +236,14 @@ class Abode():
                 else:
                     automation = AbodeAutomation(self, automation_json)
                     self._automations[automation.automation_id] = automation
+
+        if generic_type:
+            automations = []
+            for automation in self._automations.values():
+                if (automation.generic_type is not None and
+                        automation.generic_type in generic_type):
+                    automations.append(automation)
+            return automations
 
         return list(self._automations.values())
 
