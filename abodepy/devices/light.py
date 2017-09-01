@@ -31,3 +31,8 @@ class AbodeLight(AbodeSwitch):
     def has_color(self):
         """Device has color."""
         return self.color is True
+
+    @property
+    def is_dimmable(self):
+        """Device is dimmable."""
+        return self.has_brightness
