@@ -65,7 +65,7 @@ class AbodeAutomation:
         if isinstance(response_object, (tuple, list)):
             response_object = response_object[0]
 
-        if response_object['id'] != self._automation['id']:
+        if str(response_object['id']) != self.automation_id:
             raise AbodeException((ERROR.INVALID_AUTOMATION_REFRESH_RESPONSE))
 
         self.update(response_object)
