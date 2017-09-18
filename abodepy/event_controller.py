@@ -12,6 +12,7 @@ from abodepy.exceptions import AbodeException
 import abodepy.helpers.constants as CONST
 import abodepy.helpers.errors as ERROR
 import abodepy.helpers.timeline as TIMELINE
+from urllib3.exceptions import HTTPError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -225,15 +226,19 @@ class AbodeEventController(object):
     def _on_socket_pong(self, _data):
         self._last_pong = time.time()
 
+    def _on_message(self, _data):
+        self._last_pong = time.time()
+
     def _get_socket_io(self, url=CONST.SOCKETIO_URL, port=443):
         # pylint: disable=W0212
         socketio = SocketIO(
             url, port, headers=CONST.SOCKETIO_HEADERS,
             cookies=self._abode._get_session().cookies.get_dict(),
-            namespace=LoggingNamespace)
+            namespace=LoggingNamespace, wait_for_connection=False)
 
         socketio.on('connect', lambda: self._on_socket_connect(socketio))
         socketio.on('pong', self._on_socket_pong)
+        socketio.on('message', self._on_message)
 
         socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
         socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
@@ -247,15 +252,16 @@ class AbodeEventController(object):
             try:
                 self._socketio.off('connect')
                 self._socketio.off('pong')
+                self._socketio.off('message')
                 self._socketio.off(CONST.DEVICE_UPDATE_EVENT)
                 self._socketio.off(CONST.GATEWAY_MODE_EVENT)
                 self._socketio.off(CONST.TIMELINE_EVENT)
                 self._socketio.off(CONST.AUTOMATION_EVENT)
                 self._socketio.disconnect()
-            except Exception:
+            # pylint: disable=w0703
+            except Exception as exc:
                 _LOGGER.warning(
-                    "Caught exception clearing old SocketIO object...")
-                raise
+                    "Caught exception clearing SocketIO object: " + str(exc))
 
     def _run_socketio_thread(self):
         self._running = True
@@ -282,16 +288,29 @@ class AbodeEventController(object):
 
                         if diff > self._ping_interval:
                             _LOGGER.info(
-                                "SocketIO server timeout, reconnecting...")
+                                "SocketIO server timeout (%s seconds)",
+                                str(self._ping_interval))
                             break
-            except SocketIOError:
+            except SocketIOError as exc:
                 _LOGGER.info(
-                    "SocketIO server connection error, reconnecting...")
+                    "SocketIO error: " + str(exc))
                 time.sleep(5)
-            except Exception:
-                _LOGGER.warning("Caught exception in SocketIO thread...")
+            except ConnectionError as exc:
+                _LOGGER.info("Connection error: " + str(exc))
+                time.sleep(5)
+            except HTTPError as exc:
+                _LOGGER.info("HTTP error: " + str(exc))
+                time.sleep(5)
+            except OSError as exc:
+                _LOGGER.info("OS error: " + str(exc))
+                time.sleep(5)
+            except Exception as exc:
+                _LOGGER.warning(
+                    "Unknown exception in SocketIO thread: " + str(exc))
+                self._running = False
                 raise
             finally:
+                _LOGGER.info("Attempting to reconnect...")
                 self._clear_internal_socketio()
 
         _LOGGER.info("Disconnected from Abode SocketIO server")

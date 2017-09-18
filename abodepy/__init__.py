@@ -123,24 +123,26 @@ class Abode():
                 'ABODE-API-KEY': self._token
             }
 
-            response = self._session.post(
-                CONST.LOGOUT_URL, headers=header_data)
-            response_object = json.loads(response.text)
+            self._session = requests.session()
+            self._token = None
+            self._panel = None
+            self._user = None
+            self._devices = None
+            self._automations = None
+
+            try:
+                response = self._session.post(
+                    CONST.LOGOUT_URL, headers=header_data)
+                response_object = json.loads(response.text)
+            except OSError as exc:
+                _LOGGER.warning("Caught exception during logout: %s", str(exc))
+                return False
 
             if response.status_code != 200:
                 raise AbodeAuthenticationException(
                     (response.status_code, response_object['message']))
 
             _LOGGER.debug("Logout Response: %s", response.text)
-
-            self._session = requests.session()
-            self._token = None
-            self._panel = None
-            self._user = None
-
-            self._devices = None
-
-            self._automations = None
 
             _LOGGER.info("Logout successful")
 
