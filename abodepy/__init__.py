@@ -437,27 +437,20 @@ def new_device(device_json, abode):
     generic_type = CONST.get_generic_type(type_tag.lower())
     device_json['generic_type'] = generic_type
 
-    return {
-        # Binary Sensor
-        CONST.TYPE_CONNECTIVITY: AbodeBinarySensor(device_json, abode),
-        CONST.TYPE_MOISTURE: AbodeBinarySensor(device_json, abode),
-        CONST.TYPE_OPENING: AbodeBinarySensor(device_json, abode),
-
-        # Camera
-        CONST.TYPE_CAMERA: AbodeCamera(device_json, abode),
-
-        # Cover
-        CONST.TYPE_COVER: AbodeCover(device_json, abode),
-
-        # Light
-        CONST.TYPE_LIGHT: AbodeLight(device_json, abode),
-
-        # Lock
-        CONST.TYPE_LOCK: AbodeLock(device_json, abode),
-
-        # Switch
-        CONST.TYPE_SWITCH: AbodeSwitch(device_json, abode),
-
-        # Unknown Sensor
-        CONST.TYPE_UNKNOWN_SENSOR: _new_sensor(device_json, abode)
-    }.get(generic_type, AbodeDevice(device_json, abode))
+    if generic_type == CONST.TYPE_CONNECTIVITY or \
+       generic_type == CONST.TYPE_MOISTURE or \
+       generic_type == CONST.TYPE_OPENING:
+        return AbodeBinarySensor(device_json, abode)
+    elif generic_type == CONST.TYPE_CAMERA:
+        return AbodeCamera(device_json, abode)
+    elif generic_type == CONST.TYPE_COVER:
+        return AbodeCover(device_json, abode)
+    elif generic_type == CONST.TYPE_LIGHT:
+        return AbodeLight(device_json, abode)
+    elif generic_type == CONST.TYPE_LOCK:
+        return AbodeLock(device_json, abode)
+    elif generic_type == CONST.TYPE_SWITCH:
+        return AbodeSwitch(device_json, abode)
+    elif generic_type == CONST.TYPE_UNKNOWN_SENSOR:
+        return _new_sensor(device_json, abode)
+    return AbodeDevice(device_json, abode)
