@@ -235,7 +235,7 @@ class TestDevice(unittest.TestCase):
 
         # Get our glass devices
         devices = self.abode.get_devices(
-            generic_type=(CONST.TYPE_CONNECTIVITY))
+            generic_type=(CONST.TYPE_VIBRATION))
 
         self.assertIsNotNone(devices)
         self.assertEqual(len(devices), 1)
@@ -443,6 +443,7 @@ class TestDevice(unittest.TestCase):
                 CONST.TYPE_OPENING: AbodeBinarySensor,
                 CONST.TYPE_MOTION: AbodeBinarySensor,
                 CONST.TYPE_OCCUPANCY: AbodeBinarySensor,
+                CONST.TYPE_VIBRATION: AbodeBinarySensor,
 
                 # Camera
                 CONST.TYPE_CAMERA: AbodeDevice,
