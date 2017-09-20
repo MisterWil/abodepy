@@ -173,6 +173,14 @@ class Abode():
                     device.update(device_json)
                 else:
                     device = new_device(device_json, self)
+
+                    if not device:
+                        _LOGGER.warning(
+                            "Skipping unknown device: %s",
+                            device_json)
+
+                        continue
+
                     self._devices[device.device_id] = device
 
             # We will be treating the Abode panel itself as an armable device.
@@ -419,7 +427,7 @@ def _new_sensor(device_json, abode):
 
     # this.version.startsWith('MINIPIR') == true ? 'Occupancy Sensor'
     # : 'Motion Sensor';
-    if version.lower().startswith('minipir'):
+    if version and version.lower().startswith('minipir'):
         device_json['generic_type'] = CONST.TYPE_OCCUPANCY
     else:
         device_json['generic_type'] = CONST.TYPE_MOTION
@@ -453,4 +461,5 @@ def new_device(device_json, abode):
         return AbodeSwitch(device_json, abode)
     elif generic_type == CONST.TYPE_UNKNOWN_SENSOR:
         return _new_sensor(device_json, abode)
-    return AbodeDevice(device_json, abode)
+
+    return None
