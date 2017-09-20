@@ -439,7 +439,8 @@ def new_device(device_json, abode):
 
     if generic_type == CONST.TYPE_CONNECTIVITY or \
        generic_type == CONST.TYPE_MOISTURE or \
-       generic_type == CONST.TYPE_OPENING:
+       generic_type == CONST.TYPE_OPENING or \
+       generic_type == CONST.TYPE_VIBRATION:
         return AbodeBinarySensor(device_json, abode)
     elif generic_type == CONST.TYPE_CAMERA:
         return AbodeCamera(device_json, abode)

@@ -136,6 +136,7 @@ TYPE_OPENING = "opening"
 TYPE_QUICK_ACTION = "quick_action"
 TYPE_SENSOR = "sensor"
 TYPE_SWITCH = "switch"
+TYPE_VIBRATION = "vibration"
 
 TYPE_UNKNOWN_SENSOR = "unknown_sensor"
 
@@ -218,8 +219,10 @@ def get_generic_type(type_tag):
         # Alarm
         DEVICE_ALARM: TYPE_ALARM,
 
+        # Binary Sensors - Vibration
+        DEVICE_GLASS_BREAK: TYPE_VIBRATION,
+
         # Binary Sensors - Connectivity
-        DEVICE_GLASS_BREAK: TYPE_CONNECTIVITY,
         DEVICE_KEYPAD: TYPE_CONNECTIVITY,
         DEVICE_REMOTE_CONTROLLER: TYPE_CONNECTIVITY,
         DEVICE_SIREN: TYPE_CONNECTIVITY,
