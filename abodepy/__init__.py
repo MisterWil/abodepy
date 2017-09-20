@@ -27,7 +27,6 @@ import requests
 from requests.exceptions import RequestException
 
 from abodepy.automation import AbodeAutomation
-from abodepy.devices import AbodeDevice
 from abodepy.devices.binary_sensor import AbodeBinarySensor
 from abodepy.devices.camera import AbodeCamera
 from abodepy.devices.cover import AbodeCover
