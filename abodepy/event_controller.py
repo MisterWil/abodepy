@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 class AbodeEventController(object):
     """Class for subscribing to abode events."""
 
-    def __init__(self, abode):
+    def __init__(self, abode, reconnect_hours=12):
         """Init event subscription class."""
         self._abode = abode
         self._thread = None
@@ -36,6 +36,8 @@ class AbodeEventController(object):
         self._ping_interval = 25.0
         self._ping_timeout = 60.0
         self._last_pong = None
+        self._max_connection_time = reconnect_hours * 3600
+        self._connection_time = None
 
     def start(self):
         """Start a thread to handle Abode blocked SocketIO notifications."""
@@ -274,6 +276,7 @@ class AbodeEventController(object):
                 with self._get_socket_io() as socketio:
                     self._clear_internal_socketio()
                     self._socketio = socketio
+                    self._connection_time = time.time()
 
                     while self._running:
                         # We need to wait for at least our ping interval,
@@ -290,6 +293,17 @@ class AbodeEventController(object):
                             _LOGGER.info(
                                 "SocketIO server timeout (%s seconds)",
                                 str(self._ping_interval))
+                            break
+
+                        # Check if we've been connected for longer than our
+                        # defined max connection time. If so, reconnect.
+
+                        elapsed_time = time.time() - self._connection_time
+
+                        if elapsed_time >= self._max_connection_time:
+                            _LOGGER.info(
+                                "Max Connection Time Reached (%s seconds)",
+                                str(elapsed_time))
                             break
             except SocketIOError as exc:
                 _LOGGER.info(
