@@ -246,7 +246,7 @@ def get_generic_type(type_tag):
         DEVICE_DOOR_LOCK: TYPE_LOCK,
 
         # Moisture
-        DEVICE_WATER_SENSOR: TYPE_MOISTURE,
+        DEVICE_WATER_SENSOR: TYPE_CONNECTIVITY,
 
         # Switches
         DEVICE_SWITCH: TYPE_SWITCH,
