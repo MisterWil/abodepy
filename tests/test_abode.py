@@ -160,6 +160,19 @@ class TestAbode(unittest.TestCase):
             self.abode_no_cred.logout()
 
     @requests_mock.mock()
+    def tests_logout_exception(self, m):
+        """Test logout exception."""
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
+        m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
+        m.post(CONST.LOGOUT_URL, exc=requests.exceptions.ConnectTimeout)
+
+        self.abode.login()
+
+        # Check that we eat the exception gracefully
+        self.assertFalse(self.abode.logout())
+
+    @requests_mock.mock()
     def tests_full_setup(self, m):
         """Check that Abode is set up properly."""
         auth_token = MOCK.AUTH_TOKEN

@@ -28,6 +28,7 @@ import tests.mock.devices.secure_barrier as SECUREBARRIER
 import tests.mock.devices.siren as SIREN
 import tests.mock.devices.status_display as STATUS_DISPLAY
 import tests.mock.devices.water_sensor as WATER_SENSOR
+import tests.mock.devices.unknown as UNKNOWN
 import tests.mock.login as LOGIN
 import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
@@ -203,6 +204,30 @@ class TestDevice(unittest.TestCase):
         # Get each individual device by device ID
         psd = self.abode.get_device(GLASS.DEVICE_ID)
         self.assertIsNotNone(psd)
+
+    @requests_mock.mock()
+    def tests_unknown_devices(self, m):
+        """Tests that multiple devices are returned properly."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+
+        # Set up a list of devices
+        dev_list = '[' + UNKNOWN.device() + ']'
+
+        m.get(CONST.DEVICES_URL, text=dev_list)
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our devices
+        devices = self.abode.get_devices()
+
+        # Assert 1 device - skipped device above + 1 alarm
+        self.assertIsNotNone(devices)
+        self.assertEqual(len(devices), 1)
 
     @requests_mock.mock()
     def tests_device_category_filter(self, m):
