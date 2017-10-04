@@ -1,4 +1,5 @@
 """Abode sensor device."""
+import re
 
 from abodepy.devices.binary_sensor import AbodeBinarySensor
 import abodepy.helpers.constants as CONST
@@ -23,51 +24,65 @@ class AbodeSensor(AbodeBinarySensor):
             return int(value) == 1
         return None
 
+    def _get_status(self, key):
+        return self._json_state.get(CONST.STATUSES_KEY, {}).get(key)
+
+    def _get_numeric_status(self, key):
+        """Extract the numeric value from the statuses object."""
+        value = self._get_status(key)
+
+        if value and any(i.isdigit() for i in value):
+            return float(re.sub("[^0-9.]", "", value))
+
     @property
     def temp(self):
         """Get device temp."""
-        return self._json_state.get(CONST.TEMP_STATUS_KEY)
+        return self._get_numeric_status(CONST.TEMP_STATUS_KEY)
 
     @property
     def temp_unit(self):
         """Get unit of temp."""
-        return CONST.UNIT_FAHRENHEIT
+        if CONST.UNIT_FAHRENHEIT in self._get_status(CONST.TEMP_STATUS_KEY):
+            return CONST.FARENHEIT
+        elif CONST.UNIT_CELSIUS in self._get_status(CONST.TEMP_STATUS_KEY):
+            return CONST.CELSIUS
 
     @property
     def humidity(self):
         """Get device humdity."""
-        return self._json_state.get(CONST.HUMI_STATUS_KEY)
+        return self._get_numeric_status(CONST.HUMI_STATUS_KEY)
 
     @property
     def humidity_unit(self):
         """Get unit of humidity."""
-        return CONST.UNIT_PERCENT
+        if CONST.UNIT_PERCENT in self._get_status(CONST.HUMI_STATUS_KEY):
+            return CONST.UNIT_PERCENT
 
     @property
     def lux(self):
         """Get device lux."""
-        return self._json_state.get(CONST.LUX_STATUS_KEY)
+        return self._get_numeric_status(CONST.LUX_STATUS_KEY)
 
     @property
     def lux_unit(self):
         """Get unit of lux."""
-        # I mean, it's called lux right?
-        return CONST.UNIT_LUX
+        if CONST.UNIT_LUX in self._get_status(CONST.LUX_STATUS_KEY):
+            return CONST.LUX
 
     @property
     def has_temp(self):
         """Device reports temperature."""
-        return self.temp is True
+        return self.temp is not None
 
     @property
     def has_humidity(self):
         """Device reports humidity level."""
-        return self.humidity is True
+        return self.humidity is not None
 
     @property
     def has_lux(self):
         """Device reports light lux level."""
-        return self.lux is True
+        return self.lux is not None
 
     @property
     def has_motion(self):

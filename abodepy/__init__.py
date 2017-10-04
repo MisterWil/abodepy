@@ -418,7 +418,9 @@ class Abode():
 
 
 def _new_sensor(device_json, abode):
-    if any(key in device_json for key in CONST.SENSOR_KEYS):
+    statuses = device_json.get(CONST.STATUSES_KEY, {})
+
+    if any(key in statuses for key in CONST.SENSOR_KEYS):
         device_json['generic_type'] = CONST.TYPE_SENSOR
         return AbodeSensor(device_json, abode)
 
