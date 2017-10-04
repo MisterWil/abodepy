@@ -1,4 +1,4 @@
-"""Mock Non-Existant Device"""
+"""Mock Non-Existant Device."""
 import abodepy.helpers.constants as CONST
 
 DEVICE_ID = 'RF:deadbeef'

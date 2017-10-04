@@ -9,7 +9,6 @@ import abodepy.helpers.constants as CONST
 import tests.mock.login as LOGIN
 import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
-import tests.mock.devices as DEVICES
 import tests.mock.devices.lm as LM
 
 
