@@ -43,9 +43,9 @@ class AbodeSensor(AbodeBinarySensor):
     def temp_unit(self):
         """Get unit of temp."""
         if CONST.UNIT_FAHRENHEIT in self._get_status(CONST.TEMP_STATUS_KEY):
-            return CONST.FARENHEIT
+            return CONST.UNIT_FAHRENHEIT
         elif CONST.UNIT_CELSIUS in self._get_status(CONST.TEMP_STATUS_KEY):
-            return CONST.CELSIUS
+            return CONST.UNIT_CELSIUS
 
     @property
     def humidity(self):
