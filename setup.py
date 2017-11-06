@@ -25,7 +25,8 @@ setup(
     install_requires=[
         'requests>=2,<3',
         'socketIO-client3>=0.8.0',
-        'colorlog==3.0.1'
+        'colorlog==3.0.1',
+        'urllib3>=1.22'
     ],
     test_suite='tests',
     entry_points={

@@ -3,5 +3,6 @@ pytest-cov>=2.3.1
 pytest-timeout>=1.0.0
 requests>=2.12.4
 socketIO-client3>=0.8.0
+urllib3>=1.22
 colorlog==3.0.1
 testtools
