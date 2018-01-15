@@ -188,7 +188,6 @@ DEVICE_POWER_SWITCH_METER = 'device_type.power_switch_meter'
 # Water Valve
 DEVICE_VALVE = 'device_type.valve'
 
-
 # Unknown Sensor
 # These device types are all considered 'occupancy' but could apparently
 # also be multi-sensors based on their json.
