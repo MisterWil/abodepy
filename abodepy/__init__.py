@@ -34,6 +34,7 @@ from abodepy.devices.light import AbodeLight
 from abodepy.devices.lock import AbodeLock
 from abodepy.devices.switch import AbodeSwitch
 from abodepy.devices.sensor import AbodeSensor
+from abodepy.devices.valve import AbodeValve
 from abodepy.event_controller import AbodeEventController
 from abodepy.exceptions import AbodeAuthenticationException, AbodeException
 import abodepy.devices.alarm as ALARM
@@ -460,6 +461,8 @@ def new_device(device_json, abode):
         return AbodeLock(device_json, abode)
     elif generic_type == CONST.TYPE_SWITCH:
         return AbodeSwitch(device_json, abode)
+    elif generic_type == CONST.TYPE_VALVE:
+        return AbodeValve(device_json, abode)
     elif generic_type == CONST.TYPE_UNKNOWN_SENSOR:
         return _new_sensor(device_json, abode)
 

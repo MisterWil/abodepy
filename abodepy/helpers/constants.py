@@ -136,6 +136,7 @@ TYPE_OPENING = "opening"
 TYPE_QUICK_ACTION = "quick_action"
 TYPE_SENSOR = "sensor"
 TYPE_SWITCH = "switch"
+TYPE_VALVE = "valve"
 
 TYPE_UNKNOWN_SENSOR = "unknown_sensor"
 
@@ -183,6 +184,10 @@ DEVICE_SWITCH = 'device_type.switch'
 DEVICE_NIGHT_SWITCH = 'device_type.night_switch'
 DEVICE_POWER_SWITCH_SENSOR = 'device_type.power_switch_sensor'
 DEVICE_POWER_SWITCH_METER = 'device_type.power_switch_meter'
+
+# Water Valve
+DEVICE_VALVE = 'device_type.valve'
+
 
 # Unknown Sensor
 # These device types are all considered 'occupancy' but could apparently
@@ -255,6 +260,9 @@ def get_generic_type(type_tag):
         DEVICE_NIGHT_SWITCH: TYPE_SWITCH,
         DEVICE_POWER_SWITCH_SENSOR: TYPE_SWITCH,
         DEVICE_POWER_SWITCH_METER: TYPE_SWITCH,
+        
+        # Water Valve
+        DEVICE_VALVE: TYPE_VALVE,
 
         # Unknown Sensors
         # More data needed to determine type
