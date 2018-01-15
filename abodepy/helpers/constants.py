@@ -259,7 +259,7 @@ def get_generic_type(type_tag):
         DEVICE_NIGHT_SWITCH: TYPE_SWITCH,
         DEVICE_POWER_SWITCH_SENSOR: TYPE_SWITCH,
         DEVICE_POWER_SWITCH_METER: TYPE_SWITCH,
-        
+
         # Water Valve
         DEVICE_VALVE: TYPE_VALVE,
 
