@@ -77,11 +77,7 @@ class AbodeDevice(object):
                 raise AbodeException((ERROR.SET_STATUS_DEV_ID))
 
             if response_object['level'] != str(level):
-                """Abode returns brightness 99 when set to 100."""
-                if response_object['level'] == 99 and int(level) == 100:
-                    pass
-                else:
-                    raise AbodeException((ERROR.SET_STATUS_STATE))
+                raise AbodeException((ERROR.SET_STATUS_STATE))
 
             # TODO: Figure out where level is indicated in device json object
             self.update(response_object)
