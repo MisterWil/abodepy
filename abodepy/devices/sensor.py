@@ -33,6 +33,7 @@ class AbodeSensor(AbodeBinarySensor):
 
         if value and any(i.isdigit() for i in value):
             return float(re.sub("[^0-9.]", "", value))
+        return None
 
     @property
     def temp(self):
@@ -46,6 +47,7 @@ class AbodeSensor(AbodeBinarySensor):
             return CONST.UNIT_FAHRENHEIT
         elif CONST.UNIT_CELSIUS in self._get_status(CONST.TEMP_STATUS_KEY):
             return CONST.UNIT_CELSIUS
+        return None
 
     @property
     def humidity(self):
@@ -57,6 +59,7 @@ class AbodeSensor(AbodeBinarySensor):
         """Get unit of humidity."""
         if CONST.UNIT_PERCENT in self._get_status(CONST.HUMI_STATUS_KEY):
             return CONST.UNIT_PERCENT
+        return None
 
     @property
     def lux(self):
@@ -68,6 +71,7 @@ class AbodeSensor(AbodeBinarySensor):
         """Get unit of lux."""
         if CONST.UNIT_LUX in self._get_status(CONST.LUX_STATUS_KEY):
             return CONST.LUX
+        return None
 
     @property
     def has_temp(self):

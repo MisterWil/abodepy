@@ -7,12 +7,13 @@ import time
 from socketIO_client import SocketIO, LoggingNamespace
 from socketIO_client.exceptions import SocketIOError
 
+from urllib3.exceptions import HTTPError
+
 from abodepy.devices import AbodeDevice
 from abodepy.exceptions import AbodeException
 import abodepy.helpers.constants as CONST
 import abodepy.helpers.errors as ERROR
 import abodepy.helpers.timeline as TIMELINE
-from urllib3.exceptions import HTTPError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -263,7 +264,7 @@ class AbodeEventController(object):
             # pylint: disable=w0703
             except Exception as exc:
                 _LOGGER.warning(
-                    "Caught exception clearing SocketIO object: " + str(exc))
+                    "Caught exception clearing SocketIO object: %s", str(exc))
 
     def _run_socketio_thread(self):
         self._running = True
@@ -307,20 +308,20 @@ class AbodeEventController(object):
                             break
             except SocketIOError as exc:
                 _LOGGER.info(
-                    "SocketIO error: " + str(exc))
+                    "SocketIO error: %s", str(exc))
                 time.sleep(5)
             except ConnectionError as exc:
-                _LOGGER.info("Connection error: " + str(exc))
+                _LOGGER.info("Connection error: %s", str(exc))
                 time.sleep(5)
             except HTTPError as exc:
-                _LOGGER.info("HTTP error: " + str(exc))
+                _LOGGER.info("HTTP error: %s", str(exc))
                 time.sleep(5)
             except OSError as exc:
-                _LOGGER.info("OS error: " + str(exc))
+                _LOGGER.info("OS error: %s", str(exc))
                 time.sleep(5)
             except Exception as exc:
                 _LOGGER.warning(
-                    "Unknown exception in SocketIO thread: " + str(exc))
+                    "Unknown exception in SocketIO thread: %s", str(exc))
                 self._running = False
                 raise
             finally:
