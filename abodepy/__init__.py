@@ -23,6 +23,7 @@ much as possible. Please use this module responsibly.
 
 import json
 import logging
+import uuid
 import requests
 from requests.exceptions import RequestException
 
@@ -95,7 +96,8 @@ class Abode():
 
         login_data = {
             'id': self._username,
-            'password': self._password
+            'password': self._password,
+            'uuid': str(uuid.uuid1())
         }
 
         response = self._session.post(CONST.LOGIN_URL, data=login_data)
@@ -174,7 +176,7 @@ class Abode():
                     device = new_device(device_json, self)
 
                     if not device:
-                        _LOGGER.warning(
+                        _LOGGER.debug(
                             "Skipping unknown device: %s",
                             device_json)
 
