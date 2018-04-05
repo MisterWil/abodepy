@@ -4,9 +4,7 @@ import logging
 import threading
 import time
 
-from socketIO_client import SocketIO, LoggingNamespace
-from socketIO_client.exceptions import SocketIOError
-
+from abodepy.socketio import SocketIO
 from abodepy.devices import AbodeDevice
 from abodepy.exceptions import AbodeException
 import abodepy.helpers.constants as CONST
@@ -24,7 +22,6 @@ class AbodeEventController(object):
         """Init event subscription class."""
         self._abode = abode
         self._thread = None
-        self._socketio = None
         self._running = False
 
         # Setup callback dicts
@@ -32,37 +29,23 @@ class AbodeEventController(object):
         self._event_callbacks = collections.defaultdict(list)
         self._timeline_callbacks = collections.defaultdict(list)
 
-        # Default "sane" values
-        self._ping_interval = 25.0
-        self._ping_timeout = 60.0
-        self._last_pong = None
-        self._max_connection_time = reconnect_hours * 3600
-        self._connection_time = None
+        # Setup SocketIO
+        self._socketio = SocketIO(url=CONST.SOCKETIO_URL, origin=CONST.BASE_URL)
+
+        # Setup SocketIO Callbacks
+        self._socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
+        self._socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
+        self._socketio.on(CONST.TIMELINE_EVENT, self._on_timeline_update)
+        self._socketio.on(CONST.AUTOMATION_EVENT, self._on_automation_update)
 
     def start(self):
-        """Start a thread to handle Abode blocked SocketIO notifications."""
-        if not self._thread:
-            _LOGGER.info("Starting SocketIO thread...")
-
-            self._thread = threading.Thread(target=self._run_socketio_thread,
-                                            name='SocketIOThread')
-            self._thread.deamon = True
-            self._thread.start()
+        """Start a thread to handle Abode SocketIO notifications."""
+        self._socketio.set_cookie(self._abode._get_session().cookies.get_dict())
+        self._socketio.start()
 
     def stop(self):
-        """Tell the subscription thread to terminate."""
-        if self._thread:
-            _LOGGER.info("Stopping SocketIO thread...")
-
-            # pylint: disable=W0212
-            self._running = False
-
-            if self._socketio:
-                self._socketio.disconnect()
-
-    def join(self):
-        """Don't allow the main thread to terminate until we have."""
-        self._thread.join()
+        """Tell the subscription thread to terminate - will block."""
+        self._socketio.stop()
 
     def add_device_callback(self, devices, callback):
         """Register a device callback."""
@@ -208,127 +191,6 @@ class AbodeEventController(object):
 
         for callback in self._event_callbacks.get(event_group, ()):
             _execute_callback(callback, event)
-
-    def _on_socket_connect(self, socket):
-        # We will try to see what our ping check should be. It does use
-        # _variables, so we'll have a fallback value
-        # pylint: disable=W0212
-        interval = socket._engineIO_session.ping_interval
-        if interval > 0:
-            self._ping_interval = interval
-
-        timeout = socket._engineIO_session.ping_timeout
-        if timeout > 0:
-            self._ping_timeout = timeout
-
-        self._last_pong = time.time()
-
-        _LOGGER.info("Connected to Abode SocketIO server")
-
-    def _on_socket_pong(self, _data):
-        self._last_pong = time.time()
-
-    def _on_message(self, _data):
-        self._last_pong = time.time()
-
-    def _get_socket_io(self, url=CONST.SOCKETIO_URL, port=443):
-        # pylint: disable=W0212
-        socketio = SocketIO(
-            url, port, headers=CONST.SOCKETIO_HEADERS,
-            cookies=self._abode._get_session().cookies.get_dict(),
-            namespace=LoggingNamespace, wait_for_connection=False)
-
-        socketio.on('connect', lambda: self._on_socket_connect(socketio))
-        socketio.on('pong', self._on_socket_pong)
-        socketio.on('message', self._on_message)
-
-        socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
-        socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
-        socketio.on(CONST.TIMELINE_EVENT, self._on_timeline_update)
-        socketio.on(CONST.AUTOMATION_EVENT, self._on_automation_update)
-
-        return socketio
-
-    def _clear_internal_socketio(self):
-        if self._socketio:
-            try:
-                self._socketio.off('connect')
-                self._socketio.off('pong')
-                self._socketio.off('message')
-                self._socketio.off(CONST.DEVICE_UPDATE_EVENT)
-                self._socketio.off(CONST.GATEWAY_MODE_EVENT)
-                self._socketio.off(CONST.TIMELINE_EVENT)
-                self._socketio.off(CONST.AUTOMATION_EVENT)
-                self._socketio.disconnect()
-            # pylint: disable=w0703
-            except Exception as exc:
-                _LOGGER.warning(
-                    "Caught exception clearing SocketIO object: " + str(exc))
-
-    def _run_socketio_thread(self):
-        self._running = True
-
-        while self._running:
-            try:
-                _LOGGER.info(
-                    "Attempting to connect to Abode SocketIO server...")
-
-                with self._get_socket_io() as socketio:
-                    self._clear_internal_socketio()
-                    self._socketio = socketio
-                    self._connection_time = time.time()
-
-                    while self._running:
-                        # We need to wait for at least our ping interval,
-                        # otherwise the wait will trigger a ping itself.
-                        socketio.wait(seconds=self._ping_timeout)
-
-                        # Check that we have gotten pongs or data sometime in
-                        # the last XX seconds. If not, we are going to assume
-                        # we need to reconnect
-                        now = time.time()
-                        diff = int(now - (self._last_pong or now))
-
-                        if diff > self._ping_interval:
-                            _LOGGER.info(
-                                "SocketIO server timeout (%s seconds)",
-                                str(self._ping_interval))
-                            break
-
-                        # Check if we've been connected for longer than our
-                        # defined max connection time. If so, reconnect.
-
-                        elapsed_time = time.time() - self._connection_time
-
-                        if elapsed_time >= self._max_connection_time:
-                            _LOGGER.info(
-                                "Max Connection Time Reached (%s seconds)",
-                                str(elapsed_time))
-                            break
-            except SocketIOError as exc:
-                _LOGGER.info(
-                    "SocketIO error: " + str(exc))
-                time.sleep(5)
-            except ConnectionError as exc:
-                _LOGGER.info("Connection error: " + str(exc))
-                time.sleep(5)
-            except HTTPError as exc:
-                _LOGGER.info("HTTP error: " + str(exc))
-                time.sleep(5)
-            except OSError as exc:
-                _LOGGER.info("OS error: " + str(exc))
-                time.sleep(5)
-            except Exception as exc:
-                _LOGGER.warning(
-                    "Unknown exception in SocketIO thread: " + str(exc))
-                self._running = False
-                raise
-            finally:
-                _LOGGER.info("Attempting to reconnect...")
-                self._clear_internal_socketio()
-
-        _LOGGER.info("Disconnected from Abode SocketIO server")
-
 
 def _execute_callback(callback, *args, **kwargs):
     # Callback with some data, capturing any exceptions to prevent chaos
