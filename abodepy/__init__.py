@@ -149,6 +149,11 @@ class Abode():
 
         return True
 
+    def refresh(self):
+        """Do a full refresh of all devices and automations."""
+        self.get_devices(refresh=True)
+        self.get_automations(refresh=True)
+
     def get_devices(self, refresh=False, generic_type=None):
         """Get all devices from Abode."""
         if refresh or self._devices is None:

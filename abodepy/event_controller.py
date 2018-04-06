@@ -1,16 +1,13 @@
 """Abode cloud push events."""
 import collections
 import logging
-import threading
-import time
 
-from abodepy.socketio import SocketIO
 from abodepy.devices import AbodeDevice
 from abodepy.exceptions import AbodeException
 import abodepy.helpers.constants as CONST
 import abodepy.helpers.errors as ERROR
 import abodepy.helpers.timeline as TIMELINE
-from urllib3.exceptions import HTTPError
+import abodepy.socketio as sio
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 class AbodeEventController(object):
     """Class for subscribing to abode events."""
 
-    def __init__(self, abode, reconnect_hours=12):
+    def __init__(self, abode):
         """Init event subscription class."""
         self._abode = abode
         self._thread = None
@@ -30,9 +27,12 @@ class AbodeEventController(object):
         self._timeline_callbacks = collections.defaultdict(list)
 
         # Setup SocketIO
-        self._socketio = SocketIO(url=CONST.SOCKETIO_URL, origin=CONST.BASE_URL)
+        self._socketio = sio.SocketIO(url=CONST.SOCKETIO_URL,
+                                      origin=CONST.BASE_URL)
 
         # Setup SocketIO Callbacks
+        self._socketio.on(sio.STARTED, self._on_socket_started)
+        self._socketio.on(sio.CONNECTED, self._on_socket_connected)
         self._socketio.on(CONST.DEVICE_UPDATE_EVENT, self._on_device_update)
         self._socketio.on(CONST.GATEWAY_MODE_EVENT, self._on_mode_change)
         self._socketio.on(CONST.TIMELINE_EVENT, self._on_timeline_update)
@@ -40,7 +40,6 @@ class AbodeEventController(object):
 
     def start(self):
         """Start a thread to handle Abode SocketIO notifications."""
-        self._socketio.set_cookie(self._abode._get_session().cookies.get_dict())
         self._socketio.start()
 
     def stop(self):
@@ -116,8 +115,24 @@ class AbodeEventController(object):
 
         return True
 
+    def _on_socket_started(self):
+        """Socket IO startup callback."""
+        # pylint: disable=W0212
+        cookies = self._abode._get_session().cookies.get_dict()
+        cookie_string = "; ".join(
+            [str(x) + "=" + str(y) for x, y in cookies.items()])
+
+        self._socketio.set_cookie(cookie_string)
+
+    def _on_socket_connected(self):
+        """Socket IO connected callback."""
+        self._abode.refresh()
+
     def _on_device_update(self, devid):
         """Device callback from Abode SocketIO server."""
+        if isinstance(devid, (tuple, list)):
+            devid = devid[0]
+
         if devid is None:
             _LOGGER.warning("Device update with no device id.")
             return
@@ -135,6 +150,9 @@ class AbodeEventController(object):
 
     def _on_mode_change(self, mode):
         """Mode change broadcast from Abode SocketIO server."""
+        if isinstance(mode, (tuple, list)):
+            mode = mode[0]
+
         if mode is None:
             _LOGGER.warning("Mode change event with no mode.")
             return
@@ -159,6 +177,9 @@ class AbodeEventController(object):
 
     def _on_timeline_update(self, event):
         """Timeline update broadcast from Abode SocketIO server."""
+        if isinstance(event, (tuple, list)):
+            event = event[0]
+
         event_type = event.get('event_type')
         event_code = event.get('event_code')
 
@@ -189,8 +210,12 @@ class AbodeEventController(object):
         """Automation update broadcast from Abode SocketIO server."""
         event_group = TIMELINE.AUTOMATION_EDIT_GROUP
 
+        if isinstance(event, (tuple, list)):
+            event = event[0]
+
         for callback in self._event_callbacks.get(event_group, ()):
             _execute_callback(callback, event)
+
 
 def _execute_callback(callback, *args, **kwargs):
     # Callback with some data, capturing any exceptions to prevent chaos

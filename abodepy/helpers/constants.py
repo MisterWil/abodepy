@@ -2,8 +2,8 @@
 import os
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 12
-PATCH_VERSION = '2'
+MINOR_VERSION = 13
+PATCH_VERSION = '0_alpha'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
@@ -73,7 +73,7 @@ TIMELINE_IMAGES_ID_URL = BASE_URL + \
     '&event_label=Image+Capture&size=1'
 
 # NOTIFICATION CONSTANTS
-SOCKETIO_URL = 'https://my.goabode.com'
+SOCKETIO_URL = 'wss://my.goabode.com/socket.io/'
 
 SOCKETIO_HEADERS = {
     'Origin': 'https://my.goabode.com/',

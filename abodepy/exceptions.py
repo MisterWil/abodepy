@@ -18,3 +18,9 @@ class AbodeAuthenticationException(AbodeException):
     """Class to throw authentication exception."""
 
     pass
+
+
+class SocketIOException(AbodeException):
+    """Class to throw SocketIO Error exception."""
+
+    pass
