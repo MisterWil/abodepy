@@ -142,7 +142,7 @@ class AbodeEventController(object):
         device = self._abode.get_device(devid, True)
 
         if not device:
-            _LOGGER.warning("Got device update for unknown device: %s", devid)
+            _LOGGER.debug("Got device update for unknown device: %s", devid)
             return
 
         for callback in self._device_callbacks.get(device.device_id, ()):
