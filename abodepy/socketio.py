@@ -10,6 +10,7 @@ from random import random
 from lomond import WebSocket
 from lomond import events
 from lomond.persist import persist
+from lomond.errors import WebSocketError
 
 from abodepy.exceptions import SocketIOException
 import abodepy.helpers.errors as ERRORS
@@ -180,13 +181,16 @@ class SocketIO(object):
             except SocketIOException as exc:
                 _LOGGER.warning("SocketIO Error: %s", exc.details)
 
-                wait_for = min_wait + random() * min(random_wait, 2 ** retries)
+            except WebSocketError as exc:
+                _LOGGER.warning("Websocket Error: %s", exc.error_msg)
 
-                _LOGGER.warning("Waiting %f seconds before reconnecting...",
-                                wait_for)
+            wait_for = min_wait + random() * min(random_wait, 2 ** retries)
 
-                if self._exit_event.wait(wait_for):
-                    break
+            _LOGGER.warning("Waiting %f seconds before reconnecting...",
+                            wait_for)
+
+            if self._exit_event.wait(wait_for):
+                break
 
             self._handle_event(STOPPED, None)
 

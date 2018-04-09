@@ -48,7 +48,8 @@ class Abode():
     """Main Abode class."""
 
     def __init__(self, username=None, password=None,
-                 auto_login=False, get_devices=False, get_automations=False):
+                 auto_login=False, get_devices=False, get_automations=False,
+                 event_url=CONST.SOCKETIO_URL):
         """Init Abode object."""
         self._username = username
         self._password = password
@@ -57,7 +58,7 @@ class Abode():
         self._panel = None
         self._user = None
 
-        self._event_controller = AbodeEventController(self)
+        self._event_controller = AbodeEventController(self, url=event_url)
 
         self._default_alarm_mode = CONST.MODE_AWAY
 

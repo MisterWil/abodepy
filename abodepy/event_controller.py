@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 class AbodeEventController(object):
     """Class for subscribing to abode events."""
 
-    def __init__(self, abode):
+    def __init__(self, abode, url=CONST.SOCKETIO_URL):
         """Init event subscription class."""
         self._abode = abode
         self._thread = None
@@ -27,7 +27,7 @@ class AbodeEventController(object):
         self._timeline_callbacks = collections.defaultdict(list)
 
         # Setup SocketIO
-        self._socketio = sio.SocketIO(url=CONST.SOCKETIO_URL,
+        self._socketio = sio.SocketIO(url=url,
                                       origin=CONST.BASE_URL)
 
         # Setup SocketIO Callbacks
@@ -114,6 +114,11 @@ class AbodeEventController(object):
             self._timeline_callbacks[event_code].append((callback))
 
         return True
+
+    @property
+    def socketio(self):
+        """Get the SocketIO instance."""
+        return self._socketio
 
     def _on_socket_started(self):
         """Socket IO startup callback."""
