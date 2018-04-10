@@ -1,3 +1,5 @@
+// For use in tox.ini some day: npm --prefix ./tests/mock_server install ./tests/mock_server
+
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);

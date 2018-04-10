@@ -182,7 +182,7 @@ class SocketIO(object):
                 _LOGGER.warning("SocketIO Error: %s", exc.details)
 
             except WebSocketError as exc:
-                _LOGGER.warning("Websocket Error: %s", exc.error_msg)
+                _LOGGER.warning("Websocket Error: %s", exc)
 
             wait_for = min_wait + random() * min(random_wait, 2 ** retries)
 
