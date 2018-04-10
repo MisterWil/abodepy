@@ -225,6 +225,10 @@ Activate the virtual environment::
 
     $ source venv/bin/activate
     
+Install requirements::
+
+    $ pip install -r requirements.txt -r requirements_test.txt 
+    
 Install abodepy locally in "editable mode"::
 
     $ pip3 install -e .

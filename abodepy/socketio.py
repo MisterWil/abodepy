@@ -161,8 +161,6 @@ class SocketIO(object):
 
                 for event in persist(self._websocket, ping_rate=0,
                                      poll=5.0, exit_event=self._exit_event):
-                    _LOGGER.debug(event)
-
                     if isinstance(event, events.Connected):
                         retries = 0
                         self._on_websocket_connected(event)
@@ -184,15 +182,16 @@ class SocketIO(object):
             except WebSocketError as exc:
                 _LOGGER.warning("Websocket Error: %s", exc)
 
-            wait_for = min_wait + random() * min(random_wait, 2 ** retries)
+            if self._running:
+                wait_for = min_wait + random() * min(random_wait, 2 ** retries)
 
-            _LOGGER.warning("Waiting %f seconds before reconnecting...",
-                            wait_for)
+                _LOGGER.warning("Waiting %f seconds before reconnecting...",
+                                wait_for)
 
-            if self._exit_event.wait(wait_for):
-                break
+                if self._exit_event.wait(wait_for):
+                    break
 
-            self._handle_event(STOPPED, None)
+        self._handle_event(STOPPED, None)
 
     def _on_websocket_connected(self, _event):
         self._websocket_connected = True
@@ -225,7 +224,7 @@ class SocketIO(object):
         if self._engineio_connected and last_ping_ms >= self._ping_interval_ms:
             self._websocket.send_text(PACKET_PING)
             self._last_ping_time = datetime.now()
-            _LOGGER.debug("Client Ping!")
+            _LOGGER.debug("Client Ping")
             self._handle_event(PING, None)
 
         self._handle_event(POLL, None)
@@ -274,7 +273,7 @@ class SocketIO(object):
         self._websocket.close()
 
     def _on_engineio_pong(self):
-        _LOGGER.debug("Server Pong!")
+        _LOGGER.debug("Server Pong")
         self._handle_event(PONG, None)
 
     def _on_engineio_message(self, _packet_data):

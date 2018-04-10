@@ -49,7 +49,7 @@ class Abode():
 
     def __init__(self, username=None, password=None,
                  auto_login=False, get_devices=False, get_automations=False,
-                 event_url=CONST.SOCKETIO_URL):
+                 custom_uuid=None):
         """Init Abode object."""
         self._username = username
         self._password = password
@@ -57,8 +57,10 @@ class Abode():
         self._token = None
         self._panel = None
         self._user = None
+        self._uuid = custom_uuid
 
-        self._event_controller = AbodeEventController(self, url=event_url)
+        self._event_controller = AbodeEventController(self,
+                                                      url=CONST.SOCKETIO_URL)
 
         self._default_alarm_mode = CONST.MODE_AWAY
 
@@ -68,6 +70,9 @@ class Abode():
 
         # Create a requests session to persist the cookies
         self._session = requests.session()
+
+        if not self._uuid:
+            self._uuid = str(uuid.uuid1())
 
         if (self._username is not None and
                 self._password is not None and
@@ -98,7 +103,7 @@ class Abode():
         login_data = {
             'id': self._username,
             'password': self._password,
-            'uuid': str(uuid.uuid1())
+            'uuid': self._uuid
         }
 
         response = self._session.post(CONST.LOGIN_URL, data=login_data)
@@ -417,6 +422,11 @@ class Abode():
     def events(self):
         """Get the event controller."""
         return self._event_controller
+
+    @property
+    def uuid(self):
+        """Get the UUID."""
+        return self._uuid
 
     def _get_session(self):
         # Perform a generic update so we know we're logged in
