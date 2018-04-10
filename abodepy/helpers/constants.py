@@ -3,7 +3,7 @@ import os
 
 MAJOR_VERSION = 0
 MINOR_VERSION = 13
-PATCH_VERSION = '0'
+PATCH_VERSION = '1'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
@@ -37,6 +37,12 @@ PROJECT_GITHUB_USERNAME = 'MisterWil'
 PROJECT_GITHUB_REPOSITORY = 'abodepy'
 
 PYPI_URL = 'https://pypi.python.org/pypi/{}'.format(PROJECT_PACKAGE_NAME)
+
+CACHE_PATH = './abode.pickle'
+
+ID = 'id'
+PASSWORD = 'password'
+UUID = 'uuid'
 
 # URLS
 BASE_URL = 'https://my.goabode.com/'

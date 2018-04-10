@@ -22,7 +22,8 @@ class TestLM(unittest.TestCase):
     def setUp(self):
         """Set up Abode module."""
         self.abode = abodepy.Abode(username=USERNAME,
-                                   password=PASSWORD)
+                                   password=PASSWORD,
+                                   disable_cache=True)
 
     def tearDown(self):
         """Clean up after test."""

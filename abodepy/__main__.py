@@ -70,12 +70,18 @@ def get_arguments():
     parser.add_argument(
         '-u', '--username',
         help='Username',
-        required=True)
+        required=False)
 
     parser.add_argument(
         '-p', '--password',
         help='Password',
-        required=True)
+        required=False)
+
+    parser.add_argument(
+        '--cache',
+        metavar='pickle_file',
+        help='Create/update/use a pickle cache for the username and password.',
+        required=False)
 
     parser.add_argument(
         '--mode',
@@ -205,11 +211,24 @@ def call():
 
     abode = None
 
+    if not args.cache:
+        if not args.username or not args.password:
+            raise Exception("Please supply a cache or username and password.")
+
     try:
         # Create abodepy instance.
-        abode = abodepy.Abode(username=args.username,
-                              password=args.password,
-                              get_devices=True)
+        if args.cache and args.username and args.password:
+            abode = abodepy.Abode(username=args.username,
+                                  password=args.password,
+                                  get_devices=True,
+                                  cache_path=args.cache)
+        elif args.cache and not (not args.username or not args.password):
+            abode = abodepy.Abode(get_devices=True,
+                                  cache_path=args.cache)
+        else:
+            abode = abodepy.Abode(username=args.username,
+                                  password=args.password,
+                                  get_devices=True)
 
         # Output current mode.
         if args.mode:
