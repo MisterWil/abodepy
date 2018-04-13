@@ -29,9 +29,10 @@ class TestAbode(unittest.TestCase):
 
     def setUp(self):
         """Set up Abode module."""
-        self.abode_no_cred = abodepy.Abode()
+        self.abode_no_cred = abodepy.Abode(disable_cache=True)
         self.abode = abodepy.Abode(username=USERNAME,
-                                   password=PASSWORD)
+                                   password=PASSWORD,
+                                   disable_cache=True)
 
     def tearDown(self):
         """Clean up after test."""
@@ -41,9 +42,9 @@ class TestAbode(unittest.TestCase):
     def tests_initialization(self):
         """Verify we can initialize abode."""
         # pylint: disable=protected-access
-        self.assertEqual(self.abode._username, USERNAME)
+        self.assertEqual(self.abode._cache[CONST.ID], USERNAME)
         # pylint: disable=protected-access
-        self.assertEqual(self.abode._password, PASSWORD)
+        self.assertEqual(self.abode._cache[CONST.PASSWORD], PASSWORD)
 
     def tests_no_credentials(self):
         """Check that we throw an exception when no username/password."""
@@ -51,7 +52,7 @@ class TestAbode(unittest.TestCase):
             self.abode_no_cred.login()
 
         # pylint: disable=protected-access
-        self.abode_no_cred._username = USERNAME
+        self.abode_no_cred._cache[CONST.ID] = USERNAME
         with self.assertRaises(abodepy.AbodeAuthenticationException):
             self.abode_no_cred.login()
 
@@ -63,9 +64,9 @@ class TestAbode(unittest.TestCase):
         self.abode_no_cred.login(username=USERNAME, password=PASSWORD)
 
         # pylint: disable=protected-access
-        self.assertEqual(self.abode_no_cred._username, USERNAME)
+        self.assertEqual(self.abode_no_cred._cache[CONST.ID], USERNAME)
         # pylint: disable=protected-access
-        self.assertEqual(self.abode_no_cred._password, PASSWORD)
+        self.assertEqual(self.abode_no_cred._cache[CONST.PASSWORD], PASSWORD)
 
     @requests_mock.mock()
     def tests_auto_login(self, m):
@@ -82,11 +83,12 @@ class TestAbode(unittest.TestCase):
         abode = abodepy.Abode(username='fizz',
                               password='buzz',
                               auto_login=True,
-                              get_devices=False)
+                              get_devices=False,
+                              disable_cache=True)
 
         # pylint: disable=W0212
-        self.assertEqual(abode._username, 'fizz')
-        self.assertEqual(abode._password, 'buzz')
+        self.assertEqual(abode._cache[CONST.ID], 'fizz')
+        self.assertEqual(abode._cache[CONST.PASSWORD], 'buzz')
         self.assertEqual(abode._token, MOCK.AUTH_TOKEN)
         self.assertEqual(abode._panel, json.loads(panel_json))
         self.assertEqual(abode._user, json.loads(user_json))
@@ -115,11 +117,12 @@ class TestAbode(unittest.TestCase):
                               password='buzz',
                               auto_login=False,
                               get_devices=True,
-                              get_automations=True)
+                              get_automations=True,
+                              disable_cache=True)
 
         # pylint: disable=W0212
-        self.assertEqual(abode._username, 'fizz')
-        self.assertEqual(abode._password, 'buzz')
+        self.assertEqual(abode._cache[CONST.ID], 'fizz')
+        self.assertEqual(abode._cache[CONST.PASSWORD], 'buzz')
         self.assertEqual(abode._token, MOCK.AUTH_TOKEN)
         self.assertEqual(abode._panel, json.loads(panel_json))
         self.assertEqual(abode._user, json.loads(user_json))
@@ -191,8 +194,8 @@ class TestAbode(unittest.TestCase):
         original_session = self.abode._session
 
         # pylint: disable=W0212
-        self.assertEqual(self.abode._username, USERNAME)
-        self.assertEqual(self.abode._password, PASSWORD)
+        self.assertEqual(self.abode._cache[CONST.ID], USERNAME)
+        self.assertEqual(self.abode._cache[CONST.PASSWORD], PASSWORD)
         self.assertEqual(self.abode._token, auth_token)
         self.assertEqual(self.abode._panel, json.loads(panel_json))
         self.assertEqual(self.abode._user, json.loads(user_json))

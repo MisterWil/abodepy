@@ -2,8 +2,8 @@
 import os
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 12
-PATCH_VERSION = '3'
+MINOR_VERSION = 13
+PATCH_VERSION = '1'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
@@ -37,6 +37,12 @@ PROJECT_GITHUB_USERNAME = 'MisterWil'
 PROJECT_GITHUB_REPOSITORY = 'abodepy'
 
 PYPI_URL = 'https://pypi.python.org/pypi/{}'.format(PROJECT_PACKAGE_NAME)
+
+CACHE_PATH = './abode.pickle'
+
+ID = 'id'
+PASSWORD = 'password'
+UUID = 'uuid'
 
 # URLS
 BASE_URL = 'https://my.goabode.com/'
@@ -73,7 +79,7 @@ TIMELINE_IMAGES_ID_URL = BASE_URL + \
     '&event_label=Image+Capture&size=1'
 
 # NOTIFICATION CONSTANTS
-SOCKETIO_URL = 'https://my.goabode.com'
+SOCKETIO_URL = 'wss://my.goabode.com/socket.io/'
 
 SOCKETIO_HEADERS = {
     'Origin': 'https://my.goabode.com/',

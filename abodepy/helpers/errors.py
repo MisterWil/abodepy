@@ -75,3 +75,6 @@ CAM_IMAGE_REQUEST_INVALID = (
 
 EVENT_DEVICE_INVALID = (
     28, "Object given to event registration service is not a device object")
+
+SOCKETIO_ERROR = (
+    29, "SocketIO Error Packet Received")

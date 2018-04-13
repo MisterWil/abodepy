@@ -23,7 +23,7 @@ much as possible. Please use this module responsibly.
 
 import json
 import logging
-import uuid
+import os
 import requests
 from requests.exceptions import RequestException
 
@@ -40,6 +40,7 @@ from abodepy.exceptions import AbodeAuthenticationException, AbodeException
 import abodepy.devices.alarm as ALARM
 import abodepy.helpers.constants as CONST
 import abodepy.helpers.errors as ERROR
+import abodepy.utils as UTILS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,16 +49,18 @@ class Abode():
     """Main Abode class."""
 
     def __init__(self, username=None, password=None,
-                 auto_login=False, get_devices=False, get_automations=False):
+                 auto_login=False, get_devices=False, get_automations=False,
+                 cache_path=CONST.CACHE_PATH, disable_cache=False):
         """Init Abode object."""
-        self._username = username
-        self._password = password
         self._session = None
         self._token = None
         self._panel = None
         self._user = None
+        self._cache_path = cache_path
+        self._disable_cache = disable_cache
 
-        self._event_controller = AbodeEventController(self)
+        self._event_controller = AbodeEventController(self,
+                                                      url=CONST.SOCKETIO_URL)
 
         self._default_alarm_mode = CONST.MODE_AWAY
 
@@ -68,8 +71,29 @@ class Abode():
         # Create a requests session to persist the cookies
         self._session = requests.session()
 
-        if (self._username is not None and
-                self._password is not None and
+        # Create a new cache template
+        self._cache = {
+            CONST.ID: None,
+            CONST.PASSWORD: None,
+            CONST.UUID: UTILS.gen_uuid()
+        }
+
+        # Load and merge an existing cache
+        if not disable_cache:
+            self._load_cache()
+
+        # If the username and password were passed in, update
+        # the cache and save
+        if username:
+            self._cache[CONST.ID] = username
+
+        if password:
+            self._cache[CONST.PASSWORD] = password
+
+        self._save_cache()
+
+        if (self._cache[CONST.ID] is not None and
+                self._cache[CONST.PASSWORD] is not None and
                 auto_login):
             self.login()
 
@@ -82,22 +106,26 @@ class Abode():
     def login(self, username=None, password=None):
         """Explicit Abode login."""
         if username is not None:
-            self._username = username
+            self._cache[CONST.ID] = username
         if password is not None:
-            self._password = password
+            self._cache[CONST.PASSWORD] = password
 
-        if self._username is None or not isinstance(self._username, str):
+        if (self._cache[CONST.ID] is None or
+                not isinstance(self._cache[CONST.ID], str)):
             raise AbodeAuthenticationException(ERROR.USERNAME)
 
-        if self._password is None or not isinstance(self._password, str):
+        if (self._cache[CONST.PASSWORD] is None or
+                not isinstance(self._cache[CONST.PASSWORD], str)):
             raise AbodeAuthenticationException(ERROR.PASSWORD)
+
+        self._save_cache()
 
         self._token = None
 
         login_data = {
-            'id': self._username,
-            'password': self._password,
-            'uuid': str(uuid.uuid1())
+            CONST.ID: self._cache[CONST.ID],
+            CONST.PASSWORD: self._cache[CONST.PASSWORD],
+            CONST.UUID: self._cache[CONST.UUID]
         }
 
         response = self._session.post(CONST.LOGIN_URL, data=login_data)
@@ -148,6 +176,11 @@ class Abode():
             _LOGGER.info("Logout successful")
 
         return True
+
+    def refresh(self):
+        """Do a full refresh of all devices and automations."""
+        self.get_devices(refresh=True)
+        self.get_automations(refresh=True)
 
     def get_devices(self, refresh=False, generic_type=None):
         """Get all devices from Abode."""
@@ -412,11 +445,31 @@ class Abode():
         """Get the event controller."""
         return self._event_controller
 
+    @property
+    def uuid(self):
+        """Get the UUID."""
+        return self._cache[CONST.UUID]
+
     def _get_session(self):
         # Perform a generic update so we know we're logged in
         self.send_request("get", CONST.PANEL_URL)
 
         return self._session
+
+    def _load_cache(self):
+        """Load existing cache and merge for updating if required."""
+        if not self._disable_cache and os.path.exists(self._cache_path):
+            _LOGGER.debug("Cache found at: %s", self._cache_path)
+            loaded_cache = UTILS.load_cache(self._cache_path)
+
+            UTILS.update(self._cache, loaded_cache)
+
+        self._save_cache()
+
+    def _save_cache(self):
+        """Trigger a cache save."""
+        if not self._disable_cache:
+            UTILS.save_cache(self._cache, self._cache_path)
 
 
 def _new_sensor(device_json, abode):

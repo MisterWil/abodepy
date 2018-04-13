@@ -93,3 +93,4 @@ ENV/
 /.project
 /.pydevproject
 .settings/
+*.pickle
