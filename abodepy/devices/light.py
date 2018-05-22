@@ -15,13 +15,11 @@ class AbodeLight(AbodeSwitch):
     @property
     def color_temp(self):
         """Get light color temp."""
-        # This value still exist in device JSON even when using color mode
         return self._json_state.get(CONST.STATUSES_KEY)['color_temp']
 
     @property
     def color(self):
         """Get light color."""
-        # These values exist in device JSON even when not using color mode
         return (self._json_state.get(CONST.STATUSES_KEY)['hue'],
                 self._json_state.get(CONST.STATUSES_KEY)['saturation'])
 
@@ -33,8 +31,8 @@ class AbodeLight(AbodeSwitch):
     @property
     def has_color(self):
         """Device is using color mode."""
-        # color_mode of 0 means it's on, color_mode of 2 means it's off
-        if self._json_state.get(CONST.STATUSES_KEY)['color_mode'] == '0':
+        if (self._json_state.get(CONST.STATUSES_KEY)['color_mode']
+                == str(CONST.COLOR_MODE_ON)):
             return True
 
     @property
