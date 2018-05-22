@@ -38,3 +38,10 @@ class AbodeSwitch(AbodeDevice):
     def is_dimmable(self):
         """Device dimmable."""
         return False
+
+    # Prevents issues/errors for devices that are specified as lights
+    # in Home Assistant
+    @property
+    def has_color(self):
+        """Device has color."""
+        return False

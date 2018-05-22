@@ -50,7 +50,11 @@ BASE_URL = 'https://my.goabode.com/'
 LOGIN_URL = BASE_URL + 'api/auth2/login'
 LOGOUT_URL = BASE_URL + 'api/v1/logout'
 
+OAUTH_TOKEN_URL = BASE_URL + 'api/auth2/claims'
+
 PANEL_URL = BASE_URL + 'api/v1/panel'
+
+INTEGRATIONS_URL = BASE_URL + 'integrations/v1/devices/'
 
 
 def get_panel_mode_url(area, mode):
@@ -211,13 +215,10 @@ UNIT_PERCENT = '%'
 UNIT_LUX = 'lx'
 LUX = 'lux'
 
+BRIGHTNESS_KEY = 'statusEx'
 # This is a guess currently
 MOTION_STATUS_KEY = 'motion_event'
 OCCUPANCY_STATUS_KEY = 'motion_event'
-
-# More guesses!
-COLOR_KEY = 'color_status'
-BRIGHTNESS_KEY = 'statusEx'
 
 
 def get_generic_type(type_tag):

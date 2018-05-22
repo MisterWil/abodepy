@@ -131,6 +131,9 @@ class Abode():
         response = self._session.post(CONST.LOGIN_URL, data=login_data)
         response_object = json.loads(response.text)
 
+        oauth_token = self._session.get(CONST.OAUTH_TOKEN_URL)
+        oauth_token_object = json.loads(oauth_token.text)
+
         if response.status_code != 200:
             raise AbodeAuthenticationException((response.status_code,
                                                 response_object['message']))
@@ -140,6 +143,7 @@ class Abode():
         self._token = response_object['token']
         self._panel = response_object['panel']
         self._user = response_object['user']
+        self._oauth_token = oauth_token_object['access_token']
 
         _LOGGER.info("Login successful")
 
@@ -415,6 +419,7 @@ class Abode():
         if not headers:
             headers = {}
 
+        headers['Authorization'] = 'Bearer ' + self._oauth_token
         headers['ABODE-API-KEY'] = self._token
 
         try:

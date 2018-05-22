@@ -18,6 +18,7 @@ class AbodeDevice(object):
         """Set up Abode device."""
         self._json_state = json_obj
         self._device_id = json_obj.get('id')
+        self._device_uuid = json_obj.get('uuid')
         self._name = json_obj.get('name')
         self._type = json_obj.get('type')
         self._type_tag = json_obj.get('type_tag')
@@ -83,6 +84,73 @@ class AbodeDevice(object):
             self.update(response_object)
 
             _LOGGER.info("Set device %s level to: %s", self.device_id, level)
+
+            return True
+
+        return False
+
+    def set_color_temp(self, color_temp):
+        """Set device color."""
+        if self._json_state['control_url']:
+            url = (CONST.INTEGRATIONS_URL + self._device_uuid)
+
+            headers = {'Content-Type': 'application/json'}
+
+            color_data = {
+                'action': 'setcolortemperature',
+                'colorTemperature': int(color_temp)
+            }
+
+            response = self._abode.send_request("post", url, headers=headers,
+                                                data=json.dumps(color_data))
+            response_object = json.loads(response.text)
+
+            _LOGGER.debug("Set Color Temp Response: %s", response.text)
+
+            if response_object['idForPanel'] != self.device_id:
+                raise AbodeException((ERROR.SET_STATUS_DEV_ID))
+
+            if response_object['colorTemperature'] != int(color_temp):
+                raise AbodeException((ERROR.SET_STATUS_STATE))
+
+            self.update(response_object)
+
+            _LOGGER.info("Set device %s color_temp to: %s",
+                         self.device_id, color_temp)
+            return True
+
+        return False
+
+    def set_color(self, color):
+        """Set device color."""
+        if self._json_state['control_url']:
+            url = (CONST.INTEGRATIONS_URL + self._device_uuid)
+
+            headers = {'Content-Type': 'application/json'}
+
+            hue, saturation = color
+            color_data = {
+                'action': 'setcolor',
+                'hue': int(hue),
+                'saturation': int(saturation)
+            }
+
+            response = self._abode.send_request("post", url, headers=headers,
+                                                data=json.dumps(color_data))
+            response_object = json.loads(response.text)
+
+            _LOGGER.debug("Set Color Response: %s", response.text)
+
+            if response_object['idForPanel'] != self.device_id:
+                raise AbodeException((ERROR.SET_STATUS_DEV_ID))
+
+            if (response_object['hue'] != int(hue) or
+                    response_object['saturation'] != int(saturation)):
+                raise AbodeException((ERROR.SET_STATUS_STATE))
+
+            self.update(response_object)
+
+            _LOGGER.info("Set device %s hue to: %s", self.device_id, hue)
 
             return True
 
