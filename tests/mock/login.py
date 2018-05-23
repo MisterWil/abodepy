@@ -1,8 +1,15 @@
 """Mock Abode Login Response."""
 
-from tests.mock import AUTH_TOKEN
+from tests.mock import AUTH_TOKEN, OAUTH_TOKEN
 import tests.mock.panel as panel
 import tests.mock.user as user
+
+
+def oauth_token(oauth_token=OAUTH_TOKEN):
+    """Return successful OAuth2 token."""
+    return '''
+    {"token_type":"Bearer","access_token":"''' + oauth_token + '''","expires_in":3600}
+    '''
 
 
 def post_response_ok(auth_token=AUTH_TOKEN,
