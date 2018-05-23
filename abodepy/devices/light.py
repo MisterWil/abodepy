@@ -10,18 +10,18 @@ class AbodeLight(AbodeSwitch):
     @property
     def brightness(self):
         """Get light brightness."""
-        return self._json_state.get(CONST.BRIGHTNESS_KEY)
+        return self.get_value(CONST.STATUSES_KEY).get('level')
 
     @property
     def color_temp(self):
         """Get light color temp."""
-        return self._json_state.get(CONST.STATUSES_KEY)['color_temp']
+        return self.get_value(CONST.STATUSES_KEY).get('color_temp')
 
     @property
     def color(self):
         """Get light color."""
-        return (self._json_state.get(CONST.STATUSES_KEY)['hue'],
-                self._json_state.get(CONST.STATUSES_KEY)['saturation'])
+        return (self.get_value(CONST.STATUSES_KEY).get('hue'),
+                self.get_value(CONST.STATUSES_KEY).get('saturation'))
 
     @property
     def has_brightness(self):
@@ -31,7 +31,7 @@ class AbodeLight(AbodeSwitch):
     @property
     def has_color(self):
         """Device is using color mode."""
-        if (self._json_state.get(CONST.STATUSES_KEY)['color_mode']
+        if (self.get_value(CONST.STATUSES_KEY).get('color_mode')
                 == str(CONST.COLOR_MODE_ON)):
             return True
 

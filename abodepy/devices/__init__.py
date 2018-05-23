@@ -199,11 +199,6 @@ class AbodeDevice(object):
         return self.get_value('status')
 
     @property
-    def level(self):
-        """Shortcut to get the generic level of a device."""
-        return self.get_value('level')
-
-    @property
     def battery_low(self):
         """Is battery level low."""
         return int(self.get_value('faults').get('low_battery', '0')) == 1
