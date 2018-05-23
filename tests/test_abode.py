@@ -60,7 +60,6 @@ class TestAbode(unittest.TestCase):
     def tests_manual_login(self, m):
         """Check that we can manually use the login() function."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
-        m.get(CONST.OAUTH_TOKEN_URL, text=LOGIN.oauth_token())
 
         self.abode_no_cred.login(username=USERNAME, password=PASSWORD)
 
@@ -73,13 +72,11 @@ class TestAbode(unittest.TestCase):
     def tests_auto_login(self, m):
         """Test that automatic login works."""
         auth_token = MOCK.AUTH_TOKEN
-        oauth_token = MOCK.OAUTH_TOKEN
         user_json = USER.get_response_ok()
         login_json = LOGIN.post_response_ok(auth_token, user_json)
         panel_json = PANEL.get_response_ok()
 
         m.post(CONST.LOGIN_URL, text=login_json)
-        m.get(CONST.OAUTH_TOKEN_URL, text=LOGIN.oauth_token())
         m.get(CONST.PANEL_URL, text=panel_json)
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
 
