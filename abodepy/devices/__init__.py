@@ -38,7 +38,7 @@ class AbodeDevice(object):
             }
 
             response = self._abode.send_request(
-                method="put", url=url, data=status_data)
+                method="put", url=url, json=status_data)
             response_object = json.loads(response.text)
 
             _LOGGER.debug("Set Status Response: %s", response.text)
@@ -69,7 +69,7 @@ class AbodeDevice(object):
             }
 
             response = self._abode.send_request(
-                "put", url, data=level_data)
+                "put", url, json=level_data)
             response_object = json.loads(response.text)
 
             _LOGGER.debug("Set Level Response: %s", response.text)
@@ -80,7 +80,6 @@ class AbodeDevice(object):
             if response_object['level'] != str(level):
                 raise AbodeException((ERROR.SET_STATUS_STATE))
 
-            # TODO: Figure out where level is indicated in device json object
             self.update(response_object)
 
             _LOGGER.info("Set device %s level to: %s", self.device_id, level)
@@ -94,15 +93,12 @@ class AbodeDevice(object):
         if self._json_state['control_url']:
             url = (CONST.INTEGRATIONS_URL + self._device_uuid)
 
-            headers = {'Content-Type': 'application/json'}
-
             color_data = {
                 'action': 'setcolortemperature',
                 'colorTemperature': int(color_temp)
             }
 
-            response = self._abode.send_request("post", url, headers=headers,
-                                                data=json.dumps(color_data))
+            response = self._abode.send_request("post", url, json=color_data)
             response_object = json.loads(response.text)
 
             _LOGGER.debug("Set Color Temp Response: %s", response.text)
@@ -126,8 +122,6 @@ class AbodeDevice(object):
         if self._json_state['control_url']:
             url = (CONST.INTEGRATIONS_URL + self._device_uuid)
 
-            headers = {'Content-Type': 'application/json'}
-
             hue, saturation = color
             color_data = {
                 'action': 'setcolor',
@@ -135,8 +129,7 @@ class AbodeDevice(object):
                 'saturation': int(saturation)
             }
 
-            response = self._abode.send_request("post", url, headers=headers,
-                                                data=json.dumps(color_data))
+            response = self._abode.send_request("post", url, json=color_data)
             response_object = json.loads(response.text)
 
             _LOGGER.debug("Set Color Response: %s", response.text)

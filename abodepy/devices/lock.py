@@ -1,4 +1,4 @@
-"""Abode cover device."""
+"""Abode lock device."""
 
 from abodepy.devices import AbodeDevice
 import abodepy.helpers.constants as CONST

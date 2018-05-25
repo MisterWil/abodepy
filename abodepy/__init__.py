@@ -411,7 +411,7 @@ class Abode():
         return {'action': setting, 'option': value}
 
     def send_request(self, method, url, headers=None,
-                     data=None, is_retry=False):
+                     json=None, is_retry=False):
         """Send requests to Abode."""
         if not self._token:
             self.login()
@@ -424,7 +424,7 @@ class Abode():
 
         try:
             response = getattr(self._session, method)(
-                url, headers=headers, data=data)
+                url, headers=headers, json=json)
 
             if response and response.status_code < 400:
                 return response
@@ -436,7 +436,7 @@ class Abode():
             # attempt.
             self._token = None
 
-            return self.send_request(method, url, headers, data, True)
+            return self.send_request(method, url, headers, json, True)
 
         raise AbodeException((ERROR.REQUEST))
 

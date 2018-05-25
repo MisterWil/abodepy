@@ -1,4 +1,4 @@
-"""Abode switch device."""
+"""Abode light device."""
 
 from abodepy.devices.switch import AbodeSwitch
 import abodepy.helpers.constants as CONST

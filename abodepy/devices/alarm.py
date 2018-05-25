@@ -1,4 +1,4 @@
-"""Abode cover device."""
+"""Abode alarm device."""
 import json
 import logging
 
