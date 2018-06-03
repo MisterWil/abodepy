@@ -91,7 +91,7 @@ class AbodeDevice(object):
     def set_color_temp(self, color_temp):
         """Set device color."""
         if self._json_state['control_url']:
-            url = (CONST.INTEGRATIONS_URL + self._device_uuid)
+            url = CONST.INTEGRATIONS_URL + self._device_uuid
 
             color_data = {
                 'action': 'setcolortemperature',
@@ -120,7 +120,7 @@ class AbodeDevice(object):
     def set_color(self, color):
         """Set device color."""
         if self._json_state['control_url']:
-            url = (CONST.INTEGRATIONS_URL + self._device_uuid)
+            url = CONST.INTEGRATIONS_URL + self._device_uuid
 
             hue, saturation = color
             color_data = {
