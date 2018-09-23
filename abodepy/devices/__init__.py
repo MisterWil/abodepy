@@ -125,7 +125,7 @@ class AbodeDevice(object):
         self._update_name()
 
     def _update_name(self):
-        """Sets the device name from _json_state, with a sensible default."""
+        """Set the device name from _json_state, with a sensible default."""
         self._name = self._json_state.get('name')
         if not self._name:
             self._name = self.type + ' ' + self.device_id
