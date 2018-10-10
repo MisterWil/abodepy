@@ -18,6 +18,8 @@ class AbodeDevice(object):
         """Set up Abode device."""
         self._json_state = json_obj
         self._device_id = json_obj.get('id')
+        self._device_uuid = json_obj.get('uuid')
+        self._name = json_obj.get('name')
         self._type = json_obj.get('type')
         self._type_tag = json_obj.get('type_tag')
         self._generic_type = json_obj.get('generic_type')
@@ -35,7 +37,7 @@ class AbodeDevice(object):
             }
 
             response = self._abode.send_request(
-                method="put", url=url, data=status_data)
+                method="put", url=url, json=status_data)
             response_object = json.loads(response.text)
 
             _LOGGER.debug("Set Status Response: %s", response.text)
@@ -66,7 +68,7 @@ class AbodeDevice(object):
             }
 
             response = self._abode.send_request(
-                "put", url, data=level_data)
+                "put", url, json=level_data)
             response_object = json.loads(response.text)
 
             _LOGGER.debug("Set Level Response: %s", response.text)
@@ -77,10 +79,70 @@ class AbodeDevice(object):
             if response_object['level'] != str(level):
                 raise AbodeException((ERROR.SET_STATUS_STATE))
 
-            # TODO: Figure out where level is indicated in device json object
             self.update(response_object)
 
             _LOGGER.info("Set device %s level to: %s", self.device_id, level)
+
+            return True
+
+        return False
+
+    def set_color_temp(self, color_temp):
+        """Set device color."""
+        if self._json_state['control_url']:
+            url = CONST.INTEGRATIONS_URL + self._device_uuid
+
+            color_data = {
+                'action': 'setcolortemperature',
+                'colorTemperature': int(color_temp)
+            }
+
+            response = self._abode.send_request("post", url, json=color_data)
+            response_object = json.loads(response.text)
+
+            _LOGGER.debug("Set Color Temp Response: %s", response.text)
+
+            if response_object['idForPanel'] != self.device_id:
+                raise AbodeException((ERROR.SET_STATUS_DEV_ID))
+
+            if response_object['colorTemperature'] != int(color_temp):
+                raise AbodeException((ERROR.SET_STATUS_STATE))
+
+            self.update(response_object)
+
+            _LOGGER.info("Set device %s color_temp to: %s",
+                         self.device_id, color_temp)
+            return True
+
+        return False
+
+    def set_color(self, color):
+        """Set device color."""
+        if self._json_state['control_url']:
+            url = CONST.INTEGRATIONS_URL + self._device_uuid
+
+            hue, saturation = color
+            color_data = {
+                'action': 'setcolor',
+                'hue': int(hue),
+                'saturation': int(saturation)
+            }
+
+            response = self._abode.send_request("post", url, json=color_data)
+            response_object = json.loads(response.text)
+
+            _LOGGER.debug("Set Color Response: %s", response.text)
+
+            if response_object['idForPanel'] != self.device_id:
+                raise AbodeException((ERROR.SET_STATUS_DEV_ID))
+
+            if (response_object['hue'] != int(hue) or
+                    response_object['saturation'] != int(saturation)):
+                raise AbodeException((ERROR.SET_STATUS_STATE))
+
+            self.update(response_object)
+
+            _LOGGER.info("Set device %s hue to: %s", self.device_id, hue)
 
             return True
 
@@ -134,11 +196,6 @@ class AbodeDevice(object):
     def status(self):
         """Shortcut to get the generic status of a device."""
         return self.get_value('status')
-
-    @property
-    def level(self):
-        """Shortcut to get the generic level of a device."""
-        return self.get_value('level')
 
     @property
     def battery_low(self):

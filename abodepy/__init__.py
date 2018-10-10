@@ -131,6 +131,9 @@ class Abode():
         response = self._session.post(CONST.LOGIN_URL, data=login_data)
         response_object = json.loads(response.text)
 
+        oauth_token = self._session.get(CONST.OAUTH_TOKEN_URL)
+        oauth_token_object = json.loads(oauth_token.text)
+
         if response.status_code != 200:
             raise AbodeAuthenticationException((response.status_code,
                                                 response_object['message']))
@@ -140,6 +143,7 @@ class Abode():
         self._token = response_object['token']
         self._panel = response_object['panel']
         self._user = response_object['user']
+        self._oauth_token = oauth_token_object['access_token']
 
         _LOGGER.info("Login successful")
 
@@ -407,7 +411,7 @@ class Abode():
         return {'action': setting, 'option': value}
 
     def send_request(self, method, url, headers=None,
-                     data=None, is_retry=False):
+                     json=None, is_retry=False):
         """Send requests to Abode."""
         if not self._token:
             self.login()
@@ -415,11 +419,12 @@ class Abode():
         if not headers:
             headers = {}
 
+        headers['Authorization'] = 'Bearer ' + self._oauth_token
         headers['ABODE-API-KEY'] = self._token
 
         try:
             response = getattr(self._session, method)(
-                url, headers=headers, data=data)
+                url, headers=headers, json=json)
 
             if response and response.status_code < 400:
                 return response
@@ -431,7 +436,7 @@ class Abode():
             # attempt.
             self._token = None
 
-            return self.send_request(method, url, headers, data, True)
+            return self.send_request(method, url, headers, json, True)
 
         raise AbodeException((ERROR.REQUEST))
 

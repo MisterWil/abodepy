@@ -38,3 +38,17 @@ class AbodeSwitch(AbodeDevice):
     def is_dimmable(self):
         """Device dimmable."""
         return False
+
+    @property
+    def is_color_capable(self):
+        """Device is color compatible."""
+        # Prevents issues for switches that are specified as lights
+        # in the Abode component of the Home Assistant config file
+        return False
+
+    @property
+    def has_color(self):
+        """Device is using color mode."""
+        # Prevents issues for switches that are specified as lights
+        # in the Abode component of the Home Assistant config file
+        return False
