@@ -25,8 +25,7 @@ class AbodeDevice(object):
         self._generic_type = json_obj.get('generic_type')
         self._abode = abode
 
-        if not self._name:
-            self._name = self.type + ' ' + self.device_id
+        self._update_name()
 
     def set_status(self, status):
         """Set device status."""
@@ -185,6 +184,13 @@ class AbodeDevice(object):
         """
         self._json_state.update(
             {k: json_state[k] for k in json_state if self._json_state.get(k)})
+        self._update_name()
+
+    def _update_name(self):
+        """Set the device name from _json_state, with a sensible default."""
+        self._name = self._json_state.get('name')
+        if not self._name:
+            self._name = self.type + ' ' + self.device_id
 
     @property
     def status(self):
