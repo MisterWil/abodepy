@@ -94,3 +94,7 @@ ENV/
 /.pydevproject
 .settings/
 *.pickle
+
+# PyCharm project settings
+.idea/
+
