@@ -37,7 +37,7 @@ class AbodeDevice(object):
             }
 
             response = self._abode.send_request(
-                method="put", url=url, json=status_data)
+                method="put", url=url, data=status_data)
             response_object = json.loads(response.text)
 
             _LOGGER.debug("Set Status Response: %s", response.text)
@@ -68,7 +68,7 @@ class AbodeDevice(object):
             }
 
             response = self._abode.send_request(
-                "put", url, json=level_data)
+                "put", url, data=level_data)
             response_object = json.loads(response.text)
 
             _LOGGER.debug("Set Level Response: %s", response.text)
@@ -97,7 +97,7 @@ class AbodeDevice(object):
                 'colorTemperature': int(color_temp)
             }
 
-            response = self._abode.send_request("post", url, json=color_data)
+            response = self._abode.send_request("post", url, data=color_data)
             response_object = json.loads(response.text)
 
             _LOGGER.debug("Set Color Temp Response: %s", response.text)
@@ -128,7 +128,7 @@ class AbodeDevice(object):
                 'saturation': int(saturation)
             }
 
-            response = self._abode.send_request("post", url, json=color_data)
+            response = self._abode.send_request("post", url, data=color_data)
             response_object = json.loads(response.text)
 
             _LOGGER.debug("Set Color Response: %s", response.text)

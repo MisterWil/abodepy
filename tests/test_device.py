@@ -30,6 +30,7 @@ import tests.mock.devices.status_display as STATUS_DISPLAY
 import tests.mock.devices.water_sensor as WATER_SENSOR
 import tests.mock.devices.unknown as UNKNOWN
 import tests.mock.login as LOGIN
+import tests.mock.oauth_claims as OAUTH_CLAIMS
 import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
 
@@ -103,6 +104,7 @@ class TestDevice(unittest.TestCase):
         """Check the generic Abode device class init's properly."""
         # Set up URLs
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 
@@ -140,6 +142,7 @@ class TestDevice(unittest.TestCase):
         """Check the generic Abode device class init's properly."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 
@@ -172,6 +175,7 @@ class TestDevice(unittest.TestCase):
         """Tests that multiple devices are returned properly."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -211,6 +215,7 @@ class TestDevice(unittest.TestCase):
         """Tests that multiple devices are returned properly."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -235,6 +240,7 @@ class TestDevice(unittest.TestCase):
         """Tests that device category filter returns requested results."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -278,6 +284,7 @@ class TestDevice(unittest.TestCase):
         """Check that devices return false without control url's."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 
@@ -299,6 +306,7 @@ class TestDevice(unittest.TestCase):
         """Tests that device status changes work as expected."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -365,6 +373,7 @@ class TestDevice(unittest.TestCase):
         """Tests that device level changes work as expected."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -432,6 +441,7 @@ class TestDevice(unittest.TestCase):
         """Tests that all mocked devices are mapped correctly."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))

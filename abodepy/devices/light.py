@@ -34,6 +34,7 @@ class AbodeLight(AbodeSwitch):
         if (self.get_value(CONST.STATUSES_KEY).get('color_mode')
                 == str(CONST.COLOR_MODE_ON)):
             return True
+        return False
 
     @property
     def is_color_capable(self):

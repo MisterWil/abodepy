@@ -14,6 +14,7 @@ import abodepy.helpers.constants as CONST
 
 import tests.mock as MOCK
 import tests.mock.login as LOGIN
+import tests.mock.oauth_claims as OAUTH_CLAIMS
 import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
 import tests.mock.devices as DEVICES
@@ -60,6 +61,7 @@ class TestAbode(unittest.TestCase):
     def tests_manual_login(self, m):
         """Check that we can manually use the login() function."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
 
         self.abode_no_cred.login(username=USERNAME, password=PASSWORD)
 
@@ -77,6 +79,7 @@ class TestAbode(unittest.TestCase):
         panel_json = PANEL.get_response_ok()
 
         m.post(CONST.LOGIN_URL, text=login_json)
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.get(CONST.PANEL_URL, text=panel_json)
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
 
@@ -108,6 +111,7 @@ class TestAbode(unittest.TestCase):
         panel_json = PANEL.get_response_ok()
 
         m.post(CONST.LOGIN_URL, text=login_json)
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.get(CONST.PANEL_URL, text=panel_json)
         m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
         m.get(CONST.AUTOMATION_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
@@ -142,6 +146,7 @@ class TestAbode(unittest.TestCase):
         """Test login failed."""
         m.post(CONST.LOGIN_URL,
                text=LOGIN.post_response_bad_request(), status_code=400)
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
 
         # Check that we raise an Exception with a failed login request.
         with self.assertRaises(abodepy.AbodeAuthenticationException):
@@ -151,6 +156,7 @@ class TestAbode(unittest.TestCase):
     def tests_logout_failure(self, m):
         """Test logout failed."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
         m.post(CONST.LOGOUT_URL,
@@ -166,6 +172,7 @@ class TestAbode(unittest.TestCase):
     def tests_logout_exception(self, m):
         """Test logout exception."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
         m.post(CONST.LOGOUT_URL, exc=requests.exceptions.ConnectTimeout)
@@ -184,6 +191,7 @@ class TestAbode(unittest.TestCase):
         panel_json = PANEL.get_response_ok()
 
         m.post(CONST.LOGIN_URL, text=login_json)
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.get(CONST.PANEL_URL, text=panel_json)
         m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
@@ -224,6 +232,8 @@ class TestAbode(unittest.TestCase):
                 auth_token=new_token), 'status_code': 200}
         ])
 
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+
         m.get(CONST.DEVICES_URL, [
             {'text': MOCK.response_forbidden(), 'status_code': 403},
             {'text': DEVICES.EMPTY_DEVICE_RESPONSE, 'status_code': 200}
@@ -245,6 +255,8 @@ class TestAbode(unittest.TestCase):
                 auth_token=new_token), 'status_code': 200}
         ])
 
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+
         m.get(CONST.DEVICES_URL, [
             {'exc': requests.exceptions.ConnectTimeout},
             {'text': DEVICES.EMPTY_DEVICE_RESPONSE, 'status_code': 200}
@@ -261,6 +273,7 @@ class TestAbode(unittest.TestCase):
     def tests_continuous_bad_auth(self, m):
         """Check that Abode won't get stuck with repeated failed retries."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.get(CONST.DEVICES_URL,
               text=MOCK.response_forbidden(), status_code=403)
 
@@ -290,6 +303,7 @@ class TestAbode(unittest.TestCase):
             devid=dc2_devid, status=CONST.STATUS_OFF)
 
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.DEVICES_URL, text='[' + dc1a + ',' + dc2a + ']')
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
@@ -335,6 +349,7 @@ class TestAbode(unittest.TestCase):
     def tests_settings_validation(self, m):
         """Check that device panel general settings are working."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
         m.get(CONST.SETTINGS_URL, text=MOCK.generic_response_ok())
@@ -346,6 +361,7 @@ class TestAbode(unittest.TestCase):
     def tests_general_settings(self, m):
         """Check that device panel general settings are working."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
         m.put(CONST.SETTINGS_URL, text=MOCK.generic_response_ok())
@@ -378,6 +394,7 @@ class TestAbode(unittest.TestCase):
     def tests_area_settings(self, m):
         """Check that device panel areas settings are working."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
         m.put(CONST.AREAS_URL, text=MOCK.generic_response_ok())
@@ -405,6 +422,7 @@ class TestAbode(unittest.TestCase):
     def tests_sound_settings(self, m):
         """Check that device panel sound settings are working."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
         m.put(CONST.SOUNDS_URL, text=MOCK.generic_response_ok())
@@ -438,6 +456,7 @@ class TestAbode(unittest.TestCase):
     def tests_siren_settings(self, m):
         """Check that device panel siren settings are working."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
         m.put(CONST.SIREN_URL, text=MOCK.generic_response_ok())

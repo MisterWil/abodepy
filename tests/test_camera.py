@@ -9,6 +9,7 @@ import abodepy.helpers.constants as CONST
 import tests.mock as MOCK
 import tests.mock.devices.ir_camera as IRCAMERA
 import tests.mock.login as LOGIN
+import tests.mock.oauth_claims as OAUTH_CLAIMS
 import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
 
@@ -35,6 +36,7 @@ class TestCamera(unittest.TestCase):
         """Tests that camera properties work as expected."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -79,6 +81,7 @@ class TestCamera(unittest.TestCase):
         """Tests that camera devices capture new images."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -117,6 +120,7 @@ class TestCamera(unittest.TestCase):
         """Tests that camera devices update correctly via timeline request."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -194,6 +198,7 @@ class TestCamera(unittest.TestCase):
         """Tests that camera updates correctly with no timeline events."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -227,6 +232,7 @@ class TestCamera(unittest.TestCase):
         """Tests that camera images will write to a file."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))

@@ -11,6 +11,7 @@ import abodepy.helpers.timeline as TIMELINE
 from abodepy.devices.binary_sensor import AbodeBinarySensor
 
 import tests.mock.login as LOGIN
+import tests.mock.oauth_claims as OAUTH_CLAIMS
 import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
 import tests.mock.devices.secure_barrier as COVER
@@ -40,6 +41,7 @@ class TestEventController(unittest.TestCase):
         """Tests that we can register for device events with a device id."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -72,6 +74,7 @@ class TestEventController(unittest.TestCase):
         """Tests that we can register for device events with a device."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -103,6 +106,7 @@ class TestEventController(unittest.TestCase):
         """Tests that invalid devices are not registered."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -186,6 +190,7 @@ class TestEventController(unittest.TestCase):
         """Tests that device updates callback correctly."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -306,6 +311,7 @@ class TestEventController(unittest.TestCase):
         """Tests that alarm device updates callback correctly."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -370,6 +376,7 @@ class TestEventController(unittest.TestCase):
         """Tests that multiple device updates callback correctly."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))

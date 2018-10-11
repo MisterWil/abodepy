@@ -9,6 +9,7 @@ import abodepy.helpers.constants as CONST
 
 import tests.mock as MOCK
 import tests.mock.login as LOGIN
+import tests.mock.oauth_claims as OAUTH_CLAIMS
 import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
 import tests.mock.automation as AUTOMATION
@@ -37,6 +38,7 @@ class TestDevice(unittest.TestCase):
         """Check the Abode automation class init's properly."""
         # Set up URLs
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 
@@ -77,6 +79,7 @@ class TestDevice(unittest.TestCase):
         """Check the automation Abode class refreshes."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 
@@ -159,6 +162,7 @@ class TestDevice(unittest.TestCase):
         """Check that multiple automations work and return correctly."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 
@@ -211,6 +215,7 @@ class TestDevice(unittest.TestCase):
         """Check that automations reuse the same classes when refreshed."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 
@@ -300,6 +305,7 @@ class TestDevice(unittest.TestCase):
         """Check that automations can change their active state."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 
@@ -384,6 +390,7 @@ class TestDevice(unittest.TestCase):
         """Check that automations can be triggered."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 
@@ -426,6 +433,7 @@ class TestDevice(unittest.TestCase):
         """Check that automations can be filtered by generic type."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 

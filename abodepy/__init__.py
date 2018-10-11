@@ -129,7 +129,7 @@ class Abode():
             CONST.UUID: self._cache[CONST.UUID]
         }
 
-        response = self._session.post(CONST.LOGIN_URL, data=login_data)
+        response = self._session.post(CONST.LOGIN_URL, json=login_data)
         response_object = json.loads(response.text)
 
         oauth_token = self._session.get(CONST.OAUTH_TOKEN_URL)
@@ -412,7 +412,7 @@ class Abode():
         return {'action': setting, 'option': value}
 
     def send_request(self, method, url, headers=None,
-                     json=None, is_retry=False):
+                     data=None, is_retry=False):
         """Send requests to Abode."""
         if not self._token:
             self.login()
@@ -425,7 +425,7 @@ class Abode():
 
         try:
             response = getattr(self._session, method)(
-                url, headers=headers, json=json)
+                url, headers=headers, json=data)
 
             if response and response.status_code < 400:
                 return response
@@ -437,7 +437,7 @@ class Abode():
             # attempt.
             self._token = None
 
-            return self.send_request(method, url, headers, json, True)
+            return self.send_request(method, url, headers, data, True)
 
         raise AbodeException((ERROR.REQUEST))
 

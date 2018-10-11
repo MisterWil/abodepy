@@ -6,6 +6,7 @@ change so we can test that abodepy can still communicate.
 """
 
 AUTH_TOKEN = 'web-1eb04ba2236d85f49d4b9b4bb91665f2'
+OAUTH_TOKEN = 'ohyeahthisisanoauthtoken'
 
 
 def response_forbidden():

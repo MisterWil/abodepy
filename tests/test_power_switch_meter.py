@@ -7,6 +7,7 @@ import abodepy
 import abodepy.helpers.constants as CONST
 
 import tests.mock.login as LOGIN
+import tests.mock.oauth_claims as OAUTH_CLAIMS
 import tests.mock.logout as LOGOUT
 import tests.mock.panel as PANEL
 import tests.mock.devices as DEVICES
@@ -35,6 +36,7 @@ class TestPowerSwitchMeter(unittest.TestCase):
         """Tests that switch devices properties work as expected."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
@@ -81,6 +83,7 @@ class TestPowerSwitchMeter(unittest.TestCase):
         """Tests that switch device changes work as expected."""
         # Set up URL's
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL,
               text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
