@@ -14,5 +14,7 @@ class AbodeBinarySensor(AbodeDevice):
 
         Assume offline or open (worst case).
         """
-        return self.status not in (CONST.STATUS_OFF, CONST.STATUS_ONLINE,
+        if self._type == 'Occupancy':
+            return self.status not in CONST.STATUS_ONLINE
+        return self.status not in (CONST.STATUS_OFF, CONST.STATUS_OFFLINE,
                                    CONST.STATUS_CLOSED)
