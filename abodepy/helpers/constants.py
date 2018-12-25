@@ -223,9 +223,6 @@ UNIT_LUX = 'lx'
 LUX = 'lux'
 
 BRIGHTNESS_KEY = 'statusEx'
-# This is a guess currently
-MOTION_STATUS_KEY = 'motion_event'
-OCCUPANCY_STATUS_KEY = 'motion_event'
 
 
 def get_generic_type(type_tag):
