@@ -59,8 +59,6 @@ class TestLM(unittest.TestCase):
         self.assertEqual(device.status, '72 °F')
         self.assertFalse(device.battery_low)
         self.assertFalse(device.no_response)
-        self.assertFalse(device.has_motion)
-        self.assertFalse(device.has_occupancy)
         self.assertTrue(device.has_temp)
         self.assertTrue(device.has_humidity)
         self.assertTrue(device.has_lux)

@@ -71,13 +71,3 @@ class AbodeSensor(AbodeBinarySensor):
     def has_lux(self):
         """Device reports light lux level."""
         return self.lux is not None
-
-    @property
-    def has_motion(self):
-        """Device reports motion."""
-        return self.motion is not None
-
-    @property
-    def has_occupancy(self):
-        """Device reports occupancy."""
-        return self.occupancy is not None
