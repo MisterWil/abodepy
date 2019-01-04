@@ -8,22 +8,6 @@ import abodepy.helpers.constants as CONST
 class AbodeSensor(AbodeBinarySensor):
     """Class to represent a sensor device."""
 
-    @property
-    def motion(self):
-        """Motion detected."""
-        value = self._json_state.get(CONST.MOTION_STATUS_KEY)
-        if value:
-            return int(value) == 1
-        return None
-
-    @property
-    def occupancy(self):
-        """Occupancy detected."""
-        value = self._json_state.get(CONST.OCCUPANCY_STATUS_KEY)
-        if value:
-            return int(value) == 1
-        return None
-
     def _get_status(self, key):
         return self._json_state.get(CONST.STATUSES_KEY, {}).get(key)
 
