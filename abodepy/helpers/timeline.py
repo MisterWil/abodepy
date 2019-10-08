@@ -29,31 +29,31 @@ def map_event_code(event_code):
     if 1100 <= event_code <= 1199:
         return ALARM_GROUP
 
-    elif 3100 <= event_code <= 3199:
+    if 3100 <= event_code <= 3199:
         return ALARM_END_GROUP
 
-    elif 1300 <= event_code <= 1399:
+    if 1300 <= event_code <= 1399:
         return PANEL_FAULT_GROUP
 
-    elif 3300 <= event_code <= 3399:
+    if 3300 <= event_code <= 3399:
         return PANEL_RESTORE_GROUP
 
-    elif 1400 <= event_code <= 1499:
+    if 1400 <= event_code <= 1499:
         return DISARM_GROUP
 
-    elif 3400 <= event_code <= 3799:
+    if 3400 <= event_code <= 3799:
         return ARM_GROUP
 
-    elif 1600 <= event_code <= 1699:
+    if 1600 <= event_code <= 1699:
         return TEST_GROUP
 
-    elif 5000 <= event_code <= 5099:
+    if 5000 <= event_code <= 5099:
         return CAPTURE_GROUP
 
-    elif 5100 <= event_code <= 5199:
+    if 5100 <= event_code <= 5199:
         return DEVICE_GROUP
 
-    elif 5200 <= event_code <= 5299:
+    if 5200 <= event_code <= 5299:
         return AUTOMATION_GROUP
 
     return None

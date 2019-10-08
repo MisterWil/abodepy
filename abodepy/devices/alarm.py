@@ -34,7 +34,8 @@ class AbodeAlarm(AbodeSwitch):
         """Set Abode alarm mode."""
         if not mode:
             raise AbodeException(ERROR.MISSING_ALARM_MODE)
-        elif mode.lower() not in CONST.ALL_MODES:
+
+        if mode.lower() not in CONST.ALL_MODES:
             raise AbodeException(ERROR.INVALID_ALARM_MODE, CONST.ALL_MODES)
 
         mode = mode.lower()

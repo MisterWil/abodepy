@@ -11,7 +11,7 @@ import abodepy.helpers.errors as ERROR
 _LOGGER = logging.getLogger(__name__)
 
 
-class AbodeDevice(object):
+class AbodeDevice():
     """Class to represent each Abode device."""
 
     def __init__(self, json_obj, abode):

@@ -47,7 +47,7 @@ URL_PARAMS = "?EIO=3&transport=websocket"
 _LOGGER = logging.getLogger(__name__)
 
 
-class SocketIO(object):
+class SocketIO():
     """Class for using websockets to talk to a SocketIO server."""
 
     def __init__(self, url, cookie=None, origin=None):

@@ -29,8 +29,10 @@ class AbodeSensor(AbodeBinarySensor):
         """Get unit of temp."""
         if CONST.UNIT_FAHRENHEIT in self._get_status(CONST.TEMP_STATUS_KEY):
             return CONST.UNIT_FAHRENHEIT
-        elif CONST.UNIT_CELSIUS in self._get_status(CONST.TEMP_STATUS_KEY):
+
+        if CONST.UNIT_CELSIUS in self._get_status(CONST.TEMP_STATUS_KEY):
             return CONST.UNIT_CELSIUS
+
         return None
 
     @property

@@ -357,11 +357,11 @@ class Abode():
                     and value not in CONST.SETTING_ALL_CAMERA_RES):
                 raise AbodeException(ERROR.INVALID_SETTING_VALUE,
                                      CONST.SETTING_ALL_CAMERA_RES)
-            elif (setting in
-                  [CONST.SETTING_CAMERA_GRAYSCALE,
-                   CONST.SETTING_SILENCE_SOUNDS]
-                  and value not in
-                  CONST.SETTING_DISABLE_ENABLE):
+            if (setting in
+                    [CONST.SETTING_CAMERA_GRAYSCALE,
+                     CONST.SETTING_SILENCE_SOUNDS]
+                    and value not in
+                    CONST.SETTING_DISABLE_ENABLE):
                 raise AbodeException(ERROR.INVALID_SETTING_VALUE,
                                      CONST.SETTING_DISABLE_ENABLE)
 
@@ -376,7 +376,7 @@ class Abode():
                     and value not in CONST.VALID_SETTING_EXIT_AWAY):
                 raise AbodeException(ERROR.INVALID_SETTING_VALUE,
                                      CONST.VALID_SETTING_EXIT_AWAY)
-            elif value not in CONST.ALL_SETTING_ENTRY_EXIT_DELAY:
+            if value not in CONST.ALL_SETTING_ENTRY_EXIT_DELAY:
                 raise AbodeException(ERROR.INVALID_SETTING_VALUE,
                                      CONST.ALL_SETTING_ENTRY_EXIT_DELAY)
 
@@ -390,12 +390,12 @@ class Abode():
                     and value not in CONST.ALL_SETTING_SOUND):
                 raise AbodeException(ERROR.INVALID_SETTING_VALUE,
                                      CONST.ALL_SETTING_SOUND)
-            elif (setting == CONST.SETTING_ALARM_LENGTH
-                  and value not in CONST.ALL_SETTING_ALARM_LENGTH):
+            if (setting == CONST.SETTING_ALARM_LENGTH
+                    and value not in CONST.ALL_SETTING_ALARM_LENGTH):
                 raise AbodeException(ERROR.INVALID_SETTING_VALUE,
                                      CONST.ALL_SETTING_ALARM_LENGTH)
-            elif (setting == CONST.SETTING_FINAL_BEEPS
-                  and value not in CONST.ALL_SETTING_FINAL_BEEPS):
+            if (setting == CONST.SETTING_FINAL_BEEPS
+                    and value not in CONST.ALL_SETTING_FINAL_BEEPS):
                 raise AbodeException(ERROR.INVALID_SETTING_VALUE,
                                      CONST.ALL_SETTING_FINAL_BEEPS)
 
@@ -507,23 +507,30 @@ def new_device(device_json, abode):
     generic_type = CONST.get_generic_type(type_tag.lower())
     device_json['generic_type'] = generic_type
 
-    if generic_type == CONST.TYPE_CONNECTIVITY or \
-       generic_type == CONST.TYPE_MOISTURE or \
-       generic_type == CONST.TYPE_OPENING:
+    if (generic_type in
+            [CONST.TYPE_CONNECTIVITY, CONST.TYPE_MOISTURE,
+             CONST.TYPE_OPENING]):
         return AbodeBinarySensor(device_json, abode)
-    elif generic_type == CONST.TYPE_CAMERA:
+
+    if generic_type == CONST.TYPE_CAMERA:
         return AbodeCamera(device_json, abode)
-    elif generic_type == CONST.TYPE_COVER:
+
+    if generic_type == CONST.TYPE_COVER:
         return AbodeCover(device_json, abode)
-    elif generic_type == CONST.TYPE_LIGHT:
+
+    if generic_type == CONST.TYPE_LIGHT:
         return AbodeLight(device_json, abode)
-    elif generic_type == CONST.TYPE_LOCK:
+
+    if generic_type == CONST.TYPE_LOCK:
         return AbodeLock(device_json, abode)
-    elif generic_type == CONST.TYPE_SWITCH:
+
+    if generic_type == CONST.TYPE_SWITCH:
         return AbodeSwitch(device_json, abode)
-    elif generic_type == CONST.TYPE_VALVE:
+
+    if generic_type == CONST.TYPE_VALVE:
         return AbodeValve(device_json, abode)
-    elif generic_type == CONST.TYPE_UNKNOWN_SENSOR:
+
+    if generic_type == CONST.TYPE_UNKNOWN_SENSOR:
         return _new_sensor(device_json, abode)
 
     return None

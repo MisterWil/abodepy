@@ -12,7 +12,7 @@ import abodepy.socketio as sio
 _LOGGER = logging.getLogger(__name__)
 
 
-class AbodeEventController(object):
+class AbodeEventController():
     """Class for subscribing to abode events."""
 
     def __init__(self, abode, url=CONST.SOCKETIO_URL):
