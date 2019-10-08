@@ -87,67 +87,6 @@ class AbodeDevice(object):
 
         return False
 
-    def set_color_temp(self, color_temp):
-        """Set device color."""
-        if self._json_state['control_url']:
-            url = CONST.INTEGRATIONS_URL + self._device_uuid
-
-            color_data = {
-                'action': 'setcolortemperature',
-                'colorTemperature': int(color_temp)
-            }
-
-            response = self._abode.send_request("post", url, data=color_data)
-            response_object = json.loads(response.text)
-
-            _LOGGER.debug("Set Color Temp Response: %s", response.text)
-
-            if response_object['idForPanel'] != self.device_id:
-                raise AbodeException((ERROR.SET_STATUS_DEV_ID))
-
-            if response_object['colorTemperature'] != int(color_temp):
-                raise AbodeException((ERROR.SET_STATUS_STATE))
-
-            self.update(response_object)
-
-            _LOGGER.info("Set device %s color_temp to: %s",
-                         self.device_id, color_temp)
-            return True
-
-        return False
-
-    def set_color(self, color):
-        """Set device color."""
-        if self._json_state['control_url']:
-            url = CONST.INTEGRATIONS_URL + self._device_uuid
-
-            hue, saturation = color
-            color_data = {
-                'action': 'setcolor',
-                'hue': int(hue),
-                'saturation': int(saturation)
-            }
-
-            response = self._abode.send_request("post", url, data=color_data)
-            response_object = json.loads(response.text)
-
-            _LOGGER.debug("Set Color Response: %s", response.text)
-
-            if response_object['idForPanel'] != self.device_id:
-                raise AbodeException((ERROR.SET_STATUS_DEV_ID))
-
-            if (response_object['hue'] != int(hue) or
-                    response_object['saturation'] != int(saturation)):
-                raise AbodeException((ERROR.SET_STATUS_STATE))
-
-            self.update(response_object)
-
-            _LOGGER.info("Set device %s hue to: %s", self.device_id, hue)
-
-            return True
-
-        return False
-
     def get_value(self, name):
         """Get a value from the json object.
 
@@ -242,6 +181,11 @@ class AbodeDevice(object):
     def device_id(self):
         """Get the device id."""
         return self._device_id
+
+    @property
+    def device_uuid(self):
+        """Get the device uuid."""
+        return self._device_uuid
 
     @property
     def desc(self):
