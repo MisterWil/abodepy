@@ -7,7 +7,7 @@ PATCH_VERSION = '0'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
-REQUIRED_PYTHON_VER = (3, 4, 2)
+REQUIRED_PYTHON_VER = (3, 5, 0)
 
 PROJECT_NAME = 'abodepy'
 PROJECT_PACKAGE_NAME = 'abodepy'
