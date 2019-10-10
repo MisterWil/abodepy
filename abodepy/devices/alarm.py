@@ -134,4 +134,4 @@ class AbodeAlarm(AbodeSwitch):
     @property
     def mac_address(self):
         """Get the hub mac address."""
-        return self._abode.panel.get('mac')
+        return self._json_state.get('mac')
