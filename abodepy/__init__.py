@@ -233,9 +233,9 @@ class Abode():
             alarm_device = self._devices.get(CONST.ALARM_DEVICE_ID + '1')
 
             if alarm_device:
-                alarm_device.update(panel_json)
+                alarm_device.update(self._panel)
             else:
-                alarm_device = ALARM.create_alarm(panel_json, self)
+                alarm_device = ALARM.create_alarm(self._panel, self)
                 self._devices[alarm_device.device_id] = alarm_device
 
         if generic_type:
