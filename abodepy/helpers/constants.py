@@ -3,7 +3,7 @@ import os
 
 MAJOR_VERSION = 0
 MINOR_VERSION = 16
-PATCH_VERSION = '1'
+PATCH_VERSION = '2'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
@@ -29,7 +29,7 @@ PROJECT_CLASSIFIERS = [
     'Intended Audience :: Developers',
     'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
-    'Programming Language :: Python :: 3.4',
+    'Programming Language :: Python :: 3.5',
     'Topic :: Home Automation'
 ]
 
