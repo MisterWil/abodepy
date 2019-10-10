@@ -19,5 +19,6 @@ def device(area='1', panel=PANEL.get_response_ok(mode=CONST.MODE_STANDBY)):
     alarm['type'] = CONST.ALARM_TYPE
     alarm['type_tag'] = CONST.DEVICE_ALARM
     alarm['generic_type'] = CONST.TYPE_ALARM
+    alarm['uuid'] = alarm.get('mac').replace(':', '').lower()
 
     return alarm

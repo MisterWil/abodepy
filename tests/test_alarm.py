@@ -56,7 +56,8 @@ class TestAlarm(unittest.TestCase):
         m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
         m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok(
-            mode=CONST.MODE_STANDBY, battery=True, is_cellular=True))
+            mode=CONST.MODE_STANDBY, battery=True, is_cellular=True,
+            mac='01:AA:b3:C4:d5:66'))
         m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
 
         # Logout to reset everything
@@ -70,6 +71,8 @@ class TestAlarm(unittest.TestCase):
         self.assertTrue(alarm.battery)
         self.assertTrue(alarm.is_cellular)
         self.assertFalse(alarm.is_on)
+        self.assertEqual(alarm.device_uuid, '01aab3c4d566')
+        self.assertEqual(alarm.mac_address, '01:AA:b3:C4:d5:66')
 
         # Change alarm properties and state to away and test
         m.get(CONST.PANEL_URL, text=PANEL.get_response_ok(
