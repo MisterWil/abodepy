@@ -18,6 +18,7 @@ def create_alarm(panel_json, abode, area='1'):
     panel_json['type'] = CONST.ALARM_TYPE
     panel_json['type_tag'] = CONST.DEVICE_ALARM
     panel_json['generic_type'] = CONST.TYPE_ALARM
+    panel_json['uuid'] = panel_json.get('mac').replace(':', '').lower()
 
     return AbodeAlarm(panel_json, abode, area)
 
@@ -133,4 +134,4 @@ class AbodeAlarm(AbodeSwitch):
     @property
     def mac_address(self):
         """Get the hub mac address."""
-        return self._abode.panel.get('mac')
+        return self._json_state.get('mac')

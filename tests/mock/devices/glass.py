@@ -6,7 +6,8 @@ DEVICE_ID = 'RF:00000001'
 
 def device(devid=DEVICE_ID, status=CONST.STATUS_ONLINE,
            low_battery=False, no_response=False,
-           out_of_order=False, tampered=False):
+           out_of_order=False, tampered=False,
+           uuid='91568b0d4c9d58c10d75fdeea887d4f4'):
     """Glass break sensor mock device."""
     return '''
         {
@@ -53,5 +54,6 @@ def device(devid=DEVICE_ID, status=CONST.STATUS_ONLINE,
           ],
           "status_icons":[
           ],
-          "icon":"assets/icons/unknown.svg"
+          "icon":"assets/icons/unknown.svg",
+          "uuid":"''' + uuid + '''"
        }'''

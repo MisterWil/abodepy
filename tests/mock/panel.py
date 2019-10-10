@@ -3,7 +3,8 @@
 import abodepy.helpers.constants as CONST
 
 
-def get_response_ok(mode=CONST.MODE_STANDBY, battery=False, is_cellular=False):
+def get_response_ok(mode=CONST.MODE_STANDBY, battery=False, is_cellular=False,
+                    mac='00:11:22:33:44:55'):
     """Return panel response json."""
     return '''{
        "version":"ABGW 0.0.2.17F ABGW-L1-XA36J 3.1.2.6.1 Z-Wave 3.95",
@@ -38,6 +39,19 @@ def get_response_ok(mode=CONST.MODE_STANDBY, battery=False, is_cellular=False):
        "plan_set_id":"1",
        "dealer_id":"0",
        "tz_diff":"-04:00",
+       "is_demo":"0",
+       "rf51_version":"ABGW-L1-XA36J",
+       "model":"L1",
+       "mac":"''' + mac + '''",
+       "xml_version":"3",
+       "dealer_name":"abode",
+       "id":"0",
+       "dealer_address":"2625 Middlefield Road #900 Palo Alto CA 94306",
+       "dealer_domain":"https://my.goabode.com",
+       "domain_alias":"https://test.goabode.com",
+       "dealer_support_url":"https://support.goabode.com",
+       "app_launch_url":"https://goabode.app.link/abode",
+       "has_wifi":"0",
        "mode":{
           "area_1":"''' + mode + '''",
           "area_2":"standby"

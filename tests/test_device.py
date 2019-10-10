@@ -112,7 +112,8 @@ class TestDevice(unittest.TestCase):
         device_text = '[' + GLASS.device(
             status=CONST.STATUS_ONLINE,
             low_battery=True, no_response=True,
-            tampered=True, out_of_order=True) + ']'
+            tampered=True, out_of_order=True,
+            uuid='testuuid00000001') + ']'
         device_json = json.loads(device_text)
 
         m.get(CONST.DEVICES_URL, text=device_text)
@@ -130,6 +131,7 @@ class TestDevice(unittest.TestCase):
         self.assertEqual(device.type, device_json[0]['type'])
         self.assertEqual(device.type_tag, device_json[0]['type_tag'])
         self.assertEqual(device.device_id, device_json[0]['id'])
+        self.assertEqual(device.device_uuid, device_json[0]['uuid'])
         self.assertEqual(device.status, CONST.STATUS_ONLINE)
         self.assertTrue(device.battery_low)
         self.assertTrue(device.no_response)
