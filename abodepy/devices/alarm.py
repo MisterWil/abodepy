@@ -18,6 +18,7 @@ def create_alarm(panel_json, abode, area='1'):
     panel_json['type'] = CONST.ALARM_TYPE
     panel_json['type_tag'] = CONST.DEVICE_ALARM
     panel_json['generic_type'] = CONST.TYPE_ALARM
+    panel_json['uuid'] = panel_json.get('mac').replace(':', '').lower()
 
     return AbodeAlarm(panel_json, abode, area)
 
