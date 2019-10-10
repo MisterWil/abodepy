@@ -191,5 +191,6 @@ class AbodeDevice():
     def desc(self):
         """Get a short description of the device."""
         # Garage Entry Door (ZW:00000003) - Door Lock - Closed
-        return '{0} (ID: {1}) - {2} - {3}'.format(
-            self.name, self.device_id, self.type, self.status)
+        return '{0} (ID: {1}, UUID: {2}) - {3} - {4}'.format(
+            self.name, self.device_id, self.device_uuid,
+            self.type, self.status)
