@@ -456,11 +456,6 @@ class Abode():
         """Get the UUID."""
         return self._cache[CONST.UUID]
 
-    @property
-    def panel(self):
-        """Return the panel json data."""
-        return self._panel
-
     def _get_session(self):
         # Perform a generic update so we know we're logged in
         self.send_request("get", CONST.PANEL_URL)
