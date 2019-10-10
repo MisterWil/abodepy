@@ -128,8 +128,8 @@ class TestAbode(unittest.TestCase):
         self.assertEqual(abode._cache[CONST.ID], 'fizz')
         self.assertEqual(abode._cache[CONST.PASSWORD], 'buzz')
         self.assertEqual(abode._token, MOCK.AUTH_TOKEN)
-        self.assertEqual(abode._panel, json.loads(panel_json))
         self.assertEqual(abode._user, json.loads(user_json))
+        self.assertIsNotNone(abode._panel)
 
         # Contains one device, our alarm
         self.assertEqual(abode._devices, {'area_1': abode.get_alarm()})
@@ -205,8 +205,8 @@ class TestAbode(unittest.TestCase):
         self.assertEqual(self.abode._cache[CONST.ID], USERNAME)
         self.assertEqual(self.abode._cache[CONST.PASSWORD], PASSWORD)
         self.assertEqual(self.abode._token, auth_token)
-        self.assertEqual(self.abode._panel, json.loads(panel_json))
         self.assertEqual(self.abode._user, json.loads(user_json))
+        self.assertIsNotNone(self.abode._panel)
         self.assertIsNotNone(self.abode.get_alarm())
         self.assertIsNotNone(self.abode._get_session())
         self.assertEqual(self.abode._get_session(), original_session)
