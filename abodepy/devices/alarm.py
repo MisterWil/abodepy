@@ -129,3 +129,8 @@ class AbodeAlarm(AbodeSwitch):
     def is_cellular(self):
         """Return true if base station on cellular backup."""
         return int(self._json_state.get('is_cellular', '0')) == 1
+
+    @property
+    def mac_address(self):
+        """Get the hub mac address."""
+        return self._abode.panel.get('mac')
