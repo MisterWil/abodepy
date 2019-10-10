@@ -1,4 +1,4 @@
-flake8==3.3
+flake8>=3.6.0
 flake8-docstrings==1.1.0
 pylint==2.4.2
 pydocstyle==2.0.0
