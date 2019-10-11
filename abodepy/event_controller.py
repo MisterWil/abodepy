@@ -67,9 +67,34 @@ class AbodeEventController():
                 raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
 
             _LOGGER.debug(
-                "Subscribing to updated for device_id: %s", device_id)
+                "Subscribing to updates for device_id: %s", device_id)
 
             self._device_callbacks[device_id].append((callback))
+
+        return True
+
+    def remove_device_callback(self, devices):
+        """Unregister a device callback."""
+        if not devices:
+            return False
+
+        if not isinstance(devices, (tuple, list)):
+            devices = [devices]
+
+        for device in devices:
+            device_id = device
+
+            if isinstance(device, AbodeDevice):
+                device_id = device.device_id
+
+            if not self._abode.get_device(device_id):
+                raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
+
+            _LOGGER.debug(
+                "Unsubscribing from updates for device_id: %s", device_id)
+
+            if device_id in self._device_callbacks:
+                del self._device_callbacks[device_id]
 
         return True
 
