@@ -102,6 +102,41 @@ class TestEventController(unittest.TestCase):
         self.assertTrue(events.add_device_callback(device, _our_callback))
 
     @requests_mock.mock()
+    def tests_device_all_unregistration(self, m):
+        """Tests that we can unregister for all device events."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+        m.get(CONST.DEVICES_URL,
+              text=COVER.device(devid=COVER.DEVICE_ID,
+                                status=CONST.STATUS_CLOSED,
+                                low_battery=False,
+                                no_response=False))
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our device
+        device = self.abode.get_device(COVER.DEVICE_ID)
+        self.assertIsNotNone(device)
+
+        # Get the event controller
+        events = self.abode.events
+        self.assertIsNotNone(events)
+
+        def _our_callback(device):
+            self.assertIsNotNone(device)
+
+        # Register our device
+        self.assertTrue(events.add_device_callback(device, _our_callback))
+
+        # Unregister all callbacks
+        self.assertTrue(events.remove_device_all_callbacks(device))
+
+    @requests_mock.mock()
     def tests_invalid_device(self, m):
         """Tests that invalid devices are not registered."""
         # Set up URL's
@@ -139,6 +174,42 @@ class TestEventController(unittest.TestCase):
 
         with self.assertRaises(abodepy.AbodeException):
             events.add_device_callback(fake_device, callback)
+
+    @requests_mock.mock()
+    def tests_invalid_all_device_unregister(self, m):
+        """Tests that invalid devices are not all unregistered."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+        m.get(CONST.DEVICES_URL,
+              text=COVER.device(devid=COVER.DEVICE_ID,
+                                status=CONST.STATUS_CLOSED,
+                                low_battery=False,
+                                no_response=False))
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our device
+        device = self.abode.get_device(COVER.DEVICE_ID)
+        self.assertIsNotNone(device)
+
+        # Get the event controller
+        events = self.abode.events
+        self.assertIsNotNone(events)
+
+        # Test that no device returns false
+        self.assertFalse(events.remove_device_all_callbacks(None))
+
+        # Create a fake device and attempt to unregister that
+        fake_device = AbodeBinarySensor(
+            json.loads(DOORCONTACT.device()), self.abode)
+
+        with self.assertRaises(abodepy.AbodeException):
+            events.remove_device_all_callbacks(fake_device)
 
     def tests_event_registration(self):
         """Tests that events register correctly."""
