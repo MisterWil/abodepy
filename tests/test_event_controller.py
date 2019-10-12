@@ -134,7 +134,7 @@ class TestEventController(unittest.TestCase):
         self.assertTrue(events.add_device_callback(device, _our_callback))
 
         # Unregister all callbacks
-        self.assertTrue(events.remove_device_all_callbacks(device))
+        self.assertTrue(events.remove_all_device_callbacks(device))
 
     @requests_mock.mock()
     def tests_invalid_device(self, m):
@@ -202,14 +202,14 @@ class TestEventController(unittest.TestCase):
         self.assertIsNotNone(events)
 
         # Test that no device returns false
-        self.assertFalse(events.remove_device_all_callbacks(None))
+        self.assertFalse(events.remove_all_device_callbacks(None))
 
         # Create a fake device and attempt to unregister that
         fake_device = AbodeBinarySensor(
             json.loads(DOORCONTACT.device()), self.abode)
 
         with self.assertRaises(abodepy.AbodeException):
-            events.remove_device_all_callbacks(fake_device)
+            events.remove_all_device_callbacks(fake_device)
 
     def tests_event_registration(self):
         """Tests that events register correctly."""

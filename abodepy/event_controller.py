@@ -73,7 +73,7 @@ class AbodeEventController():
 
         return True
 
-    def remove_device_all_callbacks(self, devices):
+    def remove_all_device_callbacks(self, devices):
         """Unregister all callbacks for a device."""
         if not devices:
             return False
@@ -96,7 +96,7 @@ class AbodeEventController():
             _LOGGER.debug(
                 "Unsubscribing from all updates for device_id: %s", device_id)
 
-            self._device_callbacks.clear()
+            self._device_callbacks[device_id].clear()
 
         return True
 
