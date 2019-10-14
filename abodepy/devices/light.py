@@ -40,7 +40,13 @@ class AbodeLight(AbodeSwitch):
                     self.device_id, color_temp,
                     response_object['colorTemperature'])
 
-            self.update(response_object)
+                color_temp = response_object['colorTemperature']
+
+            self.update({
+                'statuses': {
+                    'color_temp': color_temp
+                }
+            })
 
             _LOGGER.info("Set device %s color_temp to: %s",
                          self.device_id, color_temp)
@@ -73,11 +79,21 @@ class AbodeLight(AbodeSwitch):
                 _LOGGER.warning(
                     ("Set color mismatch for device %s. "
                      "Request val: %s, Response val: %s "),
-                    self.device_id, hue, response_object['hue'])
+                    self.device_id, (hue, saturation),
+                    (response_object['hue'], response_object['saturation']))
 
-            self.update(response_object)
+                hue = response_object['hue']
+                saturation = response_object['saturation']
 
-            _LOGGER.info("Set device %s hue to: %s", self.device_id, hue)
+            self.update({
+                'statuses': {
+                    'hue': hue,
+                    'saturation': saturation
+                }
+            })
+
+            _LOGGER.info("Set device %s color to: %s",
+                         self.device_id, (hue, saturation))
 
             return True
 
