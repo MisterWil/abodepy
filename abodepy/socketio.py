@@ -185,8 +185,8 @@ class SocketIO():
             if self._running:
                 wait_for = min_wait + random() * min(random_wait, 2 ** retries)
 
-                _LOGGER.warning("Waiting %f seconds before reconnecting...",
-                                wait_for)
+                _LOGGER.info("Waiting %f seconds before reconnecting...",
+                             wait_for)
 
                 if self._exit_event.wait(wait_for):
                     break
