@@ -19,7 +19,7 @@ def load_cache(filename):
             return pickle.load(handle)
         except EOFError:
             _LOGGER.warning("Empty pickle file: %s", filename)
-        except pickle.UnpicklingError:
+        except (pickle.UnpicklingError, ValueError):
             _LOGGER.warning("Corrupted pickle file: %s", filename)
 
         return None
