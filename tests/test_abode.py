@@ -3,6 +3,7 @@ Test Abode system setup, shutdown, and general functionality.
 
 Tests the system initialization and attributes of the main Abode system.
 """
+import os
 import json
 import unittest
 
@@ -485,3 +486,130 @@ class TestAbode(unittest.TestCase):
         with self.assertRaises(abodepy.AbodeException):
             self.abode.set_setting(CONST.SETTING_SIREN_TAMPER_SOUNDS,
                                    "foobar")
+
+    @requests_mock.mock()
+    def tests_cookies(self, m):
+        """Check that cookies are saved and loaded successfully."""
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
+        m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
+
+        # Define test pickle file and cleanup old one if exists
+        cache_path = "./test_cookies.pickle"
+
+        if os.path.exists(cache_path):
+            os.remove(cache_path)
+
+        # Assert that no cookies file exists
+        self.assertFalse(os.path.exists(cache_path))
+
+        # Create abode
+        abode = abodepy.Abode(username='fizz',
+                              password='buzz',
+                              auto_login=True,
+                              get_devices=False,
+                              disable_cache=False,
+                              cache_path=cache_path)
+
+        # Test that our cookies are fully realized prior to login
+        # pylint: disable=W0212
+        self.assertIsNotNone(abode._cache['id'])
+        self.assertIsNotNone(abode._cache['password'])
+        self.assertIsNotNone(abode._cache['uuid'])
+
+        # Test that we now have a cookies file
+        self.assertTrue(os.path.exists(cache_path))
+
+        # Copy our current cookies file and data
+        first_cookies_data = abode._cache
+
+        # New abode instance reads in old data
+        abode = abodepy.Abode(username='fizz',
+                              password='buzz',
+                              auto_login=False,
+                              get_devices=False,
+                              disable_cache=False,
+                              cache_path=cache_path)
+
+        # Test that the cookie data is the same
+        self.assertEqual(abode._cache['uuid'],
+                         first_cookies_data['uuid'])
+
+        # Cleanup cookies
+        os.remove(cache_path)
+
+    @requests_mock.mock()
+    def test_empty_cookies(self, m):
+        """Check that empty cookies file is loaded successfully."""
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
+        m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
+
+        # Test empty cookies file
+        empty_cache_path = "./test_cookies_empty.pickle"
+
+        # Remove the file if it exists
+        if os.path.exists(empty_cache_path):
+            os.remove(empty_cache_path)
+
+        # Create an empty file
+        with open(empty_cache_path, 'a'):
+            os.utime(empty_cache_path, None)
+
+        # Assert that empty cookies file exists
+        self.assertTrue(os.path.exists(empty_cache_path))
+
+        # Cookies are created
+        empty_abode = abodepy.Abode(username='fizz',
+                                    password='buzz',
+                                    auto_login=True,
+                                    get_devices=False,
+                                    disable_cache=False,
+                                    cache_path=empty_cache_path)
+
+        # Test that some cache exists
+        # pylint: disable=W0212
+        self.assertIsNotNone(empty_abode._cache['id'])
+        self.assertIsNotNone(empty_abode._cache['password'])
+        self.assertIsNotNone(empty_abode._cache['uuid'])
+
+    @requests_mock.mock()
+    def test_invalid_cookies(self, m):
+        """Check that empty cookies file is loaded successfully."""
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.DEVICES_URL, text=DEVICES.EMPTY_DEVICE_RESPONSE)
+        m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
+
+        # Test empty cookies file
+        invalid_cache_path = "./test_cookies_invalid.pickle"
+
+        # Remove the file if it exists
+        if os.path.exists(invalid_cache_path):
+            os.remove(invalid_cache_path)
+
+        # Create an invalid pickle file
+        with open(invalid_cache_path, 'a') as file:
+            file.write("Invalid file goes here")
+
+        # Assert that cookies file exists
+        self.assertTrue(os.path.exists(invalid_cache_path))
+
+        # Cookies are created
+        empty_abode = abodepy.Abode(username='fizz',
+                                    password='buzz',
+                                    auto_login=True,
+                                    get_devices=False,
+                                    disable_cache=False,
+                                    cache_path=invalid_cache_path)
+
+        # Test that some cache exists
+        # pylint: disable=W0212
+        self.assertIsNotNone(empty_abode._cache['id'])
+        self.assertIsNotNone(empty_abode._cache['password'])
+        self.assertIsNotNone(empty_abode._cache['uuid'])

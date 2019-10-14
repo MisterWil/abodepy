@@ -468,7 +468,12 @@ class Abode():
             _LOGGER.debug("Cache found at: %s", self._cache_path)
             loaded_cache = UTILS.load_cache(self._cache_path)
 
-            UTILS.update(self._cache, loaded_cache)
+            if loaded_cache:
+                UTILS.update(self._cache, loaded_cache)
+            else:
+                _LOGGER.debug("Removing invalid cache file: %s",
+                              self._cache_path)
+                os.remove(self._cache_path)
 
         self._save_cache()
 
