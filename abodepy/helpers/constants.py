@@ -24,7 +24,8 @@ PROJECT_LONG_DESCRIPTION = ('abodepy is an open-source '
                             'integration into various home '
                             'automation platforms.')
 if os.path.exists('README.rst'):
-    PROJECT_LONG_DESCRIPTION = open('README.rst').read()
+    with open('README.rst') as f:
+        PROJECT_LONG_DESCRIPTION = f.read()
 PROJECT_CLASSIFIERS = [
     'Intended Audience :: Developers',
     'License :: OSI Approved :: MIT License',
