@@ -131,7 +131,7 @@ You can also block and listen for all mode and change events as they occur::
         
 If you specify one or more devices with the --device argument along with the --listen command then only those devices will listen for change events.
 
-Keyboard interupt (CTRL+C) to exit listening mode.
+Keyboard interrupt (CTRL+C) to exit listening mode.
 
 To obtain a list of automations::
 
