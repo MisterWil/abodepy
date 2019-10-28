@@ -10,6 +10,6 @@ def post_response_bad_request():
     """Return the failed logout response json."""
     return '''
         {
-            "code":400,"message":"Some logout error occured.",
+            "code":400,"message":"Some logout error occurred.",
             "detail":null
         }'''
