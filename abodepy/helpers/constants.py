@@ -77,9 +77,6 @@ AUTOMATION_ID_URL = AUTOMATION_URL + '$AUTOMATIONID$/'
 AUTOMATION_EDIT_URL = AUTOMATION_ID_URL + 'edit'
 AUTOMATION_APPLY_URL = AUTOMATION_ID_URL + 'apply'
 
-CAMS_ID_CAPTURE_URL = BASE_URL + 'api/v1/cams/$DEVID$/capture'
-
-
 TIMELINE_IMAGES_ID_URL = BASE_URL + \
     'api/v1/timeline?device_id=$DEVID$&dir=next' + \
     '&event_label=Image+Capture&size=1'
