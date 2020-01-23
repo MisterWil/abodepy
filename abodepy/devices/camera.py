@@ -23,8 +23,7 @@ class AbodeCamera(AbodeDevice):
 
     def capture(self):
         """Request a new camera image."""
-        url = str.replace(CONST.CAMS_ID_CAPTURE_URL,
-                          '$DEVID$', self.device_id)
+        url = CONST.BASE_URL + self._json_state["control_url_snapshot"]
 
         try:
             response = self._abode.send_request("put", url)
