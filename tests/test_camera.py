@@ -102,7 +102,8 @@ class TestCamera(unittest.TestCase):
         self.assertEqual(device.status, CONST.STATUS_ONLINE)
 
         # Set up capture url response
-        url = CONST.BASE_URL + IRCAMERA.CONTROL_URL
+        url = str.replace(CONST.CAMS_ID_CAPTURE_URL,
+                           '$DEVID$', IRCAMERA.DEVICE_ID)
 
         m.put(url, text=MOCK.generic_response_ok())
 
