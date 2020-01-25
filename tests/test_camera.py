@@ -8,6 +8,7 @@ import abodepy
 import abodepy.helpers.constants as CONST
 import tests.mock as MOCK
 import tests.mock.devices.ir_camera as IRCAMERA
+import tests.mock.devices.ipcam as IPCAM
 import tests.mock.login as LOGIN
 import tests.mock.oauth_claims as OAUTH_CLAIMS
 import tests.mock.logout as LOGOUT
@@ -102,8 +103,7 @@ class TestCamera(unittest.TestCase):
         self.assertEqual(device.status, CONST.STATUS_ONLINE)
 
         # Set up capture url response
-        url = str.replace(CONST.CAMS_ID_CAPTURE_URL,
-                           '$DEVID$', IRCAMERA.DEVICE_ID)
+        url = CONST.BASE_URL + IRCAMERA.CONTROL_URL
 
         m.put(url, text=MOCK.generic_response_ok())
 
@@ -115,6 +115,39 @@ class TestCamera(unittest.TestCase):
 
         # Capture the image with failure
         self.assertFalse(device.capture())
+
+    @requests_mock.mock()
+    def tests_streaming_camera_capture(self, m):
+        """Tests that streaming camera devices capture new images."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+        m.get(CONST.DEVICES_URL,
+              text=IPCAM.device(devid=IPCAM.DEVICE_ID,
+                                   status=CONST.STATUS_ONLINE,
+                                   low_battery=False,
+                                   no_response=False))
+
+        # Logout to reset everything
+        self.abode.logout()
+
+        # Get our camera
+        device = self.abode.get_device(IPCAM.DEVICE_ID)
+
+        # Test that we have our device
+        self.assertIsNotNone(device)
+        self.assertEqual(device.status, CONST.STATUS_ONLINE)
+
+        # Set up capture url response
+        url = CONST.BASE_URL + IPCAM.CONTROL_URL_SNAPSHOT
+
+        m.put(url, text=MOCK.generic_response_ok())
+
+        # Capture the image
+        self.assertTrue(device.capture())
 
     @requests_mock.mock()
     def tests_camera_image_update(self, m):
