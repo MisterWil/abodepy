@@ -78,3 +78,6 @@ EVENT_DEVICE_INVALID = (
 
 SOCKETIO_ERROR = (
     29, "SocketIO Error Packet Received")
+
+MISSING_CONTROL_URL = (
+    30, "Control URL does not exist in device JSON.")

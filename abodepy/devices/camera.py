@@ -27,8 +27,11 @@ class AbodeCamera(AbodeDevice):
         if 'control_url_snapshot' in self._json_state:
             url = CONST.BASE_URL + self._json_state['control_url_snapshot']
 
-        else:
+        elif 'control_url' in self._json_state:
             url = CONST.BASE_URL + self._json_state['control_url']
+
+        else:
+            raise AbodeException((ERROR.MISSING_CONTROL_URL))
 
         try:
             response = self._abode.send_request("put", url)
