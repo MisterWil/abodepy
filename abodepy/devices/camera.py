@@ -25,11 +25,11 @@ class AbodeCamera(AbodeDevice):
         """Request a new camera image."""
         # Check if device is an IP camera which requires
         # using control_url_snapshot for image captures
-        if self._type_tag == CONST.DEVICE_IP_CAM:
-            url = CONST.BASE_URL + self._json_state["control_url_snapshot"]
-
+        if 'control_url_snapshot' in self._json_state:
+            url = CONST.BASE_URL + self._json_state['control_url_snapshot']
+        
         else:
-            url = CONST.BASE_URL + self._json_state["control_url"]
+            url = CONST.BASE_URL + self._json_state['control_url']
 
         try:
             response = self._abode.send_request("put", url)
