@@ -124,6 +124,7 @@ def device(devid=DEVICE_ID, status=CONST.STATUS_ONLINE,
           "hframe": "1080P"
         }'''
 
+
 def get_capture_timeout():
     """Mock timeout response."""
     return '''
@@ -135,7 +136,7 @@ def get_capture_timeout():
     }'''
 
 FILE_PATH_ID = 'ZB00000305'
-FILE_PATH = 'api/storage/' + FILE_PATH_ID + '/2017-08-23/195505UTC/001.jpg'
+FILE_PATH = 'api/storage/' + FILE_PATH_ID + '/2020-01-26/173238/0.jpg'
 
 LOCATION_HEADER = 'https://www.google.com/images/branding/googlelogo/' + \
     '1x/googlelogo_color_272x92dp.png'
@@ -145,39 +146,61 @@ def timeline_event(devid=DEVICE_ID, event_code='5001', file_path=FILE_PATH):
     """Camera Timeline Event Mockup."""
     return '''
     {
-        "id": "71739948",
-        "event_utc": "1503518105",
-        "nest_activity_zones": null,
-        "nest_has_motion": null,
-        "nest_has_sound": null,
-        "nest_has_person": null,
-        "date": "08/23/2017",
-        "time": "12:55 PM",
-        "is_alarm": "0",
+        "mac": "B0:C5:CZ:54:12:9A",
+        "id": "1171272698",
+        "xml": null,
+        "date": "01/26/2020",
+        "time": "05:32 PM",
+        "event_utc": "1580088758",
         "event_cid": "",
         "event_code": "''' + event_code + '''",
         "device_id": "''' + devid + '''",
-        "device_type_id": "27",
-        "device_type": "Motion Camera",
-        "device_name": "Downstairs Motion Camera",
+        "device_type_id": "69",
+        "device_type": "IP Cam",
+        "timeline_ha_device": null,
+        "d_name": "Living Room Camera",
+        "delete_by_user": null,
+        "pin_code_user": " ",
+        "file_del_at": "",
+        "nest_has_motion": null,
+        "nest_has_sound": null,
+        "nest_has_person": null,
+        "neaz": null,
+        "hasFaults": "0",
         "file_path":"''' + file_path + '''",
         "deep_link": null,
-        "app_deep_link": null,
-        "file_size": "30852",
+        "file_name": "48755_b0c5ca37894b_2020-01-26_173238_0-M2+56431.jpg",
+        "file_size": "197207",
         "file_count": "1",
         "file_is_del": "0",
         "event_type": "Image Capture",
         "severity": "6",
         "pos": "l",
         "color": "#40bbea",
-        "viewed_by_uid": "",
-        "user_id": "1234",
-        "user_name": "Wil",
+        "is_alarm": "0",
+        "triggered_by_str": null,
+        "ha_type": null,
+        "ha_device_name": null,
+        "ha_location": null,
+        "ha_mobile": null,
+        "ha_cond": null,
+        "h_location": null,
+        "ha_trigger": null,
+        "icon": "assets/email/motion-camera.png",
+        "user_id": "95244",
+        "user_name": "Shred",
         "mobile_name": "",
         "parent_tid": "",
-        "icon": "assets/email/motion-camera.png",
         "app_type": "WebApp",
-        "file_del_at": "",
-        "event_name": "Downstairs Motion Camera Image Capture",
-        "event_by": ""
+        "viewed_by_uid": null,
+        "verified_by_tid": null,
+        "la_applied_by": null,
+        "la_event_type": null,
+        "la_culprit_mobiles": null,
+        "la_executed": null,
+        "la_applied_at": null,
+        "device_name": "Living Room Camera",
+        "event_name": "Living Room Camera Image Capture",
+        "event_by": "by Shred using WebApp",
+        "file_delete_by": ""
     }'''
