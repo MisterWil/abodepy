@@ -23,8 +23,15 @@ class AbodeCamera(AbodeDevice):
 
     def capture(self):
         """Request a new camera image."""
-        url = str.replace(CONST.CAMS_ID_CAPTURE_URL,
-                          '$DEVID$', self.device_id)
+        # Abode IP cameras use a different URL for image captures.
+        if 'control_url_snapshot' in self._json_state:
+            url = CONST.BASE_URL + self._json_state['control_url_snapshot']
+
+        elif 'control_url' in self._json_state:
+            url = CONST.BASE_URL + self._json_state['control_url']
+
+        else:
+            raise AbodeException((ERROR.MISSING_CONTROL_URL))
 
         try:
             response = self._abode.send_request("put", url)
@@ -32,6 +39,7 @@ class AbodeCamera(AbodeDevice):
             _LOGGER.debug("Capture image response: %s", response.text)
 
             return True
+
         except AbodeException as exc:
             _LOGGER.warning("Failed to capture image: %s", exc)
 
