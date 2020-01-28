@@ -82,7 +82,7 @@ def device(devid=DEVICE_ID, status=CONST.STATUS_ONLINE,
               }
           ],
           "status_icons": [],
-          "icon": "assets\/icons\/streaming-camaera-new.svg",
+          "icon": "assets/icons/streaming-camaera-new.svg",
           "control_url_snapshot":"''' + CONTROL_URL_SNAPSHOT + '''",
           "ptt_supported": true,
           "is_new_camera": 1,
@@ -134,6 +134,7 @@ def get_capture_timeout():
         "title":"",
         "detail":null
     }'''
+
 
 FILE_PATH_ID = 'ZB00000305'
 FILE_PATH = 'api/storage/' + FILE_PATH_ID + '/2020-01-26/173238/0.jpg'
