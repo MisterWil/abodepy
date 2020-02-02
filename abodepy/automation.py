@@ -18,44 +18,27 @@ class AbodeAutomation:
         self._abode = abode
         self._automation = automation
 
-    def enable(self):
+    def enable(self, enable):
         """Enable an automation."""
-        url = CONST.AUTOMATION_URL + self.automation_id
+        url = str.replace(CONST.AUTOMATION_ID_URL, '$AUTOMATIONID$',
+                          self.automation_id)
+
+        self._automation['enabled'] = enable
 
         response = self._abode.send_request(
-            method="patch", url=url, data={'enabled': True})
+            method="patch", url=url, data={'enabled': enable})
 
         response_object = json.loads(response.text)
 
-        _LOGGER.info("Automation enabled: %s", response_object['name'])
-        _LOGGER.debug("Enable automation response: %s", response.text)
+        _LOGGER.info("Set automation %s enable to: %s", self.name,
+                     str(response_object['enabled']))
+        _LOGGER.debug("Automation response: %s", response.text)
 
         if isinstance(response_object, (tuple, list)):
             response_object = response_object[0]
 
-        if str(response_object['id']) != str(self._automation['id']):
-            raise AbodeException((ERROR.INVALID_AUTOMATION_EDIT_RESPONSE))
-
-        self.update(response_object)
-
-        return True
-
-    def disable(self):
-        """Disable an automation."""
-        url = CONST.AUTOMATION_URL + self.automation_id
-
-        response = self._abode.send_request(
-            method="patch", url=url, data={'enabled': False})
-
-        response_object = json.loads(response.text)
-
-        _LOGGER.info("Automation disabled: %s", response_object['name'])
-        _LOGGER.debug("Disable automation response: %s", response.text)
-
-        if isinstance(response_object, (tuple, list)):
-            response_object = response_object[0]
-
-        if str(response_object['id']) != str(self._automation['id']):
+        if (str(response_object['id']) != str(self._automation['id']) or
+                response_object['enabled'] != self._automation['enabled']):
             raise AbodeException((ERROR.INVALID_AUTOMATION_EDIT_RESPONSE))
 
         self.update(response_object)
@@ -64,20 +47,20 @@ class AbodeAutomation:
 
     def trigger(self):
         """Trigger an automation."""
-        url = CONST.AUTOMATION_APPLY_URL
-        url = url.replace(
-            '$AUTOMATIONID$', self.automation_id)
+        url = str.replace(CONST.AUTOMATION_APPLY_URL, '$AUTOMATIONID$',
+                          self.automation_id)
 
         self._abode.send_request(
             method="post", url=url)
+
+        _LOGGER.info("Automation triggered: %s", self.name)
 
         return True
 
     def refresh(self):
         """Refresh the automation."""
-        url = CONST.AUTOMATION_ID_URL
-        url = url.replace(
-            '$AUTOMATIONID$', self.automation_id)
+        url = str.replace(CONST.AUTOMATION_ID_URL, '$AUTOMATIONID$',
+                          self.automation_id)
 
         response = self._abode.send_request(method="get", url=url)
         response_object = json.loads(response.text)
