@@ -30,6 +30,14 @@ class AbodeAutomation:
         _LOGGER.info("Automation enabled: %s", response_object['name'])
         _LOGGER.debug("Enable automation response: %s", response.text)
 
+        if isinstance(response_object, (tuple, list)):
+            response_object = response_object[0]
+
+        if str(response_object['id']) != str(self._automation['id']):
+            raise AbodeException((ERROR.INVALID_AUTOMATION_EDIT_RESPONSE))
+
+        self.update(response_object)
+
         return True
 
     def disable(self):
@@ -43,6 +51,14 @@ class AbodeAutomation:
 
         _LOGGER.info("Automation disabled: %s", response_object['name'])
         _LOGGER.debug("Disable automation response: %s", response.text)
+
+        if isinstance(response_object, (tuple, list)):
+            response_object = response_object[0]
+
+        if str(response_object['id']) != str(self._automation['id']):
+            raise AbodeException((ERROR.INVALID_AUTOMATION_EDIT_RESPONSE))
+
+        self.update(response_object)
 
         return True
 
