@@ -1,10 +1,13 @@
 """Representation of an automation configured in Abode."""
 import json
+import logging
 
 from abodepy.exceptions import AbodeException
 
 import abodepy.helpers.constants as CONST
 import abodepy.helpers.errors as ERROR
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class AbodeAutomation:
@@ -15,41 +18,42 @@ class AbodeAutomation:
         self._abode = abode
         self._automation = automation
 
-    def set_active(self, active):
-        """Activate and deactivate an automation."""
-        url = CONST.AUTOMATION_EDIT_URL
-        url = url.replace(
-            '$AUTOMATIONID$', self.automation_id)
-
-        self._automation['is_active'] = str(int(active))
+    def enable(self):
+        """Enable an automation."""
+        url = CONST.AUTOMATION_URL + self.automation_id
 
         response = self._abode.send_request(
-            method="put", url=url, data=self._automation)
+            method="patch", url=url, data={'enabled': True})
 
         response_object = json.loads(response.text)
 
-        if isinstance(response_object, (tuple, list)):
-            response_object = response_object[0]
-
-        if (str(response_object['id']) != str(self._automation['id']) or
-                response_object['is_active'] != self._automation['is_active']):
-            raise AbodeException((ERROR.INVALID_AUTOMATION_EDIT_RESPONSE))
-
-        self.update(response_object)
+        _LOGGER.info("Automation enabled: %s", response_object['name'])
+        _LOGGER.debug("Enable automation response: %s", response.text)
 
         return True
 
-    def trigger(self, only_manual=True):
-        """Trigger a quick-action automation."""
-        if not self.is_quick_action and only_manual:
-            raise AbodeException((ERROR.TRIGGER_NON_QUICKACTION))
+    def disable(self):
+        """Disable an automation."""
+        url = CONST.AUTOMATION_URL + self.automation_id
 
+        response = self._abode.send_request(
+            method="patch", url=url, data={'enabled': False})
+
+        response_object = json.loads(response.text)
+
+        _LOGGER.info("Automation disabled: %s", response_object['name'])
+        _LOGGER.debug("Disable automation response: %s", response.text)
+
+        return True
+
+    def trigger(self):
+        """Trigger an automation."""
         url = CONST.AUTOMATION_APPLY_URL
         url = url.replace(
             '$AUTOMATIONID$', self.automation_id)
 
         self._abode.send_request(
-            method="put", url=url, data=self._automation)
+            method="post", url=url)
 
         return True
 
@@ -86,40 +90,22 @@ class AbodeAutomation:
         return self._automation['name']
 
     @property
-    def generic_type(self):
-        """Get the generic type of the automation."""
-        if self.is_quick_action:
-            return CONST.TYPE_QUICK_ACTION
-
-        return CONST.TYPE_AUTOMATION
+    def is_enabled(self):
+        """Return True if the automation is enabled."""
+        return self._automation['enabled']
 
     @property
-    def type(self):
-        """Get the type of the automation."""
-        return self._automation['type']
+    def generic_type(self):
+        """Get the generic type of the automation."""
+        return CONST.TYPE_AUTOMATION
 
     @property
     def sub_type(self):
         """Get the sub type of the automation."""
-        return self._automation['sub_type']
-
-    @property
-    def is_active(self):
-        """Return if the automation is active."""
-        return int(self._automation.get('is_active', '0')) == 1
-
-    @property
-    def is_quick_action(self):
-        """Return if the automation is a quick action."""
-        return self.type == CONST.AUTOMATION_TYPE_MANUAL
+        return self._automation['subType']
 
     @property
     def desc(self):
         """Get a short description of the automation."""
-        # Auto Away (1) - Location - Enabled
-        active = 'inactive'
-        if self.is_active:
-            active = 'active'
-
-        return '{0} (ID: {1}) - {2} - {3}'.format(
-            self.name, self.automation_id, self.type, active)
+        return '{0} (ID: {1}, Enabled: {2})'.format(
+            self.name, self.automation_id, self.is_enabled)
