@@ -27,8 +27,6 @@ AID_3 = '47fae27488f74f55b964a81a066c3a03'
 class TestDevice(unittest.TestCase):
     """Test the generic AbodePy device class."""
 
-    maxDiff = None
-
     def setUp(self):
         """Set up Abode module."""
         self.abode = abodepy.Abode(username=USERNAME,
@@ -283,80 +281,80 @@ class TestDevice(unittest.TestCase):
         self.assertIsNotNone(automation_3)
         self.assertEqual(automation_3._automation, automation_json_changed[2])
 
-    # def tests_automation_enable(self, m):
-    #     """Check that automations can change their enable state."""
-    #     # Set up URL's
-    #     m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
-    #     m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
-    #     m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
-    #     m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
+    def tests_automation_enable(self, m):
+        """Check that automations can change their enable state."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL, text=PANEL.get_response_ok())
 
-    #     # Set up automation
-    #     automation_text = '[' + \
-    #         AUTOMATION.get_response_ok(
-    #             name='Test Automation One',
-    #             enabled=True,
-    #             aid=AID_1) + ']'
+        # Set up automation
+        automation_text = '[' + \
+            AUTOMATION.get_response_ok(
+                name='Test Automation One',
+                enabled=True,
+                aid=AID_1) + ']'
 
-    #     automation_json = json.loads(automation_text)
+        automation_json = json.loads(automation_text)
 
-    #     m.get(CONST.AUTOMATION_URL, text=automation_text)
+        m.get(CONST.AUTOMATION_URL, text=automation_text)
 
-    #     # Logout to reset everything
-    #     self.abode.logout()
+        # Logout to reset everything
+        self.abode.logout()
 
-    #     # Get the automation and test
-    #     # pylint: disable=W0212
-    #     automation = self.abode.get_automation(AID_1)
-    #     self.assertIsNotNone(automation)
-    #     self.assertEqual(automation._automation, automation_json[0])
-    #     self.assertTrue(automation.is_enabled)
+        # Get the automation and test
+        # pylint: disable=W0212
+        automation = self.abode.get_automation(AID_1)
+        self.assertIsNotNone(automation)
+        self.assertEqual(automation._automation, automation_json[0])
+        self.assertTrue(automation.is_enabled)
 
-    #     # Set up our active state change and URL
-    #     set_active_url = str.replace(CONST.AUTOMATION_ID_URL,
-    #                                  '$AUTOMATIONID$',
-    #                                  str(automation_json[0]['id']))
+        # Set up our active state change and URL
+        set_active_url = str.replace(CONST.AUTOMATION_ID_URL,
+                                     '$AUTOMATIONID$',
+                                     str(automation_json[0]['id']))
 
-    #     m.patch(set_active_url,
-    #             text=AUTOMATION.get_response_ok(
-    #                 name='Test Automation One',
-    #                 enabled=False,
-    #                 aid=AID_1))
+        m.patch(set_active_url,
+                text=AUTOMATION.get_response_ok(
+                    name='Test Automation One',
+                    enabled=False,
+                    aid=AID_1))
 
-    #     # Test the changed state
-    #     automation.enable(False)
-    #     self.assertFalse(automation.is_enabled)
+        # Test the changed state
+        automation.enable(False)
+        self.assertFalse(automation.is_enabled)
 
-    #     # Change the state back, this time with an array response
-    #     m.patch(set_active_url,
-    #           text='[' + AUTOMATION.get_response_ok(
-    #               name='Test Automation One',
-    #               enabled=True,
-    #               aid=AID_1) + ']')
+        # Change the state back, this time with an array response
+        m.patch(set_active_url,
+                text='[' + AUTOMATION.get_response_ok(
+                    name='Test Automation One',
+                    enabled=True,
+                    aid=AID_1) + ']')
 
-    #     # Test the changed state
-    #     automation.enable(True)
-    #     self.assertTrue(automation.is_enabled)
+        # Test the changed state
+        automation.enable(True)
+        self.assertTrue(automation.is_enabled)
 
-    #     # Test that the response returns the wrong state
-    #     m.patch(set_active_url,
-    #           text='[' + AUTOMATION.get_response_ok(
-    #               name='Test Automation One',
-    #               enabled=True,
-    #               aid=AID_1) + ']')
+        # Test that the response returns the wrong state
+        m.patch(set_active_url,
+                text='[' + AUTOMATION.get_response_ok(
+                    name='Test Automation One',
+                    enabled=True,
+                    aid=AID_1) + ']')
 
-    #     with self.assertRaises(abodepy.AbodeException):
-    #         automation.enable(False)
+        with self.assertRaises(abodepy.AbodeException):
+            automation.enable(False)
 
-    #     # Test that the response returns the wrong id
-    #     m.patch(set_active_url,
-    #           text='[' + AUTOMATION.get_response_ok(
-    #               name='Test Automation One',
-    #               enabled=True,
-    #               aid=AID_2) + ']')
+        # Test that the response returns the wrong id
+        m.patch(set_active_url,
+                text='[' + AUTOMATION.get_response_ok(
+                    name='Test Automation One',
+                    enabled=True,
+                    aid=AID_2) + ']')
 
-    #     with self.assertRaises(abodepy.AbodeException):
-    #         automation.enable(True)
+        with self.assertRaises(abodepy.AbodeException):
+            automation.enable(True)
 
     def tests_automation_trigger(self, m):
         """Check that automations can be triggered."""
