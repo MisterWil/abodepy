@@ -70,8 +70,6 @@ class TestDevice(unittest.TestCase):
                          str(automation_json['id']))
         self.assertEqual(automation.name, automation_json['name'])
         self.assertEqual(automation.is_enabled, automation_json['enabled'])
-        self.assertEqual(automation.sub_type, automation_json['subType'])
-        self.assertEqual(automation.generic_type, CONST.TYPE_AUTOMATION)
         self.assertIsNotNone(automation.desc)
 
     def tests_automation_refresh(self, m):

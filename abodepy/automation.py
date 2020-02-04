@@ -94,16 +94,6 @@ class AbodeAutomation:
         return self._automation['enabled']
 
     @property
-    def generic_type(self):
-        """Get the generic type of the automation."""
-        return CONST.TYPE_AUTOMATION
-
-    @property
-    def sub_type(self):
-        """Get the sub type of the automation."""
-        return self._automation['subType']
-
-    @property
     def desc(self):
         """Get a short description of the automation."""
         return '{0} (ID: {1}, Enabled: {2})'.format(

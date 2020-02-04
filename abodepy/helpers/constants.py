@@ -126,7 +126,6 @@ COLOR_MODE_OFF = 2
 
 # GENERIC ABODE DEVICE TYPES
 TYPE_ALARM = "alarm"
-TYPE_AUTOMATION = "automation"
 TYPE_CAMERA = "camera"
 TYPE_CONNECTIVITY = "connectivity"
 TYPE_COVER = "cover"
