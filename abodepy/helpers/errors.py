@@ -40,8 +40,8 @@ INVALID_AUTOMATION_REFRESH_RESPONSE = (
 INVALID_AUTOMATION_EDIT_RESPONSE = (
     16, "Automation edit response did not match expected values.")
 
-TRIGGER_NON_QUICKACTION = (
-    17, "Can not trigger an automation that is not a manual quick-action.")
+# TRIGGER_NON_QUICKACTION = (
+#     17, "Can not trigger an automation that is not a manual quick-action.")
 
 UNABLE_TO_MAP_DEVICE = (
     18, "Unable to map device json to device class - no type tag found.")

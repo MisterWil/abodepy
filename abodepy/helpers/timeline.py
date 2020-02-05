@@ -505,3 +505,8 @@ QUICK_ACTION = {
     'event_code': '5204',
     'event_type': 'Quick Action'
 }
+
+AUTOMATION = {
+    'event_code': '5206',
+    'event_type': 'Automation'
+}

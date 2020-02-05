@@ -1,15 +1,36 @@
 """Mock Abode Automation."""
 
 
-def get_response_ok(aid, name, is_active, the_type, sub_type=""):
+def get_response_ok(name, enabled, aid):
     """Return automation json."""
     return '''{
-        "id": ''' + str(int(aid)) + ''',
         "name": "''' + name + '''",
-        "actions": "a=1&m=2;",
-        "condition": "HHMM_2300_2300",
-        "is_active": "''' + str(int(is_active)) + '''",
-        "sub_type": "''' + sub_type + '''",
-        "type": "''' + the_type + '''",
-        "notify_msg": null
-  }'''
+        "enabled": "''' + str(enabled) + '''",
+        "version": 2,
+        "id": "''' + aid + '''",
+        "subType": "",
+        "actions": [{
+            "directive": {
+                "trait": "panel.traits.panelMode",
+                "name": "panel.directives.arm",
+                "state": {
+                    "panelMode": "AWAY"
+                }
+            }
+        }],
+        "conditions": {},
+        "triggers": {
+            "operator": "OR",
+            "expressions": [{
+                "mobileDevices": ["89381", "658"],
+                "property": {
+                    "trait": "mobile.traits.location",
+                    "name": "location",
+                    "rule": {
+                        "location": "31675",
+                        "equalTo": "LAST_OUT"
+                    }
+                }
+            }]
+        }
+    }'''
