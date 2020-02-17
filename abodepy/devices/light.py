@@ -78,7 +78,7 @@ class AbodeLight(AbodeSwitch):
             # Abode will sometimes return hue value off by 1 (rounding error)
             if not (
                     math.isclose(response_object["hue"], int(hue), abs_tol=1)
-                    or response_object["saturation"] != int(saturation)
+                    or response_object["saturation"] == int(saturation)
             ):
 
                 _LOGGER.warning(
