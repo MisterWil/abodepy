@@ -1,6 +1,7 @@
 """Abode light device."""
 import json
 import logging
+import math
 
 from abodepy.exceptions import AbodeException
 
@@ -74,8 +75,11 @@ class AbodeLight(AbodeSwitch):
             if response_object['idForPanel'] != self.device_id:
                 raise AbodeException((ERROR.SET_STATUS_DEV_ID))
 
-            if (response_object['hue'] != int(hue) or
-                    response_object['saturation'] != int(saturation)):
+            # Abode will sometimes return hue value off by 1 (rounding error)
+            hue_comparison = math.isclose(response_object["hue"],
+                                          int(hue), abs_tol=1)
+            if not hue_comparison or (response_object["saturation"]
+                                      != int(saturation)):
                 _LOGGER.warning(
                     ("Set color mismatch for device %s. "
                      "Request val: %s, Response val: %s "),
