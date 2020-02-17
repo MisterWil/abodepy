@@ -76,11 +76,10 @@ class AbodeLight(AbodeSwitch):
                 raise AbodeException((ERROR.SET_STATUS_DEV_ID))
 
             # Abode will sometimes return hue value off by 1 (rounding error)
-            if not (
-                    math.isclose(response_object["hue"], int(hue), abs_tol=1)
-                    or response_object["saturation"] == int(saturation)
-            ):
-
+            hue_comparison = math.isclose(response_object["hue"],
+                                          int(hue), abs_tol=1)
+            if not hue_comparison or (response_object["saturation"]
+                                      != int(saturation)):
                 _LOGGER.warning(
                     ("Set color mismatch for device %s. "
                      "Request val: %s, Response val: %s "),
