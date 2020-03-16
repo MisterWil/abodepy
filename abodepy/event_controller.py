@@ -23,7 +23,7 @@ class AbodeEventController():
         self._is_connected = False
 
         # Setup callback dicts
-        self._abode_status_callback = []
+        self._connection_status_callbacks = []
         self._device_callbacks = collections.defaultdict(list)
         self._event_callbacks = collections.defaultdict(list)
         self._timeline_callbacks = collections.defaultdict(list)
@@ -51,7 +51,7 @@ class AbodeEventController():
 
     def add_connection_status_callback(self, callback):
         """Add an Abode server connection status callback."""
-        self._abode_status_callback.append(callback)
+        self._connection_status_callbacks.append(callback)
 
         return True
 
@@ -176,14 +176,14 @@ class AbodeEventController():
 
         self._abode.refresh()
 
-        for callback in self._abode_status_callback:
+        for callback in self._connection_status_callbacks:
             _execute_callback(callback)
 
     def _on_socket_disconnected(self):
         """Socket IO disconnected callback."""
         self._is_connected = False
 
-        for callback in self._abode_status_callback:
+        for callback in self._connection_status_callbacks:
             _execute_callback(callback)
 
     def _on_device_update(self, devid):
