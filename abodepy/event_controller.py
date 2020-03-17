@@ -20,7 +20,7 @@ class AbodeEventController():
         self._abode = abode
         self._thread = None
         self._running = False
-        self._is_connected = False
+        self._connected = False
 
         # Setup callback dicts
         self._connection_status_callbacks = []
@@ -50,7 +50,9 @@ class AbodeEventController():
         self._socketio.stop()
 
     def add_connection_status_callback(self, callback):
-        """Add an Abode server connection status callback."""
+        """Register callback for Abode server connection status."""
+        # All callback in the list `_connection_status_callbacks` are
+        # called when the web socket is connected or disconnected
         self._connection_status_callbacks.append(callback)
 
         return True
@@ -152,9 +154,9 @@ class AbodeEventController():
         return True
 
     @property
-    def is_connected(self):
+    def connected(self):
         """Get the Abode connection status."""
-        return self._is_connected
+        return self._connected
 
     @property
     def socketio(self):
@@ -172,7 +174,7 @@ class AbodeEventController():
 
     def _on_socket_connected(self):
         """Socket IO connected callback."""
-        self._is_connected = True
+        self._connected = True
 
         self._abode.refresh()
 
@@ -181,7 +183,7 @@ class AbodeEventController():
 
     def _on_socket_disconnected(self):
         """Socket IO disconnected callback."""
-        self._is_connected = False
+        self._connected = False
 
         for callback in self._connection_status_callbacks:
             _execute_callback(callback)
