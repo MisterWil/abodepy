@@ -23,7 +23,7 @@ class AbodeEventController():
         self._connected = False
 
         # Setup callback dicts
-        self._connection_status_callbacks = []
+        self._connection_status_callbacks = collections.defaultdict(list)
         self._device_callbacks = collections.defaultdict(list)
         self._event_callbacks = collections.defaultdict(list)
         self._timeline_callbacks = collections.defaultdict(list)
@@ -49,11 +49,27 @@ class AbodeEventController():
         """Tell the subscription thread to terminate - will block."""
         self._socketio.stop()
 
-    def add_connection_status_callback(self, callback):
+    def add_connection_status_callback(self, devices, callback):
         """Register callback for Abode server connection status."""
-        # All callback in the list `_connection_status_callbacks` are
-        # called when the web socket is connected or disconnected
-        self._connection_status_callbacks.append(callback)
+        if not devices:
+            return False
+
+        if not isinstance(devices, (tuple, list)):
+            devices = [devices]
+
+        for device in devices:
+            device_id = device
+
+            if isinstance(device, AbodeDevice):
+                device_id = device.device_id
+
+            if not self._abode.get_device(device_id):
+                raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
+
+            _LOGGER.debug(
+                "Subscribing to Abode connection updates for device_id: %s", device_id)
+
+        self._connection_status_callbacks[device_id].append((callback))
 
         return True
 
@@ -108,6 +124,8 @@ class AbodeEventController():
                 "Unsubscribing from all updates for device_id: %s", device_id)
 
             self._device_callbacks[device_id].clear()
+
+            self._connection_status_callbacks[device_id].clear()
 
         return True
 
@@ -178,15 +196,18 @@ class AbodeEventController():
 
         self._abode.refresh()
 
-        for callback in self._connection_status_callbacks:
-            _execute_callback(callback)
+        for callback in self._connection_status_callbacks.items():
+            _execute_callback(callback[1][0])
 
     def _on_socket_disconnected(self):
         """Socket IO disconnected callback."""
         self._connected = False
 
-        for callback in self._connection_status_callbacks:
-            _execute_callback(callback)
+        for callback in self._connection_status_callbacks.items():
+            # Checks if list is empty for when remove_all_device_callbacks
+            # is called before _on_socket_disconnected.
+            if callback[1]:
+                _execute_callback(callback[1][0])
 
     def _on_device_update(self, devid):
         """Device callback from Abode SocketIO server."""
