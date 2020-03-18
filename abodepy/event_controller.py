@@ -61,13 +61,13 @@ class AbodeEventController():
         for device in devices:
             device_id = device
 
-            if isinstance(device, (AbodeDevice)):
+            if isinstance(device, AbodeDevice):
                 device_id = device.device_id
 
                 if not self._abode.get_device(device_id):
                     raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
 
-            if isinstance(device, (AbodeAutomation)):
+            if isinstance(device, AbodeAutomation):
                 device_id = device.automation_id
 
                 if not self._abode.get_automation(device_id):
