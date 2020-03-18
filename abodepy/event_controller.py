@@ -2,6 +2,7 @@
 import collections
 import logging
 
+from abodepy.automation import AbodeAutomation
 from abodepy.devices import AbodeDevice
 from abodepy.exceptions import AbodeException
 import abodepy.helpers.constants as CONST
@@ -60,11 +61,17 @@ class AbodeEventController():
         for device in devices:
             device_id = device
 
-            if isinstance(device, AbodeDevice):
+            if isinstance(device, (AbodeDevice)):
                 device_id = device.device_id
 
-            if not self._abode.get_device(device_id):
-                raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
+                if not self._abode.get_device(device_id):
+                    raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
+
+            if isinstance(device, (AbodeAutomation)):
+                device_id = device.automation_id
+
+                if not self._abode.get_automation(device_id):
+                    raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
 
             _LOGGER.debug(
                 "Subscribing to Abode connection updates for device_id: %s", device_id)
@@ -196,18 +203,21 @@ class AbodeEventController():
 
         self._abode.refresh()
 
-        for callback in self._connection_status_callbacks.items():
-            _execute_callback(callback[1][0])
+        for callbacks in self._connection_status_callbacks.items():
+            for callback in callbacks[1]:
+                _execute_callback(callback)
 
     def _on_socket_disconnected(self):
         """Socket IO disconnected callback."""
         self._connected = False
 
-        for callback in self._connection_status_callbacks.items():
-            # Checks if list is empty for when remove_all_device_callbacks
+        for callbacks in self._connection_status_callbacks.items():
+            # Check if list is not empty.
+            # Applicable when remove_all_device_callbacks
             # is called before _on_socket_disconnected.
-            if callback[1]:
-                _execute_callback(callback[1][0])
+            if callbacks[1]:
+                for callback in callbacks[1]:
+                    _execute_callback(callback)
 
     def _on_device_update(self, devid):
         """Device callback from Abode SocketIO server."""
