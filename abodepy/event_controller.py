@@ -74,9 +74,42 @@ class AbodeEventController():
                     raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
 
             _LOGGER.debug(
-                "Subscribing to Abode connection updates for device_id: %s", device_id)
+                "Subscribing to Abode connection updates for: %s", device_id)
 
         self._connection_status_callbacks[device_id].append((callback))
+
+        return True
+
+    def remove_connection_status_callback(self, devices):
+        """Unregister connection status callbacks."""
+        if not devices:
+            return False
+
+        if not isinstance(devices, (tuple, list)):
+            devices = [devices]
+
+        for device in devices:
+            device_id = device
+
+            if isinstance(device, AbodeDevice):
+                device_id = device.device_id
+
+                if not self._abode.get_device(device_id):
+                    raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
+
+            if isinstance(device, AbodeAutomation):
+                device_id = device.automation_id
+
+                if not self._abode.get_automation(device_id):
+                    raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
+
+            if device_id not in self._connection_status_callbacks:
+                return False
+
+            _LOGGER.debug(
+                "Unsubscribing from Abode connection updates for : %s", device_id)
+
+            self._connection_status_callbacks[device_id].clear()
 
         return True
 
@@ -131,8 +164,6 @@ class AbodeEventController():
                 "Unsubscribing from all updates for device_id: %s", device_id)
 
             self._device_callbacks[device_id].clear()
-
-            self._connection_status_callbacks[device_id].clear()
 
         return True
 
