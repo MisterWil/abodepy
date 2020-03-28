@@ -50,66 +50,27 @@ class AbodeEventController():
         """Tell the subscription thread to terminate - will block."""
         self._socketio.stop()
 
-    def add_connection_status_callback(self, devices, callback):
+    def add_connection_status_callback(self, unique_id, callback):
         """Register callback for Abode server connection status."""
-        if not devices:
+        if not unique_id:
             return False
 
-        if not isinstance(devices, (tuple, list)):
-            devices = [devices]
+        _LOGGER.debug(
+            "Subscribing to Abode connection updates for: %s", unique_id)
 
-        for device in devices:
-            device_id = device
-
-            if isinstance(device, AbodeDevice):
-                device_id = device.device_id
-
-                if not self._abode.get_device(device_id):
-                    raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
-
-            if isinstance(device, AbodeAutomation):
-                device_id = device.automation_id
-
-                if not self._abode.get_automation(device_id):
-                    raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
-
-            _LOGGER.debug(
-                "Subscribing to Abode connection updates for: %s", device_id)
-
-        self._connection_status_callbacks[device_id].append((callback))
+        self._connection_status_callbacks[unique_id].append((callback))
 
         return True
 
-    def remove_connection_status_callback(self, devices):
+    def remove_connection_status_callback(self, unique_id):
         """Unregister connection status callbacks."""
-        if not devices:
+        if not unique_id:
             return False
 
-        if not isinstance(devices, (tuple, list)):
-            devices = [devices]
+        _LOGGER.debug(
+            "Unsubscribing from Abode connection updates for : %s", unique_id)
 
-        for device in devices:
-            device_id = device
-
-            if isinstance(device, AbodeDevice):
-                device_id = device.device_id
-
-                if not self._abode.get_device(device_id):
-                    raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
-
-            if isinstance(device, AbodeAutomation):
-                device_id = device.automation_id
-
-                if not self._abode.get_automation(device_id):
-                    raise AbodeException((ERROR.EVENT_DEVICE_INVALID))
-
-            if device_id not in self._connection_status_callbacks:
-                return False
-
-            _LOGGER.debug(
-                "Unsubscribing from Abode connection updates for : %s", device_id)
-
-            self._connection_status_callbacks[device_id].clear()
+        self._connection_status_callbacks[unique_id].clear()
 
         return True
 
