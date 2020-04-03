@@ -2,7 +2,6 @@
 import collections
 import logging
 
-from abodepy.automation import AbodeAutomation
 from abodepy.devices import AbodeDevice
 from abodepy.exceptions import AbodeException
 import abodepy.helpers.constants as CONST
