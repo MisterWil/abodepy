@@ -7,7 +7,7 @@ CONTROL_URL_SNAPSHOT = 'api/v1/cams/' + DEVICE_ID + '/capture'
 
 
 def device(devid=DEVICE_ID, status=CONST.STATUS_ONLINE,
-           low_battery=False, no_response=False):
+           low_battery=False, no_response=False, privacy=1):
     """IP camera mock device."""
     return '''
         {
@@ -88,7 +88,7 @@ def device(devid=DEVICE_ID, status=CONST.STATUS_ONLINE,
           "is_new_camera": 1,
           "stream_quality": 3,
           "camera_mac": "AB:CD:EF:GF:HI",
-          "privacy": "1",
+          "privacy":"''' + str(privacy) + '''",
           "enable_audio": "1",
           "alarm_video": "25",
           "pre_alarm_video": "5",
