@@ -40,8 +40,9 @@ INVALID_AUTOMATION_REFRESH_RESPONSE = (
 INVALID_AUTOMATION_EDIT_RESPONSE = (
     16, "Automation edit response did not match expected values.")
 
-SET_PRIVACY_MODE = (
-    17, "Device privacy mode value does not match request value.")
+# DEPRECATED
+# TRIGGER_NON_QUICKACTION = (
+#     17, "Can not trigger an automation that is not a manual quick-action.")
 
 UNABLE_TO_MAP_DEVICE = (
     18, "Unable to map device json to device class - no type tag found.")
@@ -81,3 +82,6 @@ SOCKETIO_ERROR = (
 
 MISSING_CONTROL_URL = (
     30, "Control URL does not exist in device JSON.")
+
+SET_PRIVACY_MODE = (
+    31, "Device privacy mode value does not match request value.")

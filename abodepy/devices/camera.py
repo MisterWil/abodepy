@@ -123,12 +123,9 @@ class AbodeCamera(AbodeDevice):
             url = CONST.PARAMS_URL + self.device_id
 
             camera_data = {
-                'name': self.name,
                 'mac': self._json_state['camera_mac'],
                 'privacy': privacy,
                 'action': 'setParam',
-                'area': '1',
-                'no': '1',
                 'id': self.device_id
             }
 
