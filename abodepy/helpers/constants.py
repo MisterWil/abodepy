@@ -1,8 +1,8 @@
 """AbodePy constants."""
 import os
 
-MAJOR_VERSION = 0
-MINOR_VERSION = 19
+MAJOR_VERSION = 1
+MINOR_VERSION = 0
 PATCH_VERSION = '0'
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
@@ -30,7 +30,7 @@ PROJECT_CLASSIFIERS = [
     'Intended Audience :: Developers',
     'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
-    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
     'Topic :: Home Automation'
 ]
 

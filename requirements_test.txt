@@ -2,7 +2,7 @@ flake8>=3.6.0
 flake8-docstrings==1.1.0
 pylint==2.4.2
 pydocstyle==2.0.0
-pytest>=2.9.2
+pytest~=5.4,!=5.4.1
 pytest-cov>=2.3.1
 pytest-sugar>=0.8.0
 pytest-timeout>=1.0.0

@@ -141,7 +141,8 @@ class AbodeCamera(AbodeDevice):
             if response_object['privacy'] != str(privacy):
                 raise AbodeException((ERROR.SET_PRIVACY_MODE))
 
-            _LOGGER.info("Set camera %s privacy mode to: %s", self.device_id, privacy)
+            _LOGGER.info("Set camera %s privacy mode to: %s",
+                         self.device_id, privacy)
 
             return True
 
