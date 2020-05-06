@@ -53,6 +53,8 @@ LOGOUT_URL = BASE_URL + 'api/v1/logout'
 
 OAUTH_TOKEN_URL = BASE_URL + 'api/auth2/claims'
 
+PARAMS_URL = BASE_URL + 'api/v1/devices_beta/'
+
 PANEL_URL = BASE_URL + 'api/v1/panel'
 
 INTEGRATIONS_URL = BASE_URL + 'integrations/v1/devices/'

@@ -5,6 +5,7 @@ import unittest
 import requests_mock
 
 import abodepy
+from abodepy.exceptions import AbodeException
 import abodepy.helpers.constants as CONST
 import abodepy.helpers.errors as ERROR
 import tests.mock as MOCK
@@ -14,7 +15,6 @@ import tests.mock.login as LOGIN
 import tests.mock.logout as LOGOUT
 import tests.mock.oauth_claims as OAUTH_CLAIMS
 import tests.mock.panel as PANEL
-from abodepy.exceptions import AbodeException
 
 USERNAME = "foobar"
 PASSWORD = "deadbeef"
@@ -343,3 +343,34 @@ class TestCamera(unittest.TestCase):
             # Test that the image fails to update returns False
             m.get(url, text="[]")
             self.assertFalse(device.image_to_file(path, get_image=True))
+
+    def tests_camera_privacy_mode(self, m):
+        """Tests camera privacy mode."""
+        # Set up mock URLs
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+        m.get(CONST.DEVICES_URL, text=self.all_devices)
+
+        # Get the IP camera and test we have it
+        device = self.abode.get_device(IPCAM.DEVICE_ID)
+        self.assertIsNotNone(device)
+        self.assertEqual(device.status, CONST.STATUS_ONLINE)
+
+        # Set up params URL response for privacy mode on
+        m.put(CONST.PARAMS_URL + device.device_id, text=IPCAM.device(privacy=0))
+
+        # Set privacy mode on
+        self.assertTrue(device.privacy_mode(True))
+
+        # Set up params URL response for privacy mode off
+        m.put(CONST.PARAMS_URL + device.device_id, text=IPCAM.device(privacy=1))
+
+        # Set privacy mode off
+        self.assertTrue(device.privacy_mode(False))
+
+        # Test that an invalid privacy response throws exception
+        with self.assertRaises(abodepy.AbodeException):
+            device.privacy_mode(True)

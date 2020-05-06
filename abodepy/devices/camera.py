@@ -115,7 +115,44 @@ class AbodeCamera(AbodeDevice):
 
         return True
 
+    def privacy_mode(self, enable):
+        """Set camera privacy mode (camera on/off)."""
+        if self._json_state['privacy']:
+            privacy = '0' if enable else '1'
+
+            url = CONST.PARAMS_URL + self.device_id
+
+            camera_data = {
+                'mac': self._json_state['camera_mac'],
+                'privacy': privacy,
+                'action': 'setParam',
+                'id': self.device_id
+            }
+
+            response = self._abode.send_request(
+                method="put", url=url, data=camera_data)
+            response_object = json.loads(response.text)
+
+            _LOGGER.debug("Camera Privacy Mode Response: %s", response.text)
+
+            if response_object['id'] != self.device_id:
+                raise AbodeException((ERROR.SET_STATUS_DEV_ID))
+
+            if response_object['privacy'] != str(privacy):
+                raise AbodeException((ERROR.SET_PRIVACY_MODE))
+
+            _LOGGER.info("Set camera %s privacy mode to: %s", self.device_id, privacy)
+
+            return True
+
+        return False
+
     @property
     def image_url(self):
         """Get image URL."""
         return self._image_url
+
+    @property
+    def is_on(self):
+        """Get camera state (assumed on)."""
+        return self.status not in (CONST.STATUS_OFF, CONST.STATUS_OFFLINE)
