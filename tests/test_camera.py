@@ -361,14 +361,14 @@ class TestCamera(unittest.TestCase):
 
         # Set up params URL response for privacy mode on
         m.put(CONST.PARAMS_URL + device.device_id,
-              text=IPCAM.device(privacy=0))
+              text=IPCAM.device(privacy=1))
 
         # Set privacy mode on
         self.assertTrue(device.privacy_mode(True))
 
         # Set up params URL response for privacy mode off
         m.put(CONST.PARAMS_URL + device.device_id,
-              text=IPCAM.device(privacy=1))
+              text=IPCAM.device(privacy=0))
 
         # Set privacy mode off
         self.assertTrue(device.privacy_mode(False))
