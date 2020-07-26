@@ -130,21 +130,27 @@ class Abode():
         }
 
         response = self._session.post(CONST.LOGIN_URL, json=login_data)
-        response_object = json.loads(response.text)
-
-        oauth_token = self._session.get(CONST.OAUTH_TOKEN_URL)
-        oauth_token_object = json.loads(oauth_token.text)
 
         if response.status_code != 200:
             raise AbodeAuthenticationException((response.status_code,
-                                                response_object['message']))
+                                                response.text))
+
+        response_object = json.loads(response.text)
+
+        oauth_response = self._session.get(CONST.OAUTH_TOKEN_URL)
+
+        if oauth_response.status_code != 200:
+            raise AbodeAuthenticationException((oauth_response.status_code,
+                                                oauth_response.text))
+
+        oauth_response_object = json.loads(oauth_response.text)
 
         _LOGGER.debug("Login Response: %s", response.text)
 
         self._token = response_object['token']
         self._panel = response_object['panel']
         self._user = response_object['user']
-        self._oauth_token = oauth_token_object['access_token']
+        self._oauth_token = oauth_response_object['access_token']
 
         _LOGGER.info("Login successful")
 
