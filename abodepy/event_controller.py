@@ -198,9 +198,9 @@ class AbodeEventController():
         except Exception as exc:
             _LOGGER.warning("Captured exception during Abode refresh: %s", exc)
         finally:
-            # Callbacks should still execute even if refresh fails (Abode server
-            # issues) so that the entity availability in Home Assistant is updated
-            # since we are in fact connected to the web socket.
+            # Callbacks should still execute even if refresh fails (Abode
+            # server issues) so that the entity availability in Home Assistant
+            # is updated since we are in fact connected to the web socket.
             for callbacks in self._connection_status_callbacks.items():
                 for callback in callbacks[1]:
                     _execute_callback(callback)
