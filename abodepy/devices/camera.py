@@ -118,7 +118,7 @@ class AbodeCamera(AbodeDevice):
     def privacy_mode(self, enable):
         """Set camera privacy mode (camera on/off)."""
         if self._json_state['privacy']:
-            privacy = '0' if enable else '1'
+            privacy = '1' if enable else '0'
 
             url = CONST.PARAMS_URL + self.device_id
 
