@@ -192,11 +192,18 @@ class AbodeEventController():
         """Socket IO connected callback."""
         self._connected = True
 
-        self._abode.refresh()
-
-        for callbacks in self._connection_status_callbacks.items():
-            for callback in callbacks[1]:
-                _execute_callback(callback)
+        try:
+            self._abode.refresh()
+        # pylint: disable=W0703
+        except Exception as exc:
+            _LOGGER.warning("Captured exception during Abode refresh: %s", exc)
+        finally:
+            # Callbacks should still execute even if refresh fails (Abode server
+            # issues) so that the entity availability in Home Assistant is updated
+            # since we are in fact connected to the web socket.
+            for callbacks in self._connection_status_callbacks.items():
+                for callback in callbacks[1]:
+                    _execute_callback(callback)
 
     def _on_socket_disconnected(self):
         """Socket IO disconnected callback."""
