@@ -331,6 +331,6 @@ class SocketIO():
                     callback()
             # pylint: disable=W0703
             except Exception as exc:
-                _LOGGER.warning(
+                _LOGGER.exception(
                     "Captured exception during SocketIO event callback: %s",
                     exc)
