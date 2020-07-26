@@ -8,6 +8,7 @@ PANEL_FAULT_GROUP = 'abode_panel_fault'
 PANEL_RESTORE_GROUP = 'abode_panel_restore'
 DISARM_GROUP = 'abode_disarm'
 ARM_GROUP = 'abode_arm'
+ARM_FAULT_GROUP = 'abode_arm_fault'
 TEST_GROUP = 'abode_test'
 CAPTURE_GROUP = 'abode_capture'
 DEVICE_GROUP = 'abode_device'
@@ -15,8 +16,8 @@ AUTOMATION_GROUP = 'abode_automation'
 AUTOMATION_EDIT_GROUP = 'abode_automation_edited'
 
 ALL_EVENT_GROUPS = [ALARM_GROUP, ALARM_END_GROUP, PANEL_FAULT_GROUP,
-                    PANEL_RESTORE_GROUP, DISARM_GROUP, ARM_GROUP, TEST_GROUP,
-                    CAPTURE_GROUP, DEVICE_GROUP, AUTOMATION_GROUP,
+                    PANEL_RESTORE_GROUP, DISARM_GROUP, ARM_GROUP, ARM_FAULT_GROUP,
+                    TEST_GROUP, CAPTURE_GROUP, DEVICE_GROUP, AUTOMATION_GROUP,
                     AUTOMATION_EDIT_GROUP]
 
 
@@ -55,6 +56,9 @@ def map_event_code(event_code):
 
     if 5200 <= event_code <= 5299:
         return AUTOMATION_GROUP
+
+    if 6000 <= event_code <= 6100:
+        return ARM_FAULT_GROUP
 
     return None
 
@@ -509,4 +513,19 @@ QUICK_ACTION = {
 AUTOMATION = {
     'event_code': '5206',
     'event_type': 'Automation'
+}
+
+ARMING_WITH_FAULT_AWAY = {
+    'event_code': '6055',
+    'event_type': 'Exit Time Started - Arming w/ Faults - Away'
+}
+
+ARMED_WITH_FAULT_AWAY = {
+    'event_code': '6071',
+    'event_type': 'Armed w/ Faults - Away'
+}
+
+ARMED_WITH_FAULT_HOME = {
+    'event_code': '6077',
+    'event_type': 'Armed w/ Faults - Home'
 }
