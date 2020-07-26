@@ -293,15 +293,14 @@ def call():
 
             if device:
                 # pylint: disable=protected-access
-                _LOGGER.info(device_id + " JSON:\n" +
-                             json.dumps(device._json_state, sort_keys=True,
-                                        indent=4, separators=(',', ': ')))
+                print(json.dumps(device._json_state, sort_keys=True,
+                      indent=4, separators=(',', ': ')))
             else:
                 _LOGGER.warning("Could not find device with id: %s", device_id)
 
         # Print
         def _device_print(dev, append=''):
-            _LOGGER.info("%s%s",
+            print("%s%s",
                          dev.desc, append)
 
         # Print out all automations
