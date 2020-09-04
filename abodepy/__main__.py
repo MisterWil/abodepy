@@ -76,7 +76,7 @@ def get_arguments():
         '-p', '--password',
         help='Password',
         required=False)
-        
+
     parser.add_argument(
         '--mfa',
         help='Multifactor authentication code',
@@ -234,11 +234,11 @@ def call():
             abode = abodepy.Abode(username=args.username,
                                   password=args.password,
                                   get_devices=args.mfa is None)
-        
-        # Since the MFA code is very time sensitive, if the user has provided one
-        # we should use it to log in as soon as possible
+
+        # Since the MFA code is very time sensitive, if the user has provided
+        # one we should use it to log in as soon as possible
         if args.mfa:
-            abode.login(mfa_code = args.mfa)
+            abode.login(mfa_code=args.mfa)
             # Now we can fetch devices from Abode
             abode.get_devices()
 

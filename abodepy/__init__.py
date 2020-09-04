@@ -93,7 +93,7 @@ class Abode():
             self._cache[CONST.PASSWORD] = password
 
         self._save_cache()
-        
+
         # Load persisted cookies (which contains the UUID and the session ID)
         # if available
         if (CONST.COOKIES in self._cache and
@@ -135,7 +135,7 @@ class Abode():
             CONST.PASSWORD: self._cache[CONST.PASSWORD],
             CONST.UUID: self._cache[CONST.UUID]
         }
-        
+
         if mfa_code is not None:
             login_data[CONST.MFA_CODE] = mfa_code
             login_data['remember_me'] = 1
@@ -147,7 +147,7 @@ class Abode():
                                                 response.text))
 
         response_object = json.loads(response.text)
-        
+
         if response_object.get('mfa_type', None) == "google_authenticator":
             raise AbodeAuthenticationException(ERROR.MFA_CODE_REQUIRED)
 

@@ -72,6 +72,21 @@ class TestAbode(unittest.TestCase):
         self.assertEqual(self.abode_no_cred._cache[CONST.PASSWORD], PASSWORD)
 
     @requests_mock.mock()
+    def tests_manual_login_with_mfa(self, m):
+        """Check that we can login with MFA code."""
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+
+        self.abode_no_cred.login(username=USERNAME,
+                                 password=PASSWORD,
+                                 mfa_code=654321)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.abode_no_cred._cache[CONST.ID], USERNAME)
+        # pylint: disable=protected-access
+        self.assertEqual(self.abode_no_cred._cache[CONST.PASSWORD], PASSWORD)
+
+    @requests_mock.mock()
     def tests_auto_login(self, m):
         """Test that automatic login works."""
         auth_token = MOCK.AUTH_TOKEN
@@ -152,6 +167,29 @@ class TestAbode(unittest.TestCase):
         # Check that we raise an Exception with a failed login request.
         with self.assertRaises(abodepy.AbodeAuthenticationException):
             self.abode_no_cred.login(username=USERNAME, password=PASSWORD)
+
+    @requests_mock.mock()
+    def tests_login_mfa_required(self, m):
+        """Tests login with MFA code required but not supplied."""
+        m.post(CONST.LOGIN_URL,
+               text=LOGIN.post_response_mfa_code_required(), status_code=200)
+
+        # Check that we raise an Exception when the MFA code is required
+        # but not supplied
+        with self.assertRaises(abodepy.AbodeAuthenticationException):
+            self.abode_no_cred.login(username=USERNAME, password=PASSWORD)
+
+    @requests_mock.mock()
+    def tests_login_bad_mfa_code(self, m):
+        """Tests login with bad MFA code."""
+        m.post(CONST.LOGIN_URL,
+               text=LOGIN.post_response_bad_mfa_code(), status_code=400)
+
+        # Check that we raise an Exception with a bad MFA code
+        with self.assertRaises(abodepy.AbodeAuthenticationException):
+            self.abode_no_cred.login(username=USERNAME,
+                                     password=PASSWORD,
+                                     mfa_code=123456)
 
     @requests_mock.mock()
     def tests_logout_failure(self, m):
@@ -508,16 +546,25 @@ class TestAbode(unittest.TestCase):
         # Create abode
         abode = abodepy.Abode(username='fizz',
                               password='buzz',
-                              auto_login=True,
+                              auto_login=False,
                               get_devices=False,
                               disable_cache=False,
                               cache_path=cache_path)
+
+        # Mock cookie created by Abode after login
+        cookie = requests.cookies.create_cookie(name='SESSION',
+                                                value='COOKIE')
+        # pylint: disable=protected-access
+        abode._session.cookies.set_cookie(cookie)
+
+        abode.login()
 
         # Test that our cookies are fully realized prior to login
         # pylint: disable=W0212
         self.assertIsNotNone(abode._cache['id'])
         self.assertIsNotNone(abode._cache['password'])
         self.assertIsNotNone(abode._cache['uuid'])
+        self.assertIsNotNone(abode._cache['cookies'])
 
         # Test that we now have a cookies file
         self.assertTrue(os.path.exists(cache_path))
