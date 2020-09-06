@@ -69,3 +69,12 @@ def post_response_bad_mfa_code():
             "code":400,"message":"Invalid authentication key.",
             "detail":null
         }'''
+
+
+def post_response_unknown_mfa_type():
+    """Return a login response json with an unknown mfa type."""
+    return '''
+        {
+            "code":200,"mfa_type":"sms",
+            "detail":null
+        }'''

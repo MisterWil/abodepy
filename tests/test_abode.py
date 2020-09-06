@@ -192,6 +192,17 @@ class TestAbode(unittest.TestCase):
                                      mfa_code=123456)
 
     @requests_mock.mock()
+    def tests_login_unknown_mfa_type(self, m):
+        """Tests login with unknown MFA type."""
+        m.post(CONST.LOGIN_URL,
+               text=LOGIN.post_response_unknown_mfa_type(), status_code=200)
+
+        # Check that we raise an Exception with an unknown MFA type
+        with self.assertRaises(abodepy.AbodeAuthenticationException):
+            self.abode_no_cred.login(username=USERNAME,
+                                     password=PASSWORD)
+
+    @requests_mock.mock()
     def tests_logout_failure(self, m):
         """Test logout failed."""
         m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
