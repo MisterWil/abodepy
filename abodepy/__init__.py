@@ -148,11 +148,12 @@ class Abode():
 
         response_object = json.loads(response.text)
 
+        # Check for multi-factor authentication
         if 'mfa_type' in response_object:
             if response_object['mfa_type'] == "google_authenticator":
                 raise AbodeAuthenticationException(ERROR.MFA_CODE_REQUIRED)
-            else:
-                raise AbodeAuthenticationException(ERROR.UNKNOWN_MFA_TYPE)
+
+            raise AbodeAuthenticationException(ERROR.UNKNOWN_MFA_TYPE)
 
         # Persist cookies (which contains the UUID and the session ID) to disk
         if self._session.cookies.get_dict():

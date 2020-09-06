@@ -24,8 +24,8 @@ setup(
     include_package_data=True,
     install_requires=[
         'requests>=2.12.4',
-        'lomond==0.3.3',
-        'colorlog==3.0.1',
+        'lomond>=0.3.3',
+        'colorlog>=3.0.1',
     ],
     test_suite='tests',
     entry_points={
