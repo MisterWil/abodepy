@@ -51,3 +51,30 @@ def post_response_bad_request():
             "code":400,"message":"Username and password do not match.",
             "detail":null
         }'''
+
+
+def post_response_mfa_code_required():
+    """Return the MFA code required login response json."""
+    return '''
+        {
+            "code":200,"mfa_type":"google_authenticator",
+            "detail":null
+        }'''
+
+
+def post_response_bad_mfa_code():
+    """Return the bad MFA code login response json."""
+    return '''
+        {
+            "code":400,"message":"Invalid authentication key.",
+            "detail":null
+        }'''
+
+
+def post_response_unknown_mfa_type():
+    """Return a login response json with an unknown mfa type."""
+    return '''
+        {
+            "code":200,"mfa_type":"sms",
+            "detail":null
+        }'''

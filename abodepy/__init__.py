@@ -76,7 +76,8 @@ class Abode():
         self._cache = {
             CONST.ID: None,
             CONST.PASSWORD: None,
-            CONST.UUID: UTILS.gen_uuid()
+            CONST.UUID: UTILS.gen_uuid(),
+            CONST.COOKIES: None
         }
 
         # Load and merge an existing cache
@@ -93,6 +94,12 @@ class Abode():
 
         self._save_cache()
 
+        # Load persisted cookies (which contains the UUID and the session ID)
+        # if available
+        if (CONST.COOKIES in self._cache and
+                self._cache[CONST.COOKIES] is not None):
+            self._session.cookies = self._cache[CONST.COOKIES]
+
         if (self._cache[CONST.ID] is not None and
                 self._cache[CONST.PASSWORD] is not None and
                 auto_login):
@@ -104,7 +111,7 @@ class Abode():
         if get_automations:
             self.get_automations()
 
-    def login(self, username=None, password=None):
+    def login(self, username=None, password=None, mfa_code=None):
         """Explicit Abode login."""
         if username is not None:
             self._cache[CONST.ID] = username
@@ -129,6 +136,10 @@ class Abode():
             CONST.UUID: self._cache[CONST.UUID]
         }
 
+        if mfa_code is not None:
+            login_data[CONST.MFA_CODE] = mfa_code
+            login_data['remember_me'] = 1
+
         response = self._session.post(CONST.LOGIN_URL, json=login_data)
 
         if response.status_code != 200:
@@ -136,6 +147,17 @@ class Abode():
                                                 response.text))
 
         response_object = json.loads(response.text)
+
+        if 'mfa_type' in response_object:
+            if response_object['mfa_type'] == "google_authenticator":
+                raise AbodeAuthenticationException(ERROR.MFA_CODE_REQUIRED)
+            else:
+                raise AbodeAuthenticationException(ERROR.UNKNOWN_MFA_TYPE)
+
+        # Persist cookies (which contains the UUID and the session ID) to disk
+        if self._session.cookies.get_dict():
+            self._cache[CONST.COOKIES] = self._session.cookies
+            self._save_cache()
 
         oauth_response = self._session.get(CONST.OAUTH_TOKEN_URL)
 

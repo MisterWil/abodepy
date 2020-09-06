@@ -40,10 +40,12 @@ PROJECT_GITHUB_REPOSITORY = 'abodepy'
 PYPI_URL = 'https://pypi.python.org/pypi/{}'.format(PROJECT_PACKAGE_NAME)
 
 CACHE_PATH = './abode.pickle'
+COOKIES = "cookies"
 
 ID = 'id'
 PASSWORD = 'password'
 UUID = 'uuid'
+MFA_CODE = 'mfa_code'
 
 # URLS
 BASE_URL = 'https://my.goabode.com/'

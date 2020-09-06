@@ -78,6 +78,11 @@ def get_arguments():
         required=False)
 
     parser.add_argument(
+        '--mfa',
+        help='Multifactor authentication code',
+        required=False)
+
+    parser.add_argument(
         '--cache',
         metavar='pickle_file',
         help='Create/update/use a pickle cache for the username and password.',
@@ -220,15 +225,22 @@ def call():
         if args.cache and args.username and args.password:
             abode = abodepy.Abode(username=args.username,
                                   password=args.password,
-                                  get_devices=True,
+                                  get_devices=args.mfa is None,
                                   cache_path=args.cache)
         elif args.cache and not (not args.username or not args.password):
-            abode = abodepy.Abode(get_devices=True,
+            abode = abodepy.Abode(get_devices=args.mfa is None,
                                   cache_path=args.cache)
         else:
             abode = abodepy.Abode(username=args.username,
                                   password=args.password,
-                                  get_devices=True)
+                                  get_devices=args.mfa is None)
+
+        # Since the MFA code is very time sensitive, if the user has provided
+        # one we should use it to log in as soon as possible
+        if args.mfa:
+            abode.login(mfa_code=args.mfa)
+            # Now we can fetch devices from Abode
+            abode.get_devices()
 
         # Output current mode.
         if args.mode:

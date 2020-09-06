@@ -85,3 +85,9 @@ MISSING_CONTROL_URL = (
 
 SET_PRIVACY_MODE = (
     31, "Device privacy mode value does not match request value.")
+
+MFA_CODE_REQUIRED = (
+    32, "Multifactor authentication code required for login.")
+
+UNKNOWN_MFA_TYPE = (
+    33, "Unknown multifactor authentication type.")
