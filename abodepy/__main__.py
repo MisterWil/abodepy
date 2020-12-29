@@ -312,8 +312,7 @@ def call():
 
         # Print
         def _device_print(dev, append=''):
-            _LOGGER.info("%s%s",
-                  dev.desc, append)
+            _LOGGER.info("%s%s", dev.desc, append)
 
         # Print out all automations
         if args.automations:
