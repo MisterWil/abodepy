@@ -312,7 +312,7 @@ def call():
 
         # Print
         def _device_print(dev, append=''):
-            print("%s%s",
+            _LOGGER.info("%s%s",
                   dev.desc, append)
 
         # Print out all automations
