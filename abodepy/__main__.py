@@ -324,7 +324,7 @@ def call():
             automation = abode.get_automation(automation_id)
 
             if automation:
-                if automation.set_active(True):
+                if automation.enable(True):
                     _LOGGER.info(
                         "Activated automation with id: %s", automation_id)
             else:
@@ -336,7 +336,7 @@ def call():
             automation = abode.get_automation(automation_id)
 
             if automation:
-                if automation.set_active(False):
+                if automation.enable(False):
                     _LOGGER.info(
                         "Deactivated automation with id: %s", automation_id)
             else:
