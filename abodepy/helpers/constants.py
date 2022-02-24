@@ -168,6 +168,7 @@ DEVICE_MOTION_VIDEO_CAMERA = 'device_type.ir_camcoder'
 DEVICE_IP_CAM = 'device_type.ipcam'
 DEVICE_OUTDOOR_MOTION_CAMERA = 'device_type.out_view'
 DEVICE_OUTDOOR_SMART_CAMERA = 'device_type.vdp'
+DEVICE_MINI_CAM = 'device_type.mini_cam'
 
 # Covers
 DEVICE_SECURE_BARRIER = 'device_type.secure_barrier'
@@ -238,6 +239,7 @@ def get_generic_type(type_tag):
         DEVICE_IP_CAM: TYPE_CAMERA,
         DEVICE_OUTDOOR_MOTION_CAMERA: TYPE_CAMERA,
         DEVICE_OUTDOOR_SMART_CAMERA: TYPE_CAMERA,
+        DEVICE_MINI_CAM: TYPE_CAMERA,
 
         # Covers
         DEVICE_SECURE_BARRIER: TYPE_COVER,
