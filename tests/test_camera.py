@@ -1,4 +1,5 @@
 """Test the Abode camera class."""
+import base64
 import os
 import unittest
 
@@ -343,6 +344,136 @@ class TestCamera(unittest.TestCase):
             # Test that the image fails to update returns False
             m.get(url, text="[]")
             self.assertFalse(device.image_to_file(path, get_image=True))
+
+    def tests_camera_snapshot(self, m):
+        """Tests that camera devices capture new snapshots."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+        m.get(CONST.DEVICES_URL, text=self.all_devices)
+
+        # Test our camera devices
+        for device in self.abode.get_devices():
+            # Skip alarm devices
+            if device.type_tag == CONST.DEVICE_ALARM:
+                continue
+
+            # Specify which device module to use based on type_tag
+            cam_type = set_cam_type(device.type_tag)
+
+            # Test that we have the camera devices
+            self.assertIsNotNone(device)
+            self.assertEqual(device.status, CONST.STATUS_ONLINE)
+
+            # Set up snapshot URL response
+            snapshot_url = (CONST.CAMERA_INTEGRATIONS_URL +
+                            device.device_uuid + '/snapshot')
+            m.post(snapshot_url, text='{"base64Image":"test"}')
+
+            # Retrieve a snapshot
+            self.assertTrue(device.snapshot())
+
+            # Failed snapshot retrieval due to timeout response
+            m.post(snapshot_url, text=cam_type.get_capture_timeout(),
+                   status_code=600)
+            self.assertFalse(device.snapshot())
+
+            # Failed snapshot retrieval due to missing data
+            m.post(snapshot_url, text="{}")
+            self.assertFalse(device.snapshot())
+
+    def tests_camera_snapshot_write(self, m):
+        """Tests that camera snapshots will write to a file."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+        m.get(CONST.DEVICES_URL, text=self.all_devices)
+
+        # Test our camera devices
+        for device in self.abode.get_devices():
+            # Skip alarm devices
+            if device.type_tag == CONST.DEVICE_ALARM:
+                continue
+
+            # Specify which device module to use based on type_tag
+            cam_type = set_cam_type(device.type_tag)
+
+            # Test that we have our device
+            self.assertIsNotNone(device)
+            self.assertEqual(device.status, CONST.STATUS_ONLINE)
+
+            # Set up snapshot URL and image response
+            snapshot_url = (CONST.CAMERA_INTEGRATIONS_URL +
+                            device.device_uuid + '/snapshot')
+            image_response = b'this is a beautiful jpeg image'
+            b64_image = str(base64.b64encode(image_response), 'utf-8')
+            m.post(snapshot_url,
+                   text='{"base64Image":"' + b64_image + '"}')
+
+            # Request the snapshot and write to file
+            path = "test.jpg"
+            self.assertTrue(device.snapshot_to_file(path, get_snapshot=True))
+
+            # Test the file written and cleanup
+            image_data = open(path, 'rb').read()
+            self.assertTrue(image_response, image_data)
+            os.remove(path)
+
+            # Test that bad response returns False
+            m.post(snapshot_url, text=cam_type.get_capture_timeout(),
+                   status_code=600)
+            self.assertFalse(device.snapshot_to_file(path, get_snapshot=True))
+
+    def tests_camera_snapshot_data_url(self, m):
+        """Tests that camera snapshots can be converted to a data url."""
+        # Set up URL's
+        m.post(CONST.LOGIN_URL, text=LOGIN.post_response_ok())
+        m.get(CONST.OAUTH_TOKEN_URL, text=OAUTH_CLAIMS.get_response_ok())
+        m.post(CONST.LOGOUT_URL, text=LOGOUT.post_response_ok())
+        m.get(CONST.PANEL_URL,
+              text=PANEL.get_response_ok(mode=CONST.MODE_STANDBY))
+        m.get(CONST.DEVICES_URL, text=self.all_devices)
+
+        # Test our camera devices
+        for device in self.abode.get_devices():
+            # Skip alarm devices
+            if device.type_tag == CONST.DEVICE_ALARM:
+                continue
+
+            # Specify which device module to use based on type_tag
+            cam_type = set_cam_type(device.type_tag)
+
+            # Test that we have our device
+            self.assertIsNotNone(device)
+            self.assertEqual(device.status, CONST.STATUS_ONLINE)
+
+            # Set up snapshot URL and image response
+            snapshot_url = (CONST.CAMERA_INTEGRATIONS_URL +
+                            device.device_uuid + '/snapshot')
+            image_response = b'this is a beautiful jpeg image'
+            b64_image = str(base64.b64encode(image_response), 'utf-8')
+            m.post(snapshot_url,
+                   text='{"base64Image":"' + b64_image + '"}')
+
+            # Request the snapshot as a data url
+            data_url = device.snapshot_data_url(get_snapshot=True)
+
+            # Test the data url matches the image response
+            header, encoded = data_url.split(',', 1)
+            decoded = base64.b64decode(encoded)
+            self.assertEqual(header, 'data:image/jpeg;base64')
+            self.assertEqual(decoded, image_response)
+
+            # Test that bad response returns an empty string
+            m.post(snapshot_url, text=cam_type.get_capture_timeout(),
+                   status_code=600)
+            self.assertEqual(device.snapshot_data_url(get_snapshot=True), '')
 
     def tests_camera_privacy_mode(self, m):
         """Tests camera privacy mode."""
