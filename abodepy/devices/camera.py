@@ -1,4 +1,5 @@
 """Abode camera device."""
+import base64
 import json
 import logging
 from shutil import copyfileobj
@@ -20,6 +21,7 @@ class AbodeCamera(AbodeDevice):
         """Set up Abode alarm device."""
         AbodeDevice.__init__(self, json_obj, abode)
         self._image_url = None
+        self._snapshot_base64 = None
 
     def capture(self):
         """Request a new camera image."""
@@ -114,6 +116,47 @@ class AbodeCamera(AbodeDevice):
             copyfileobj(response.raw, imgfile)
 
         return True
+
+    def snapshot(self):
+        """Request the current camera snapshot as a base64-encoded string."""
+        url = CONST.CAMERA_INTEGRATIONS_URL + self._device_uuid + '/snapshot'
+
+        try:
+            response = self._abode.send_request("post", url)
+            _LOGGER.debug("Camera snapshot response: %s", response.text)
+        except AbodeException as exc:
+            _LOGGER.warning("Failed to get camera snapshot image: %s", exc)
+            return False
+
+        self._snapshot_base64 = json.loads(response.text).get('base64Image')
+        if self._snapshot_base64 is None:
+            _LOGGER.warning("Camera snapshot data missing")
+            return False
+
+        return True
+
+    def snapshot_to_file(self, path, get_snapshot=True):
+        """Write the snapshot image to a file."""
+        if not self._snapshot_base64 or get_snapshot:
+            if not self.snapshot():
+                return False
+
+        try:
+            with open(path, 'wb') as imgfile:
+                imgfile.write(base64.b64decode(self._snapshot_base64))
+        except OSError as exc:
+            _LOGGER.warning("Failed to write snapshot image to file: %s", exc)
+            return False
+
+        return True
+
+    def snapshot_data_url(self, get_snapshot=True):
+        """Return the snapshot image as a data url."""
+        if not self._snapshot_base64 or get_snapshot:
+            if not self.snapshot():
+                return ''
+
+        return 'data:image/jpeg;base64,' + self._snapshot_base64
 
     def privacy_mode(self, enable):
         """Set camera privacy mode (camera on/off)."""

@@ -60,6 +60,7 @@ PARAMS_URL = BASE_URL + 'api/v1/devices_beta/'
 PANEL_URL = BASE_URL + 'api/v1/panel'
 
 INTEGRATIONS_URL = BASE_URL + 'integrations/v1/devices/'
+CAMERA_INTEGRATIONS_URL = BASE_URL + 'integrations/v1/camera/'
 
 
 def get_panel_mode_url(area, mode):
