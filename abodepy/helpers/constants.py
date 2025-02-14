@@ -183,6 +183,9 @@ DEVICE_DOOR_LOCK = 'device_type.door_lock'
 # Moisture
 DEVICE_WATER_SENSOR = 'device_type.water_sensor'
 
+# Smoke Detector Monitor
+DEVICE_SMOKE_DETECTOR = 'device_type.smoke_detector'
+
 # Switches
 DEVICE_SWITCH = 'device_type.switch'
 DEVICE_NIGHT_SWITCH = 'device_type.night_switch'
@@ -252,6 +255,9 @@ def get_generic_type(type_tag):
 
         # Moisture
         DEVICE_WATER_SENSOR: TYPE_CONNECTIVITY,
+
+        # Smoke Detector Monitor
+        DEVICE_SMOKE_DETECTOR: TYPE_CONNECTIVITY,
 
         # Switches
         DEVICE_SWITCH: TYPE_SWITCH,
